@@ -634,5 +634,29 @@ Excluir
 
 <script src="auth.js"></script>
 
+<script>
+function toggleAuthTab(tab) {
+  const loginTab = document.getElementById('loginTab');
+  const signupTab = document.getElementById('signupTab');
+  const recoveryTab = document.getElementById('recoveryTab');
+  const resetTab = document.getElementById('resetTab');
+
+  if (loginTab) loginTab.style.display = 'none';
+  if (signupTab) signupTab.style.display = 'none';
+  if (recoveryTab) recoveryTab.style.display = 'none';
+  if (resetTab) resetTab.style.display = 'none';
+
+  if (tab === 'signup') {
+    signupTab.style.display = 'block';
+  } else if (tab === 'recovery') {
+    recoveryTab.style.display = 'block';
+  } else if (tab === 'reset') {
+    resetTab.style.display = 'block';
+  } else {
+    loginTab.style.display = 'block';
+  }
+}
+</script>
+
 </body>
 </html>
