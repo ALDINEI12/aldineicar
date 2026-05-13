@@ -96,3 +96,19 @@ async function verificarSessao() {
 }
 
 verificarSessao();
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const signupBtn =
+    document.querySelector('[onclick*="handleSignup"]');
+
+  if (signupBtn) {
+
+    signupBtn.onclick = async function (e) {
+
+      e.preventDefault();
+
+      await window.handleSignup();
+    };
+  }
+});
