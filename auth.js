@@ -112,3 +112,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
+
+window.addEventListener("load", () => {
+
+  const buttons = document.querySelectorAll("button");
+
+  buttons.forEach((btn) => {
+
+    if (
+      btn.innerText.includes("Cadastrar") ||
+      btn.textContent.includes("Cadastrar")
+    ) {
+
+      btn.onclick = async function (e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log("Cadastro Supabase acionado");
+
+        await window.handleSignup();
+
+        return false;
+      };
+    }
+  });
+});
