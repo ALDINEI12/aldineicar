@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
-<head>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALDINEICAR - Sistema Profissional</title>
@@ -631,6 +630,10 @@ Excluir
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="auth.js"></script>
+
 <script>
 window.toggleAuthTab = function(tab) {
 
@@ -657,145 +660,92 @@ window.toggleAuthTab = function(tab) {
 }
 </script>
 
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
-// ====================== SUPABASE ======================
+// ====================== CONFIGURAÇÃO SUPABASE ======================
 const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
 const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+
 const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
 // ====================== VARIÁVEIS GLOBAIS ======================
 let materiais = [];
 let maoObra = [];
+let orcamentoAtual = [];
 
-// ====================== FUNÇÕES ======================
+// ====================== FUNÇÕES PRINCIPAIS ======================
+
 function mostrarAba(aba) {
-  document.querySelectorAll('[id^="aba-"]').forEach(div => div.style.display = 'none');
-  const el = document.getElementById(`aba-${aba}`);
-  if (el) el.style.display = 'block';
+  document.querySelectorAll('.content > div[id^="aba-"]').forEach(div => {
+    div.style.display = 'none';
+  });
+  document.getElementById(`aba-${aba}`).style.display = 'block';
 }
 
+// Função de busca
 function buscar(termo) {
   termo = termo.toLowerCase();
-  document.querySelectorAll('.card').forEach(card => {
-    card.style.display = card.textContent.toLowerCase().includes(termo) ? '' : 'none';
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    const texto = card.textContent.toLowerCase();
+    card.style.display = texto.includes(termo) ? 'block' : 'none';
   });
 }
 
-// ==================== MATERIAIS ====================
-async function salvarMaterial() {
-  const nome = document.getElementById('nomeMaterial').value.trim();
-  const valor = parseFloat(document.getElementById('valorMaterial').value);
-  const categoria = document.getElementById('categoriaMaterial').value;
-
-  if (!nome || !valor) {
-    alert("Preencha nome e valor!");
-    return;
-  }
-
-  try {
-    // 1. Envia para o Banco de Dados (Supabase)
-    const { data, error } = await supabase
-      .from('materiais') // O nome da tabela no seu Supabase deve ser 'materiais'
-      .insert([{ nome, valor, categoria }]);
-
-    if (error) throw error;
-
-    // 2. Se salvou no banco, adiciona na lista local para aparecer na tela
-    materiais.push({ nome, valor, categoria });
-    
-    alert("Material salvo com sucesso no banco!");
-    fecharModal();
-    renderMateriais(); 
-
-  } catch (error) {
-    console.error("Erro completo:", error);
-    alert("Erro ao salvar: " + error.message);
-  }
-}
-
-function renderMateriais() {
-  const lista = document.getElementById('lista');
-  lista.innerHTML = '';
-  materiais.forEach(mat => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <h3>${mat.nome}</h3>
-      <p class="preco">R$ ${mat.valor.toFixed(2)}</p>
-    `;
-    lista.appendChild(card);
-  });
-}
-
-// ==================== MÃO DE OBRA ====================
-function adicionarMaoObra() {
-  const nome = document.getElementById('nomeServico').value.trim();
-  const valor = parseFloat(document.getElementById('valorServico').value);
-
-  if (!nome || !valor) {
-    alert("Preencha nome e valor da mão de obra!");
-    return;
-  }
-
-  maoObra.push({ nome, valor });
-  alert("Serviço adicionado!");
-  
-  // Limpa os campos
-  document.getElementById('nomeServico').value = '';
-  document.getElementById('valorServico').value = '';
-  
-  renderMaoObra();
-}
-
-function renderMaoObra() {
-  const lista = document.getElementById('listaMaoObra');
-  lista.innerHTML = '';
-  maoObra.forEach(serv => {
-    const div = document.createElement('div');
-    div.className = 'cliente-item';
-    div.innerHTML = `<strong>${serv.nome}</strong> - R$ ${serv.valor.toFixed(2)}`;
-    lista.appendChild(div);
-  });
-}
-
-// ==================== OUTRAS FUNÇÕES ====================
+// Gerar PDF
 function gerarPDF() {
-  alert("Gerando PDF... (ainda em desenvolvimento)");
+  if (typeof window.jspdf === "undefined") {
+    alert("Erro ao carregar o gerador de PDF");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Orçamento Aldineicar", 20, 20);
+  doc.save("orcamento.pdf");
 }
 
+// Enviar WhatsApp
 function enviarWhatsApp() {
   const cliente = document.getElementById('clienteNome').value || "Cliente";
-  alert(`Abrindo WhatsApp para ${cliente}`);
+  const total = document.getElementById('total').textContent;
+  const mensagem = `Olá ${cliente}, seu orçamento ficou em R$ ${total}.`;
+  window.open(`https://wa.me/55SEUNUMERO?text=${encodeURIComponent(mensagem)}`);
 }
 
-function limparResumo() {
-  alert("Resumo limpo!");
-}
-
+// Outras funções que você precisa criar...
 function abrirModal() { document.getElementById('modal').style.display = 'flex'; }
 function fecharModal() { document.getElementById('modal').style.display = 'none'; }
-function salvarOrcamento() { alert("Orçamento salvo!"); }
 
-// Login
-function handleLogin() {
+function salvarMaterial() {
+  alert("Material salvo! (implementar com Supabase)");
+  fecharModal();
+}
+
+// Função para mostrar app após login
+function showApp() {
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appContainer').style.display = 'flex';
-  mostrarAba('materiais');
+  mostrarAba('materiais'); // aba inicial
 }
 
-function handleSignup() {
-  alert("Conta criada!");
-  handleLogin();
-}
+// ====================== LOGIN (exemplo simples) ======================
+window.handleLogin = async function() {
+  // Implementar com Supabase Auth
+  showApp();
+};
 
-window.toggleAuthTab = function(tab) {
-  document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('signupTab').style.display = tab === 'signup' ? 'block' : 'none';
+window.handleSignup = function() {
+  alert("Cadastro - implementar com Supabase");
+  showApp();
 };
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("✅ Aldineicar carregado com sucesso!");
+  console.log("✅ Sistema Aldineicar carregado!");
+  // mostrarAba('materiais'); // se quiser pular login por enquanto para teste
 });
 </script>
 
