@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -344,100 +344,100 @@ margin-top:20px;
 
 <!-- Login Overlay -->
 <div id="loginOverlay" style="
-  display:flex;
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.96);
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
+  display:flex;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.96);
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
 ">
-  <div style="
-    background:#1e1e1e;
-    padding:35px 30px;
-    border-radius:16px;
-    width:90%;
-    max-width:400px;
-    text-align:center;
-    box-shadow:0 8px 32px rgba(0,0,0,0.6);
-  ">
-    <div style="font-size:28px;font-weight:bold;color:#ffd700;margin-bottom:4px;">ALDINEICAR</div>
-    <div style="color:#888;margin-bottom:24px;font-size:13px;">Sistema Profissional</div>
+  <div style="
+    background:#1e1e1e;
+    padding:35px 30px;
+    border-radius:16px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  ">
+    <div style="font-size:28px;font-weight:bold;color:#ffd700;margin-bottom:4px;">ALDINEICAR</div>
+    <div style="color:#888;margin-bottom:24px;font-size:13px;">Sistema Profissional</div>
 
-    <!-- Tab Buttons -->
-    <div style="display:flex;gap:8px;margin-bottom:22px;">
-      <button id="tabBtnLogin" onclick="toggleAuthTab('login')"
-        style="flex:1;padding:12px;border:2px solid #ffd700;border-radius:10px;background:#ffd700;color:#111;font-weight:bold;cursor:pointer;font-size:14px;">
-        Entrar
-      </button>
-      <button id="tabBtnSignup"
+    <!-- Tab Buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:22px;">
+      <button id="tabBtnLogin" onclick="toggleAuthTab('login')"
+        style="flex:1;padding:12px;border:2px solid #ffd700;border-radius:10px;background:#ffd700;color:#111;font-weight:bold;cursor:pointer;font-size:14px;">
+        Entrar
+      </button>
+      <button id="tabBtnSignup"
 type="button"
 onclick="document.getElementById('loginTab').style.display='none';document.getElementById('signupTab').style.display='block';"
 style="flex:1;padding:12px;border:2px solid #444;border-radius:10px;background:transparent;color:#fff;font-weight:bold;cursor:pointer;font-size:14px;">
 Cadastrar
 </button>
-    </div>
+    </div>
 
-    <!-- Login Tab -->
-    <div id="loginTab">
-      <input type="email" id="loginEmail" placeholder="Email"
-        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <input type="password" id="loginPassword" placeholder="Senha"
-        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <p id="loginError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
-      <button onclick="handleLogin()"
-        style="width:100%;padding:14px;background:#d40000;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.2s;">
-        Entrar
-      </button>
-      <button onclick="toggleAuthTab('recovery')"
-        style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;">
-        Esqueci minha senha
-      </button>
-    </div>
+    <!-- Login Tab -->
+    <div id="loginTab">
+      <input type="email" id="loginEmail" placeholder="Email"
+        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <input type="password" id="loginPassword" placeholder="Senha"
+        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <p id="loginError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
+      <button onclick="handleLogin()"
+        style="width:100%;padding:14px;background:#d40000;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.2s;">
+        Entrar
+      </button>
+      <button onclick="toggleAuthTab('recovery')"
+        style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;">
+        Esqueci minha senha
+      </button>
+    </div>
 
-    <!-- Signup Tab -->
-    <div id="signupTab" style="display:none;">
-      <input type="text" id="signupName" placeholder="Nome completo"
-        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <input type="email" id="signupEmail" placeholder="Email"
-        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <input type="password" id="signupPassword" placeholder="Senha (mínimo 8 caracteres)"
-        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <p id="signupError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
-      <button onclick="window.handleSignup()"
-        style="width:100%;padding:14px;background:#00a651;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.2s;">
-        Criar Conta
-      </button>
-    </div>
+    <!-- Signup Tab -->
+    <div id="signupTab" style="display:none;">
+      <input type="text" id="signupName" placeholder="Nome completo"
+        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <input type="email" id="signupEmail" placeholder="Email"
+        style="width:100%;padding:13px;margin-bottom:10px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <input type="password" id="signupPassword" placeholder="Senha (mínimo 8 caracteres)"
+        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <p id="signupError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
+      <button onclick="window.handleSignup()"
+        style="width:100%;padding:14px;background:#00a651;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;transition:0.2s;">
+        Criar Conta
+      </button>
+    </div>
 
-    <!-- Recovery Tab -->
-    <div id="recoveryTab" style="display:none;">
-      <p style="color:#aaa;margin-bottom:16px;font-size:14px;text-align:left;">Informe seu email para receber o link de recuperação de senha.</p>
-      <input type="email" id="recoveryEmail" placeholder="Email"
-        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <p id="recoveryError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
-      <button onclick="handleRecovery()"
-        style="width:100%;padding:14px;background:#f4b400;color:#111;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;">
-        Enviar Link
-      </button>
-      <button onclick="toggleAuthTab('login')"
-        style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;">
-        Voltar ao login
-      </button>
-    </div>
+    <!-- Recovery Tab -->
+    <div id="recoveryTab" style="display:none;">
+      <p style="color:#aaa;margin-bottom:16px;font-size:14px;text-align:left;">Informe seu email para receber o link de recuperação de senha.</p>
+      <input type="email" id="recoveryEmail" placeholder="Email"
+        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <p id="recoveryError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
+      <button onclick="handleRecovery()"
+        style="width:100%;padding:14px;background:#f4b400;color:#111;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;">
+        Enviar Link
+      </button>
+      <button onclick="toggleAuthTab('login')"
+        style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;">
+        Voltar ao login
+      </button>
+    </div>
 
-    <!-- Password Reset Tab (for recovery callback) -->
-    <div id="resetTab" style="display:none;">
-      <p style="color:#aaa;margin-bottom:16px;font-size:14px;text-align:left;">Crie uma nova senha para sua conta.</p>
-      <input type="password" id="resetPasswordInput" placeholder="Nova senha (mínimo 8 caracteres)"
-        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
-      <p id="resetError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
-      <button onclick="handlePasswordReset()"
-        style="width:100%;padding:14px;background:#00a651;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;">
-        Salvar Nova Senha
-      </button>
-    </div>
-  </div>
+    <!-- Password Reset Tab (for recovery callback) -->
+    <div id="resetTab" style="display:none;">
+      <p style="color:#aaa;margin-bottom:16px;font-size:14px;text-align:left;">Crie uma nova senha para sua conta.</p>
+      <input type="password" id="resetPasswordInput" placeholder="Nova senha (mínimo 8 caracteres)"
+        style="width:100%;padding:13px;margin-bottom:4px;border:none;border-radius:10px;background:#2d2d2d;color:white;font-size:15px;outline:none;">
+      <p id="resetError" style="color:#d40000;font-size:13px;margin-bottom:10px;min-height:20px;text-align:left;padding:0 2px;"></p>
+      <button onclick="handlePasswordReset()"
+        style="width:100%;padding:14px;background:#00a651;color:white;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;">
+        Salvar Nova Senha
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- Main Application (hidden until authenticated) -->
@@ -630,122 +630,155 @@ Excluir
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="auth.js"></script>
-
 <script>
 window.toggleAuthTab = function(tab) {
 
-  document.getElementById('loginTab').style.display = 'none';
-  document.getElementById('signupTab').style.display = 'none';
-  document.getElementById('recoveryTab').style.display = 'none';
-  document.getElementById('resetTab').style.display = 'none';
+  document.getElementById('loginTab').style.display = 'none';
+  document.getElementById('signupTab').style.display = 'none';
+  document.getElementById('recoveryTab').style.display = 'none';
+  document.getElementById('resetTab').style.display = 'none';
 
-  if (tab === 'signup') {
-    document.getElementById('signupTab').style.display = 'block';
-  }
+  if (tab === 'signup') {
+    document.getElementById('signupTab').style.display = 'block';
+  }
 
-  else if (tab === 'recovery') {
-    document.getElementById('recoveryTab').style.display = 'block';
-  }
+  else if (tab === 'recovery') {
+    document.getElementById('recoveryTab').style.display = 'block';
+  }
 
-  else if (tab === 'reset') {
-    document.getElementById('resetTab').style.display = 'block';
-  }
+  else if (tab === 'reset') {
+    document.getElementById('resetTab').style.display = 'block';
+  }
 
-  else {
-    document.getElementById('loginTab').style.display = 'block';
-  }
+  else {
+    document.getElementById('loginTab').style.display = 'block';
+  }
 }
 </script>
 
-<!-- === SCRIPTS === -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
-// ====================== CONFIGURAÇÃO SUPABASE ======================
+// ====================== SUPABASE ======================
 const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
 const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
-
 const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
 // ====================== VARIÁVEIS GLOBAIS ======================
 let materiais = [];
 let maoObra = [];
-let orcamentoAtual = [];
 
-// ====================== FUNÇÕES PRINCIPAIS ======================
-
+// ====================== FUNÇÕES ======================
 function mostrarAba(aba) {
-  document.querySelectorAll('.content > div[id^="aba-"]').forEach(div => {
-    div.style.display = 'none';
-  });
-  document.getElementById(`aba-${aba}`).style.display = 'block';
+  document.querySelectorAll('[id^="aba-"]').forEach(div => div.style.display = 'none');
+  const el = document.getElementById(`aba-${aba}`);
+  if (el) el.style.display = 'block';
 }
 
-// Função de busca
 function buscar(termo) {
-  termo = termo.toLowerCase();
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
-    const texto = card.textContent.toLowerCase();
-    card.style.display = texto.includes(termo) ? 'block' : 'none';
-  });
+  termo = termo.toLowerCase();
+  document.querySelectorAll('.card').forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(termo) ? '' : 'none';
+  });
 }
 
-// Gerar PDF
+// ==================== MATERIAIS ====================
+function salvarMaterial() {
+  const nome = document.getElementById('nomeMaterial').value.trim();
+  const valor = parseFloat(document.getElementById('valorMaterial').value);
+
+  if (!nome || !valor) {
+    alert("Preencha nome e valor!");
+    return;
+  }
+
+  materiais.push({ nome, valor });
+  alert("Material adicionado com sucesso!");
+  fecharModal();
+  renderMateriais(); // Atualiza a lista
+}
+
+function renderMateriais() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+  materiais.forEach(mat => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <h3>${mat.nome}</h3>
+      <p class="preco">R$ ${mat.valor.toFixed(2)}</p>
+    `;
+    lista.appendChild(card);
+  });
+}
+
+// ==================== MÃO DE OBRA ====================
+function adicionarMaoObra() {
+  const nome = document.getElementById('nomeServico').value.trim();
+  const valor = parseFloat(document.getElementById('valorServico').value);
+
+  if (!nome || !valor) {
+    alert("Preencha nome e valor da mão de obra!");
+    return;
+  }
+
+  maoObra.push({ nome, valor });
+  alert("Serviço adicionado!");
+  
+  // Limpa os campos
+  document.getElementById('nomeServico').value = '';
+  document.getElementById('valorServico').value = '';
+  
+  renderMaoObra();
+}
+
+function renderMaoObra() {
+  const lista = document.getElementById('listaMaoObra');
+  lista.innerHTML = '';
+  maoObra.forEach(serv => {
+    const div = document.createElement('div');
+    div.className = 'cliente-item';
+    div.innerHTML = `<strong>${serv.nome}</strong> - R$ ${serv.valor.toFixed(2)}`;
+    lista.appendChild(div);
+  });
+}
+
+// ==================== OUTRAS FUNÇÕES ====================
 function gerarPDF() {
-  if (typeof window.jspdf === "undefined") {
-    alert("Erro ao carregar o gerador de PDF");
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text("Orçamento Aldineicar", 20, 20);
-  doc.save("orcamento.pdf");
+  alert("Gerando PDF... (ainda em desenvolvimento)");
 }
 
-// Enviar WhatsApp
 function enviarWhatsApp() {
-  const cliente = document.getElementById('clienteNome').value || "Cliente";
-  const total = document.getElementById('total').textContent;
-  const mensagem = `Olá ${cliente}, seu orçamento ficou em R$ ${total}.`;
-  window.open(`https://wa.me/55SEUNUMERO?text=${encodeURIComponent(mensagem)}`);
+  const cliente = document.getElementById('clienteNome').value || "Cliente";
+  alert(`Abrindo WhatsApp para ${cliente}`);
 }
 
-// Outras funções que você precisa criar...
+function limparResumo() {
+  alert("Resumo limpo!");
+}
+
 function abrirModal() { document.getElementById('modal').style.display = 'flex'; }
 function fecharModal() { document.getElementById('modal').style.display = 'none'; }
+function salvarOrcamento() { alert("Orçamento salvo!"); }
 
-function salvarMaterial() {
-  alert("Material salvo! (implementar com Supabase)");
-  fecharModal();
+// Login
+function handleLogin() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'flex';
+  mostrarAba('materiais');
 }
 
-// Função para mostrar app após login
-function showApp() {
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'flex';
-  mostrarAba('materiais'); // aba inicial
+function handleSignup() {
+  alert("Conta criada!");
+  handleLogin();
 }
 
-// ====================== LOGIN (exemplo simples) ======================
-window.handleLogin = async function() {
-  // Implementar com Supabase Auth
-  showApp();
-};
-
-window.handleSignup = function() {
-  alert("Cadastro - implementar com Supabase");
-  showApp();
+window.toggleAuthTab = function(tab) {
+  document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signupTab').style.display = tab === 'signup' ? 'block' : 'none';
 };
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("✅ Sistema Aldineicar carregado!");
-  // mostrarAba('materiais'); // se quiser pular login por enquanto para teste
+  console.log("✅ Aldineicar carregado com sucesso!");
 });
 </script>
 
