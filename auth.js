@@ -113,31 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-window.addEventListener("load", () => {
 
-  const buttons = document.querySelectorAll("button");
-
-  buttons.forEach((btn) => {
-
-    if (
-      btn.innerText.includes("Cadastrar") ||
-      btn.textContent.includes("Cadastrar")
-    ) {
-
-      btn.onclick = async function (e) {
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        console.log("Cadastro Supabase acionado");
-
-        await window.handleSignup();
-
-        return false;
-      };
-    }
-  });
-});
 
 window.toggleAuthTab = function(tab){
 
@@ -175,46 +151,3 @@ window.toggleAuthTab = function(tab){
   }
 };
 
-function toggleAuthTab(tab) {
-  const loginTab = document.getElementById('loginTab');
-  const signupTab = document.getElementById('signupTab');
-  const recoveryTab = document.getElementById('recoveryTab');
-  const resetTab = document.getElementById('resetTab');
-
-  const loginBtn = document.getElementById('tabBtnLogin');
-  const signupBtn = document.getElementById('tabBtnSignup');
-
-  loginTab.style.display = 'none';
-  signupTab.style.display = 'none';
-  recoveryTab.style.display = 'none';
-  resetTab.style.display = 'none';
-
-  if (tab === 'signup') {
-    signupTab.style.display = 'block';
-
-    signupBtn.style.background = '#ffd700';
-    signupBtn.style.color = '#111';
-    signupBtn.style.border = '2px solid #ffd700';
-
-    loginBtn.style.background = 'transparent';
-    loginBtn.style.color = '#fff';
-    loginBtn.style.border = '2px solid #444';
-
-  } else if (tab === 'recovery') {
-    recoveryTab.style.display = 'block';
-
-  } else if (tab === 'reset') {
-    resetTab.style.display = 'block';
-
-  } else {
-    loginTab.style.display = 'block';
-
-    loginBtn.style.background = '#ffd700';
-    loginBtn.style.color = '#111';
-    loginBtn.style.border = '2px solid #ffd700';
-
-    signupBtn.style.background = 'transparent';
-    signupBtn.style.color = '#fff';
-    signupBtn.style.border = '2px solid #444';
-  }
-}
