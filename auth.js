@@ -138,3 +138,39 @@ window.addEventListener("load", () => {
     }
   });
 });
+
+window.toggleAuthTab = function(tab){
+
+  const loginTab =
+    document.getElementById("loginTab");
+
+  const signupTab =
+    document.getElementById("signupTab");
+
+  const recoveryTab =
+    document.getElementById("recoveryTab");
+
+  const resetTab =
+    document.getElementById("resetTab");
+
+  if(loginTab) loginTab.style.display = "none";
+  if(signupTab) signupTab.style.display = "none";
+  if(recoveryTab) recoveryTab.style.display = "none";
+  if(resetTab) resetTab.style.display = "none";
+
+  if(tab === "login" && loginTab){
+    loginTab.style.display = "block";
+  }
+
+  if(tab === "signup" && signupTab){
+    signupTab.style.display = "block";
+  }
+
+  if(tab === "recovery" && recoveryTab){
+    recoveryTab.style.display = "block";
+  }
+
+  if(tab === "reset" && resetTab){
+    resetTab.style.display = "block";
+  }
+};
