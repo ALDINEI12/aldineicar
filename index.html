@@ -370,10 +370,12 @@ margin-top:20px;
         style="flex:1;padding:12px;border:2px solid #ffd700;border-radius:10px;background:#ffd700;color:#111;font-weight:bold;cursor:pointer;font-size:14px;">
         Entrar
       </button>
-      <button id="tabBtnSignup" onclick="toggleAuthTab('signup')"
-        style="flex:1;padding:12px;border:2px solid #444;border-radius:10px;background:transparent;color:#fff;font-weight:bold;cursor:pointer;font-size:14px;">
-        Cadastrar
-      </button>
+      <button id="tabBtnSignup"
+type="button"
+onclick="document.getElementById('loginTab').style.display='none';document.getElementById('signupTab').style.display='block';"
+style="flex:1;padding:12px;border:2px solid #444;border-radius:10px;background:transparent;color:#fff;font-weight:bold;cursor:pointer;font-size:14px;">
+Cadastrar
+</button>
     </div>
 
     <!-- Login Tab -->
