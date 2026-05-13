@@ -1,0 +1,98 @@
+const SUPABASE_URL = "https://nhqipyzikujszddoxlir.supabase.co";
+const SUPABASE_KEY = "sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+window.handleSignup = async function () {
+
+  const email = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+  const name = document.getElementById("signupName").value.trim();
+  const error = document.getElementById("signupError");
+
+  error.textContent = "";
+
+  try {
+
+    const { error: signupError } =
+      await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
+
+    if (signupError) throw signupError;
+
+    error.style.color = "#00a651";
+    error.textContent =
+      "Conta criada com sucesso!";
+
+  } catch (err) {
+
+    error.style.color = "#d40000";
+    error.textContent = err.message;
+  }
+};
+
+window.handleLogin = async function () {
+
+  const email = document.getElementById("loginEmail").value.trim();
+
+  const password =
+    document.getElementById("loginPassword").value;
+
+  const error =
+    document.getElementById("loginError");
+
+  error.textContent = "";
+
+  try {
+
+    const { data, error: loginError } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (loginError) throw loginError;
+
+    if (data.user) {
+
+      document.getElementById("loginOverlay")
+        .style.display = "none";
+
+      document.getElementById("appContainer")
+        .style.display = "flex";
+    }
+
+  } catch (err) {
+
+    error.style.color = "#d40000";
+    error.textContent = err.message;
+  }
+};
+
+async function verificarSessao() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+
+    document.getElementById("loginOverlay")
+      .style.display = "none";
+
+    document.getElementById("appContainer")
+      .style.display = "flex";
+  }
+}
+
+verificarSessao();
