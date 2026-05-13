@@ -660,5 +660,97 @@ window.toggleAuthTab = function(tab) {
 }
 </script>
 
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ====================== CONFIGURAÇÃO SUPABASE ======================
+const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
+const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+
+const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
+// ====================== VARIÁVEIS GLOBAIS ======================
+let materiais = [];
+let maoObra = [];
+let orcamentoAtual = [];
+
+// ====================== FUNÇÕES PRINCIPAIS ======================
+
+function mostrarAba(aba) {
+  document.querySelectorAll('.content > div[id^="aba-"]').forEach(div => {
+    div.style.display = 'none';
+  });
+  document.getElementById(`aba-${aba}`).style.display = 'block';
+}
+
+// Função de busca
+function buscar(termo) {
+  termo = termo.toLowerCase();
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    const texto = card.textContent.toLowerCase();
+    card.style.display = texto.includes(termo) ? 'block' : 'none';
+  });
+}
+
+// Gerar PDF
+function gerarPDF() {
+  if (typeof window.jspdf === "undefined") {
+    alert("Erro ao carregar o gerador de PDF");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Orçamento Aldineicar", 20, 20);
+  doc.save("orcamento.pdf");
+}
+
+// Enviar WhatsApp
+function enviarWhatsApp() {
+  const cliente = document.getElementById('clienteNome').value || "Cliente";
+  const total = document.getElementById('total').textContent;
+  const mensagem = `Olá ${cliente}, seu orçamento ficou em R$ ${total}.`;
+  window.open(`https://wa.me/55SEUNUMERO?text=${encodeURIComponent(mensagem)}`);
+}
+
+// Outras funções que você precisa criar...
+function abrirModal() { document.getElementById('modal').style.display = 'flex'; }
+function fecharModal() { document.getElementById('modal').style.display = 'none'; }
+
+function salvarMaterial() {
+  alert("Material salvo! (implementar com Supabase)");
+  fecharModal();
+}
+
+// Função para mostrar app após login
+function showApp() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'flex';
+  mostrarAba('materiais'); // aba inicial
+}
+
+// ====================== LOGIN (exemplo simples) ======================
+window.handleLogin = async function() {
+  // Implementar com Supabase Auth
+  showApp();
+};
+
+window.handleSignup = function() {
+  alert("Cadastro - implementar com Supabase");
+  showApp();
+};
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("✅ Sistema Aldineicar carregado!");
+  // mostrarAba('materiais'); // se quiser pular login por enquanto para teste
+});
+</script>
+
+</body>
+</html>
+
 </body>
 </html>
