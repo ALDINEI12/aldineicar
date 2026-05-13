@@ -2,6 +2,7 @@
 <html lang="pt-br">
 
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALDINEICAR - Sistema Profissional</title>
@@ -681,19 +682,35 @@ function buscar(termo) {
 }
 
 // ==================== MATERIAIS ====================
-function salvarMaterial() {
+async function salvarMaterial() {
   const nome = document.getElementById('nomeMaterial').value.trim();
   const valor = parseFloat(document.getElementById('valorMaterial').value);
+  const categoria = document.getElementById('categoriaMaterial').value;
 
   if (!nome || !valor) {
     alert("Preencha nome e valor!");
     return;
   }
 
-  materiais.push({ nome, valor });
-  alert("Material adicionado com sucesso!");
-  fecharModal();
-  renderMateriais(); // Atualiza a lista
+  try {
+    // 1. Envia para o Banco de Dados (Supabase)
+    const { data, error } = await supabase
+      .from('materiais') // O nome da tabela no seu Supabase deve ser 'materiais'
+      .insert([{ nome, valor, categoria }]);
+
+    if (error) throw error;
+
+    // 2. Se salvou no banco, adiciona na lista local para aparecer na tela
+    materiais.push({ nome, valor, categoria });
+    
+    alert("Material salvo com sucesso no banco!");
+    fecharModal();
+    renderMateriais(); 
+
+  } catch (error) {
+    console.error("Erro completo:", error);
+    alert("Erro ao salvar: " + error.message);
+  }
 }
 
 function renderMateriais() {
