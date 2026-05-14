@@ -469,14 +469,15 @@ Cadastrar
 <button class="btn-primary" onclick="gerarPDF()">📄 Gerar PDF</button>
 </div>
 
-<div id="aba-materiais" style="display:none;">
 
- 
 <div id="aba-materiais" style="display:none;">
 
 <h2>Materiais</h2>
 
 <div id="listaMateriais"></div>
+
+</div>
+
 
 
 
@@ -516,22 +517,28 @@ Acessórios
 
 </div>
 
-<div id="aba-maoobra" style="display:none">
+
+<div id="aba-mao-obra" style="display:none;">
+
 <h2>Mão de Obra</h2>
 
-<div class="card" style="margin-bottom:20px;">
-<input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+<input type="text"
+id="nomeServico"
+placeholder="Nome do serviço">
 
-<input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+<input type="number"
+id="valorServico"
+placeholder="Valor">
 
-<button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
-<span>＋</span>
+<button class="btn-green"
+onclick="adicionarMaoObra()">
 Adicionar Serviço
 </button>
-</div>
 
 <div id="listaMaoObra"></div>
+
 </div>
+
 
 <div id="aba-clientes" style="display:none">
 <h2>Clientes</h2>
