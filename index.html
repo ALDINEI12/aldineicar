@@ -766,7 +766,6 @@ window.handleSignup = async function () {
   toggleAuthTab('login');
 };
 
-```javascript id="v7q0r4"
 // ====================== FUNÇÕES DO SISTEMA ======================
 
 function buscar(termo) {
@@ -860,23 +859,49 @@ function gerarPDF() {
 
   doc.save('orcamento.pdf');
 }
-```
 
-let totalMaoObra = 0; function adicionarMaoObra() { const nome = document.getElementById('nomeServico').value; const valor = parseFloat( document.getElementById('valorServico').value ) || 0; if (!nome || valor <= 0) { alert('Preencha os campos corretamente'); return; } totalMaoObra += valor; document.getElementById('totalMaoObra').textContent = totalMaoObra.toFixed(2); const item = document.createElement('div'); item.className = 'cliente-item'; item.innerHTML = '<strong>' + nome + '</strong>' + '<div>R$ ' + valor.toFixed(2) + '</div>'; document.getElementById('listaMaoObra') .appendChild(item); document.getElementById('nomeServico').value = ''; document.getElementById('valorServico').value = ''; }
+// ====================== MÃO DE OBRA ======================
 
-```javascript id="x5w9jk"
-function abrirModal() {
+let totalMaoObra = 0;
 
-  document.getElementById('modal').style.display =
-    'flex';
+function adicionarMaoObra() {
+
+  const nome =
+    document.getElementById('nomeServico').value;
+
+  const valor =
+    parseFloat(
+      document.getElementById('valorServico').value
+    ) || 0;
+
+  if (!nome || valor <= 0) {
+
+    alert('Preencha os campos corretamente');
+
+    return;
+  }
+
+  totalMaoObra += valor;
+
+  document.getElementById('totalMaoObra').textContent =
+    totalMaoObra.toFixed(2);
+
+  const item = document.createElement('div');
+
+  item.className = 'cliente-item';
+
+   item.innerHTML =
+  '<strong>' + nome + '</strong>' +
+  '<div>R$ ' + valor.toFixed(2) + '</div>';
+
+
+  document.getElementById('listaMaoObra')
+    .appendChild(item);
+
+  document.getElementById('nomeServico').value = '';
+
+  document.getElementById('valorServico').value = '';
 }
-
-function fecharModal() {
-
-  document.getElementById('modal').style.display =
-    'none';
-}
-```
 
 
 document.addEventListener('DOMContentLoaded', () => {
