@@ -862,6 +862,23 @@ function gerarPDF() {
 }
 ```
 
+let totalMaoObra = 0; function adicionarMaoObra() { const nome = document.getElementById('nomeServico').value; const valor = parseFloat( document.getElementById('valorServico').value ) || 0; if (!nome || valor <= 0) { alert('Preencha os campos corretamente'); return; } totalMaoObra += valor; document.getElementById('totalMaoObra').textContent = totalMaoObra.toFixed(2); const item = document.createElement('div'); item.className = 'cliente-item'; item.innerHTML = '<strong>' + nome + '</strong>' + '<div>R$ ' + valor.toFixed(2) + '</div>'; document.getElementById('listaMaoObra') .appendChild(item); document.getElementById('nomeServico').value = ''; document.getElementById('valorServico').value = ''; }
+
+```javascript id="x5w9jk"
+function abrirModal() {
+
+  document.getElementById('modal').style.display =
+    'flex';
+}
+
+function fecharModal() {
+
+  document.getElementById('modal').style.display =
+    'none';
+}
+```
+
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Sistema carregado');
 });
