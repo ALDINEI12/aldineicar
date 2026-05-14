@@ -469,34 +469,14 @@ Cadastrar
 <button class="btn-primary" onclick="gerarPDF()">📄 Gerar PDF</button>
 </div>
 
+<div id="aba-materiais" style="display:none;">
 
-
+ 
 <div id="aba-materiais" style="display:none;">
 
 <h2>Materiais</h2>
 
-<button onclick="filtrarCategoria('Todos')">
-Todos
-</button>
-
-<button onclick="filtrarCategoria('Primer')">
-Primer
-</button>
-
-<button onclick="filtrarCategoria('Tinta')">
-Tinta
-</button>
-
-<button onclick="filtrarCategoria('Verniz')">
-Verniz
-</button>
-
 <div id="listaMateriais"></div>
-
-</div>
-
-
-
 
 
 
@@ -536,29 +516,22 @@ Acessórios
 
 </div>
 
-
-<div id="aba-mao-obra" style="display:none;">
-
-
+<div id="aba-maoobra" style="display:none">
 <h2>Mão de Obra</h2>
 
-<input type="text"
-id="nomeServico"
-placeholder="Nome do serviço">
+<div class="card" style="margin-bottom:20px;">
+<input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
 
-<input type="number"
-id="valorServico"
-placeholder="Valor">
+<input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
 
-<button class="btn-green"
-onclick="adicionarMaoObra()">
+<button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
+<span>＋</span>
 Adicionar Serviço
 </button>
+</div>
 
 <div id="listaMaoObra"></div>
-
-
-
+</div>
 
 <div id="aba-clientes" style="display:none">
 <h2>Clientes</h2>
@@ -1066,24 +1039,9 @@ function adicionarMaoObra() {
 
   item.className = 'cliente-item';
 
-   
-item.innerHTML =
-
-  '<strong class="mao-nome">' +
-  nome +
-  '</strong>' +
-
-  '<div>R$ <span class="mao-valor">' +
-  valor.toFixed(2) +
-  '</span></div>' +
-
-  '<button onclick="editarMaoObra(this)" ' +
-  'style="margin-top:10px;padding:8px 12px;border:none;background:#ff9800;color:white;border-radius:8px;cursor:pointer;">Editar</button> ' +
-
-  '<button onclick="removerMaoObra(this)" ' +
-  'style="margin-top:10px;padding:8px 12px;border:none;background:#d40000;color:white;border-radius:8px;cursor:pointer;">Remover</button>';
-
-
+   item.innerHTML =
+  '<strong>' + nome + '</strong>' +
+  '<div>R$ ' + valor.toFixed(2) + '</div>';
 
 
   document.getElementById('listaMaoObra')
@@ -1269,61 +1227,6 @@ function recalcularMateriais() {
 
   document.getElementById(
     'totalMateriais'
-  ).textContent = total.toFixed(2);
-
-  atualizarResumo();
-}
-
-
-window.removerMaoObra = function(botao) {
-
-  botao.parentElement.remove();
-
-  recalcularMaoObra();
-};
-
-window.editarMaoObra = function(botao) {
-
-  const item = botao.parentElement;
-
-  const nome =
-    item.querySelector('.mao-nome');
-
-  const valor =
-    item.querySelector('.mao-valor');
-
-  nome.contentEditable = true;
-
-  valor.contentEditable = true;
-
-  nome.focus();
-
-  item.style.border =
-    '2px solid orange';
-};
-
-function recalcularMaoObra() {
-
-  let total = 0;
-
-  document.querySelectorAll(
-    '#listaMaoObra .cliente-item'
-  ).forEach(item => {
-
-    const valorTexto =
-      item.querySelector('.mao-valor')
-        .textContent;
-
-    const valor =
-      parseFloat(valorTexto) || 0;
-
-    total += valor;
-  });
-
-  totalMaoObra = total;
-
-  document.getElementById(
-    'totalMaoObra'
   ).textContent = total.toFixed(2);
 
   atualizarResumo();
