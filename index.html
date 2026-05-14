@@ -1140,6 +1140,91 @@ async function carregarMateriais() {
 }
 
 
+// ====================== MATERIAIS ======================
+
+window.removerMaterial = function(botao) {
+
+  botao.parentElement.remove();
+
+  recalcularMateriais();
+};
+
+window.editarMaterial = function(botao) {
+
+  const item = botao.parentElement;
+
+  const nome =
+    item.querySelector('.material-nome');
+
+  const valor =
+    item.querySelector('.material-valor');
+
+  nome.contentEditable = true;
+
+  valor.contentEditable = true;
+
+  nome.focus();
+
+  item.style.border =
+    '2px solid orange';
+};
+
+window.atualizarValorMaterial = function() {
+
+  recalcularMateriais();
+};
+
+window.filtrarCategoria = function(categoria) {
+
+  document.querySelectorAll(
+    '#listaMateriais .cliente-item'
+  ).forEach(item => {
+
+    if (
+      categoria === 'Todos' ||
+      item.innerText.includes(categoria)
+    ) {
+
+      item.style.display = '';
+
+    } else {
+
+      item.style.display = 'none';
+    }
+  });
+};
+
+function recalcularMateriais() {
+
+  let total = 0;
+
+  document.querySelectorAll(
+    '#listaMateriais .cliente-item'
+  ).forEach(item => {
+
+    const valorTexto =
+      item.querySelector('.material-valor')
+        .textContent;
+
+    const valor =
+      parseFloat(valorTexto) || 0;
+
+    const quantidade =
+      parseInt(
+        item.querySelector('.material-qtd').value
+      ) || 1;
+
+    total += valor * quantidade;
+  });
+
+  document.getElementById(
+    'totalMateriais'
+  ).textContent = total.toFixed(2);
+
+  atualizarResumo();
+}
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Sistema carregado');
