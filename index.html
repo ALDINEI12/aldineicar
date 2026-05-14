@@ -658,8 +658,7 @@ window.toggleAuthTab = function(tab) {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-```html id="tbql7t"
+```html id="sjj8nf"
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -677,70 +676,24 @@ const supabaseClient = supabase.createClient(
   supabaseKey
 );
 
-```
+// ====================== FUNÇÕES ======================
 
-
-
-<script>
-// ====================== CONFIGURAÇÃO SUPABASE ======================
-const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
-const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
-const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
-
-
-// ====================== FUNÇÕES PRINCIPAIS ======================
 function mostrarAba(aba) {
+
   document.querySelectorAll('[id^="aba-"]').forEach(div => {
     div.style.display = 'none';
   });
-  const abaAtual = document.getElementById(`aba-${aba}`);
-  if (abaAtual) abaAtual.style.display = 'block';
+
+  const abaAtual =
+    document.getElementById(`aba-${aba}`);
+
+  if (abaAtual) {
+    abaAtual.style.display = 'block';
+  }
 }
 
-function buscar(termo) {
-  termo = termo.toLowerCase();
-  document.querySelectorAll('.card').forEach(card => {
-    card.style.display = card.textContent.toLowerCase().includes(termo) ? '' : 'none';
-  });
-}
+// ====================== LOGIN ======================
 
-function gerarPDF() {
-  const { jsPDF } = window.jspdf || {};
-  if (!jsPDF) return alert("PDF não carregou");
-  const doc = new jsPDF();
-  doc.text("Orçamento Aldineicar", 20, 20);
-  doc.save("orcamento.pdf");
-}
-
-function enviarWhatsApp() {
-  const cliente = document.getElementById('clienteNome').value || "Cliente";
-  const total = document.getElementById('total').textContent || "0.00";
-  const mensagem = `Olá ${cliente}, seu orçamento ficou em R$ ${total}.`;
-  window.open(`https://wa.me/55SEUNUMERO?text=${encodeURIComponent(mensagem)}`);
-}
-
-function limparResumo() {
-  alert("Resumo limpo!");
-}
-
-function abrirModal() { 
-  document.getElementById('modal').style.display = 'flex'; 
-}
-
-function fecharModal() { 
-  document.getElementById('modal').style.display = 'none'; 
-}
-
-function salvarMaterial() {
-  alert("Material salvo!");
-  fecharModal();
-}
-
-function salvarOrcamento() {
-  alert("Orçamento salvo!");
-}
-
-```javascript id="tk2i3r"
 window.handleLogin = async function () {
 
   const email =
@@ -772,34 +725,53 @@ window.handleLogin = async function () {
     'flex';
 
   mostrarAba('materiais');
-}
-```
-
-
-
-function handleSignup() {
-  alert("Conta criada!");
-  handleLogin();
-}
-
-window.toggleAuthTab = function(tab) {
-  document.getElementById('loginTab').style.display = 'none';
-  document.getElementById('signupTab').style.display = 'none';
-  document.getElementById('recoveryTab').style.display = 'none';
-  document.getElementById('resetTab').style.display = 'none';
-
-  if (tab === 'signup') {
-    document.getElementById('signupTab').style.display = 'block';
-  } else {
-    document.getElementById('loginTab').style.display = 'block';
-  }
 };
 
-// Inicialização
+// ====================== CADASTRO ======================
+
+window.handleSignup = async function () {
+
+  const nome =
+    document.getElementById('signupName').value;
+
+  const email =
+    document.getElementById('signupEmail').value;
+
+  const password =
+    document.getElementById('signupPassword').value;
+
+  const { data, error } =
+    await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nome
+        }
+      }
+    });
+
+  if (error) {
+
+    console.log(error);
+
+    document.getElementById('signupError').textContent =
+      error.message;
+
+    return;
+  }
+
+  alert('Conta criada com sucesso!');
+
+  toggleAuthTab('login');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("✅ Aldineicar carregado!");
+  console.log('Sistema carregado');
 });
+
 </script>
+```
 
 </body>
 </html>
