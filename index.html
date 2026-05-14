@@ -799,19 +799,28 @@ async function salvarMaterial() {
     document.getElementById('nomeMaterial').value;
 
   const valor =
-    document.getElementById('valorMaterial').value;
+    parseFloat(
+      document.getElementById('valorMaterial').value
+    ) || 0;
 
   const categoria =
     document.getElementById('categoriaMaterial').value;
+
+  if (!nome || valor <= 0) {
+
+    alert('Preencha todos os campos');
+
+    return;
+  }
 
   const { data, error } =
     await supabaseClient
       .from('materiais')
       .insert([
         {
-          nome,
-          valor,
-          categoria
+          nome: nome,
+          valor: valor,
+          categoria: categoria
         }
       ]);
 
@@ -819,7 +828,7 @@ async function salvarMaterial() {
 
     console.log(error);
 
-    alert('Erro ao salvar material');
+    alert(error.message);
 
     return;
   }
@@ -828,6 +837,8 @@ async function salvarMaterial() {
 
   fecharModal();
 }
+
+
 
 function salvarOrcamento() {
 
