@@ -656,11 +656,37 @@ window.toggleAuthTab = function(tab) {
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+```html id="tbql7t"
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+// ====================== CONFIGURAÇÃO SUPABASE ======================
+
+const supabaseUrl =
+'https://nhqipyzikujszddoxlir.supabase.co';
+
+const supabaseKey =
+'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+
+const supabaseClient = supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+```
+
+
+
 <script>
 // ====================== CONFIGURAÇÃO SUPABASE ======================
 const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
 const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
 const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
 
 // ====================== FUNÇÕES PRINCIPAIS ======================
 function mostrarAba(aba) {
@@ -714,29 +740,41 @@ function salvarOrcamento() {
   alert("Orçamento salvo!");
 }
 
-```javascript
-async function handleLogin() {
+```javascript id="tk2i3r"
+window.handleLogin = async function () {
 
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
+  const email =
+    document.getElementById('loginEmail').value;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+  const password =
+    document.getElementById('loginPassword').value;
+
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
 
   if (error) {
+
+    console.log(error);
+
     document.getElementById('loginError').textContent =
-      'Email ou senha inválidos';
+      error.message;
+
     return;
   }
 
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'flex';
+  document.getElementById('loginOverlay').style.display =
+    'none';
+
+  document.getElementById('appContainer').style.display =
+    'flex';
 
   mostrarAba('materiais');
 }
 ```
+
 
 
 function handleSignup() {
