@@ -956,6 +956,38 @@ function adicionarMaoObra() {
 }
 
 
+function atualizarResumo() {
+
+  const materiais =
+    parseFloat(
+      document.getElementById('totalMateriais')
+        .textContent
+    ) || 0;
+
+  const mao =
+    parseFloat(
+      document.getElementById('totalMaoObra')
+        .textContent
+    ) || 0;
+
+  const valorCliente =
+    parseFloat(
+      document.getElementById('valorCliente').value
+    ) || 0;
+
+  const total = materiais + mao;
+
+  const lucro = valorCliente - total;
+
+  document.getElementById('total').textContent =
+    total.toFixed(2);
+
+  document.getElementById('lucro').textContent =
+    lucro.toFixed(2);
+}
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Sistema carregado');
 });
