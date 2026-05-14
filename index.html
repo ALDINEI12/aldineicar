@@ -832,6 +832,36 @@ async function salvarMaterial() {
       return;
     }
 
+    
+const lista =
+  document.getElementById('listaMateriais');
+
+const item = document.createElement('div');
+
+item.className = 'cliente-item';
+
+item.innerHTML =
+  '<strong>' + nome + '</strong>' +
+  '<div>R$ ' + valor.toFixed(2) + '</div>' +
+  '<small>' + categoria + '</small>';
+
+lista.appendChild(item);
+
+// atualizar total
+
+const totalAtual =
+  parseFloat(
+    document.getElementById('totalMateriais')
+      .textContent
+  ) || 0;
+
+document.getElementById('totalMateriais').textContent =
+  (totalAtual + valor).toFixed(2);
+
+atualizarResumo();
+
+
+
     alert('SALVOU!');
 
     fecharModal();
