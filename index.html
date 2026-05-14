@@ -714,12 +714,30 @@ function salvarOrcamento() {
   alert("Orçamento salvo!");
 }
 
-// Login
-function handleLogin() {
+```javascript
+async function handleLogin() {
+
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    document.getElementById('loginError').textContent =
+      'Email ou senha inválidos';
+    return;
+  }
+
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('appContainer').style.display = 'flex';
+
   mostrarAba('materiais');
 }
+```
+
 
 function handleSignup() {
   alert("Conta criada!");
