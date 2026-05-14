@@ -729,6 +729,10 @@ window.handleLogin = async function () {
     'flex';
 
   mostrarAba('materiais');
+  
+await carregarMateriais();
+
+
 };
 
 // ====================== CADASTRO ======================
@@ -1066,6 +1070,70 @@ function atualizarResumo() {
 
   document.getElementById('lucro').textContent =
     lucro.toFixed(2);
+}
+
+
+async function carregarMateriais() {
+
+  const { data, error } =
+    await supabaseClient
+      .from('materiais')
+      .select('*');
+
+  if (error) {
+
+    console.log(error);
+
+    return;
+  }
+
+  const lista =
+    document.getElementById('listaMateriais');
+
+  lista.innerHTML = '';
+
+  let total = 0;
+
+  data.forEach(material => {
+
+    total += Number(material.valor);
+
+    const item = document.createElement('div');
+
+    item.className = 'cliente-item';
+
+    item.innerHTML =
+
+      '<strong class="material-nome">' +
+      material.nome +
+      '</strong>' +
+
+      '<div>Categoria: ' +
+      material.categoria +
+      '</div>' +
+
+      '<div>R$ <span class="material-valor">' +
+      Number(material.valor).toFixed(2) +
+      '</span></div>' +
+
+      '<input type="number" value="1" min="1" ' +
+      'class="material-qtd" ' +
+      'oninput="atualizarValorMaterial()" ' +
+      'style="margin-top:10px;padding:8px;width:80px;border-radius:8px;border:none;">' +
+
+      '<button onclick="editarMaterial(this)" ' +
+      'style="margin-top:10px;padding:8px 12px;border:none;background:#ff9800;color:white;border-radius:8px;cursor:pointer;">Editar</button> ' +
+
+      '<button onclick="removerMaterial(this)" ' +
+      'style="margin-top:10px;padding:8px 12px;border:none;background:#d40000;color:white;border-radius:8px;cursor:pointer;">Remover</button>';
+
+    lista.appendChild(item);
+  });
+
+  document.getElementById('totalMateriais').textContent =
+    total.toFixed(2);
+
+  atualizarResumo();
 }
 
 
