@@ -873,6 +873,7 @@ item.innerHTML =
 
 
 
+
 window.removerMaterial = function (botao) {
 
   botao.parentElement.remove();
@@ -896,13 +897,15 @@ window.editarMaterial = function (botao) {
 
   nome.focus();
 
-  item.style.border = '2px solid orange';
+  item.style.border =
+    '2px solid orange';
 };
 
 window.atualizarValorMaterial = function () {
 
   recalcularMateriais();
 };
+
 
 function recalcularMateriais() {
 
