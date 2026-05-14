@@ -860,49 +860,6 @@ function gerarPDF() {
 
   doc.save('orcamento.pdf');
 }
-``` 
-// ====================== MÃO DE OBRA ======================
-
-let totalMaoObra = 0;
-
-function adicionarMaoObra() {
-
-  const nome =
-    document.getElementById('nomeServico').value;
-
-  const valor =
-    parseFloat(
-      document.getElementById('valorServico').value
-    ) || 0;
-
-  if (!nome || valor <= 0) {
-
-    alert('Preencha os campos corretamente');
-
-    return;
-  }
-
-  totalMaoObra += valor;
-
-  document.getElementById('totalMaoObra').textContent =
-    totalMaoObra.toFixed(2);
-
-  const item = document.createElement('div');
-
-  item.className = 'cliente-item';
-
-  item.innerHTML = `
-    <strong>${nome}</strong>
-    <div>R$ ${valor.toFixed(2)}</div>
-  `;
-
-  document.getElementById('listaMaoObra')
-    .appendChild(item);
-
-  document.getElementById('nomeServico').value = '';
-
-  document.getElementById('valorServico').value = '';
-}
 ```
 
 document.addEventListener('DOMContentLoaded', () => {
