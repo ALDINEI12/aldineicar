@@ -795,48 +795,55 @@ function fecharModal() {
 
 async function salvarMaterial() {
 
-  const nome =
-    document.getElementById('nomeMaterial').value;
+  try {
 
-  const valor =
-    parseFloat(
-      document.getElementById('valorMaterial').value
-    ) || 0;
+    const nome =
+      document.getElementById('nomeMaterial').value;
 
-  const categoria =
-    document.getElementById('categoriaMaterial').value;
+    const valor =
+      parseFloat(
+        document.getElementById('valorMaterial').value
+      ) || 0;
 
-  if (!nome || valor <= 0) {
+    const categoria =
+      document.getElementById('categoriaMaterial').value;
 
-    alert('Preencha todos os campos');
+    console.log(nome, valor, categoria);
 
-    return;
+    const { data, error } =
+      await supabaseClient
+        .from('materiais')
+        .insert([
+          {
+            nome: nome,
+            valor: valor,
+            categoria: categoria
+          }
+        ])
+        .select();
+
+    console.log('DATA:', data);
+    console.log('ERROR:', error);
+
+    if (error) {
+
+      alert(error.message);
+
+      return;
+    }
+
+    alert('SALVOU!');
+
+    fecharModal();
+
+  } catch (err) {
+
+    console.log(err);
+
+    alert(err.message);
   }
-
-  const { data, error } =
-    await supabaseClient
-      .from('materiais')
-      .insert([
-        {
-          nome: nome,
-          valor: valor,
-          categoria: categoria
-        }
-      ]);
-
-  if (error) {
-
-    console.log(error);
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert('Material salvo com sucesso!');
-
-  fecharModal();
 }
+
 
 
 
