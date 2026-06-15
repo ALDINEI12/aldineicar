@@ -907,28 +907,39 @@ window.removerMaterial = function (botao) {
 
 
 window.editarMaterial = function(botao) {
+    console.log("✅ Botão Editar clicado!"); // debug
+
     const item = botao.parentElement;
     const nomeAtual = item.querySelector('.material-nome').textContent.trim();
     const valorAtual = item.querySelector('.material-valor').textContent.trim();
     
     let categoriaAtual = "Tinta";
-    const textoItem = item.textContent;
+    const textoItem = item.textContent || "";
     if (textoItem.includes("Primer")) categoriaAtual = "Primer";
     else if (textoItem.includes("Verniz")) categoriaAtual = "Verniz";
     else if (textoItem.includes("Massa")) categoriaAtual = "Massa";
     else if (textoItem.includes("Thinner")) categoriaAtual = "Thinner";
     else if (textoItem.includes("Acessórios")) categoriaAtual = "Acessórios";
 
-    // Preenche os campos do modal
+    console.log("Dados encontrados:", {nomeAtual, valorAtual, categoriaAtual});
+
+    // Preenche o modal
     document.getElementById('editNomeMaterial').value = nomeAtual;
     document.getElementById('editValorMaterial').value = parseFloat(valorAtual) || 0;
     document.getElementById('editCategoriaMaterial').value = categoriaAtual;
 
-    // Guarda referência do item
-    document.getElementById('modalEditar').dataset.itemElement = item;
+    const modalEditar = document.getElementById('modalEditar');
+    
+    if (!modalEditar) {
+        console.error("❌ Modal com ID 'modalEditar' não encontrado!");
+        alert("Erro: Modal de edição não encontrado!");
+        return;
+    }
 
-    // Abre o modal
-    document.getElementById('modalEditar').style.display = 'flex';
+    modalEditar.dataset.itemElement = item;
+    modalEditar.style.display = 'flex';
+    
+    console.log("✅ Modal deve estar visível agora");
 };
 // ====================== SALVAR EDIÇÃO DO MATERIAL ======================
 window.salvarEdicaoMaterial = async function() {
