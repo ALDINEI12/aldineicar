@@ -906,9 +906,7 @@ window.removerMaterial = function (botao) {
 // ====================== EDITAR MATERIAL ======================
 
 
-window.editarMaterial = async function(botao) {
-    alert("✅ Função editarMaterial foi chamada!");   // ← Teste
-    
+window.editarMaterial = function(botao) {
     const item = botao.parentElement;
     const nomeAtual = item.querySelector('.material-nome').textContent.trim();
     const valorAtual = item.querySelector('.material-valor').textContent.trim();
@@ -921,14 +919,17 @@ window.editarMaterial = async function(botao) {
     else if (textoItem.includes("Thinner")) categoriaAtual = "Thinner";
     else if (textoItem.includes("Acessórios")) categoriaAtual = "Acessórios";
 
+    // Preenche os campos do modal
     document.getElementById('editNomeMaterial').value = nomeAtual;
     document.getElementById('editValorMaterial').value = parseFloat(valorAtual) || 0;
     document.getElementById('editCategoriaMaterial').value = categoriaAtual;
 
+    // Guarda referência do item
     document.getElementById('modalEditar').dataset.itemElement = item;
+
+    // Abre o modal
     document.getElementById('modalEditar').style.display = 'flex';
 };
-
 // ====================== SALVAR EDIÇÃO DO MATERIAL ======================
 window.salvarEdicaoMaterial = async function() {
     const modal = document.getElementById('modalEditar');
