@@ -564,6 +564,28 @@ Adicionar Serviço
 </div><!-- end #appContainer -->
 
 <div class="modal" id="modal">
+  <!-- Modal de Edição de Material -->
+<div class="modal" id="modalEditar">
+  <div class="modal-content">
+    <h2 style="color:white;">Editar Material</h2>
+    
+    <input type="hidden" id="editMaterialId"> <!-- para guardar o ID -->
+    
+    <input type="text" id="editNomeMaterial" placeholder="Nome do material">
+    <input type="number" id="editValorMaterial" placeholder="Valor" step="0.01">
+    <select id="editCategoriaMaterial">
+      <option value="Primer">Primer</option>
+      <option value="Tinta">Tinta</option>
+      <option value="Verniz">Verniz</option>
+      <option value="Massa">Massa</option>
+      <option value="Thinner">Thinner</option>
+      <option value="Acessórios">Acessórios</option>
+    </select>
+    
+    <button class="btn-green" onclick="salvarEdicaoMaterial()">Salvar Alterações</button>
+    <button class="btn-primary" onclick="fecharModalEditar()">Cancelar</button>
+  </div>
+</div>
 <div class="modal-content">
 <h2 style="color:white;">Novo Material</h2>
 <input type="text" id="nomeMaterial" placeholder="Nome">
@@ -881,24 +903,73 @@ window.removerMaterial = function (botao) {
   recalcularMateriais();
 };
 
-window.editarMaterial = function (botao) {
+// ====================== EDITAR MATERIAL ======================
 
-  const item = botao.parentElement;
 
-  const nome =
-    item.querySelector('.material-nome');
+window.editarMaterial = async function(botao) {
+    const item = botao.parentElement;
+    const nomeAtual = item.querySelector('.material-nome').textContent.trim();
+    const valorAtual = item.querySelector('.material-valor').textContent.trim();
+    
+    // Tenta pegar a categoria (pode não ter em todos os itens)
+    let categoriaAtual = "Tinta"; // valor padrão
+    const textoItem = item.textContent;
+    if (textoItem.includes("Primer")) categoriaAtual = "Primer";
+    else if (textoItem.includes("Verniz")) categoriaAtual = "Verniz";
+    else if (textoItem.includes("Massa")) categoriaAtual = "Massa";
+    else if (textoItem.includes("Thinner")) categoriaAtual = "Thinner";
+    else if (textoItem.includes("Acessórios")) categoriaAtual = "Acessórios";
 
-  const valor =
-    item.querySelector('.material-valor');
+    // Preenche o modal
+    document.getElementById('editNomeMaterial').value = nomeAtual;
+    document.getElementById('editValorMaterial').value = parseFloat(valorAtual);
+    document.getElementById('editCategoriaMaterial').value = categoriaAtual;
 
-  nome.contentEditable = true;
+    // Guarda referência do item que está sendo editado
+    document.getElementById('modalEditar').dataset.itemElement = item;
 
-  valor.contentEditable = true;
+    document.getElementById('modalEditar').style.display = 'flex';
+};
 
-  nome.focus();
 
-  item.style.border =
-    '2px solid orange';
+
+// ====================== FECHAR MODAL EDIÇÃO ======================
+
+
+window.fecharModalEditar = function() {
+    document.getElementById('modalEditar').style.display = 'none';
+};
+
+// ====================== SALVAR EDIÇÃO DO MATERIAL ======================
+window.salvarEdicaoMaterial = async function() {
+    const modal = document.getElementById('modalEditar');
+    const itemElement = modal.dataset.itemElement; // referência ao card na tela
+
+    if (!itemElement) return;
+
+    const novoNome = document.getElementById('editNomeMaterial').value.trim();
+    const novoValor = parseFloat(document.getElementById('editValorMaterial').value) || 0;
+    const novaCategoria = document.getElementById('editCategoriaMaterial').value;
+
+    if (!novoNome || novoValor <= 0) {
+        alert("Nome e valor são obrigatórios!");
+        return;
+    }
+
+    // Atualiza visualmente na tela
+    itemElement.querySelector('.material-nome').textContent = novoNome;
+    itemElement.querySelector('.material-valor').textContent = novoValor.toFixed(2);
+
+    // Atualiza a categoria se possível
+    const categoriaDiv = itemElement.querySelector('div');
+    if (categoriaDiv) {
+        categoriaDiv.textContent = 'Categoria: ' + novaCategoria;
+    }
+
+    recalcularMateriais();
+    fecharModalEditar();
+
+    alert("Material editado com sucesso!");
 };
 
 window.atualizarValorMaterial = function () {
