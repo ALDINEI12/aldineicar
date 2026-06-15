@@ -907,12 +907,13 @@ window.removerMaterial = function (botao) {
 
 
 window.editarMaterial = async function(botao) {
+    alert("✅ Função editarMaterial foi chamada!");   // ← Teste
+    
     const item = botao.parentElement;
     const nomeAtual = item.querySelector('.material-nome').textContent.trim();
     const valorAtual = item.querySelector('.material-valor').textContent.trim();
     
-    // Tenta pegar a categoria (pode não ter em todos os itens)
-    let categoriaAtual = "Tinta"; // valor padrão
+    let categoriaAtual = "Tinta";
     const textoItem = item.textContent;
     if (textoItem.includes("Primer")) categoriaAtual = "Primer";
     else if (textoItem.includes("Verniz")) categoriaAtual = "Verniz";
@@ -920,24 +921,12 @@ window.editarMaterial = async function(botao) {
     else if (textoItem.includes("Thinner")) categoriaAtual = "Thinner";
     else if (textoItem.includes("Acessórios")) categoriaAtual = "Acessórios";
 
-    // Preenche o modal
     document.getElementById('editNomeMaterial').value = nomeAtual;
-    document.getElementById('editValorMaterial').value = parseFloat(valorAtual);
+    document.getElementById('editValorMaterial').value = parseFloat(valorAtual) || 0;
     document.getElementById('editCategoriaMaterial').value = categoriaAtual;
 
-    // Guarda referência do item que está sendo editado
     document.getElementById('modalEditar').dataset.itemElement = item;
-
     document.getElementById('modalEditar').style.display = 'flex';
-};
-
-
-
-// ====================== FECHAR MODAL EDIÇÃO ======================
-
-
-window.fecharModalEditar = function() {
-    document.getElementById('modalEditar').style.display = 'none';
 };
 
 // ====================== SALVAR EDIÇÃO DO MATERIAL ======================
@@ -1148,66 +1137,45 @@ function atualizarResumo() {
 
 
 async function carregarMateriais() {
-
-  const { data, error } =
-    await supabaseClient
-      .from('materiais')
-      .select('*');
+  const { data, error } = await supabaseClient
+    .from('materiais')
+    .select('*')
+    .order('nome');
 
   if (error) {
-
-    console.log(error);
-
+    console.error("Erro ao carregar materiais:", error);
     return;
   }
 
-  const lista =
-    document.getElementById('listaMateriais');
-
+  const lista = document.getElementById('listaMateriais');
   lista.innerHTML = '';
 
-  let total = 0;
-
   data.forEach(material => {
-
-    total += Number(material.valor);
-
     const item = document.createElement('div');
-
     item.className = 'cliente-item';
+    item.innerHTML = `
+      <strong class="material-nome">${material.nome}</strong>
+      <div>Categoria: ${material.categoria || 'Não informado'}</div>
+      <div>R$ <span class="material-valor">${Number(material.valor).toFixed(2)}</span></div>
+      
+      <input type="number" value="1" min="1" class="material-qtd" 
+             oninput="atualizarValorMaterial()" 
+             style="margin-top:10px;padding:8px;width:80px;border-radius:8px;border:1px solid #ccc;">
 
-    item.innerHTML =
-
-      '<strong class="material-nome">' +
-      material.nome +
-      '</strong>' +
-
-      '<div>Categoria: ' +
-      material.categoria +
-      '</div>' +
-
-      '<div>R$ <span class="material-valor">' +
-      Number(material.valor).toFixed(2) +
-      '</span></div>' +
-
-      '<input type="number" value="1" min="1" ' +
-      'class="material-qtd" ' +
-      'oninput="atualizarValorMaterial()" ' +
-      'style="margin-top:10px;padding:8px;width:80px;border-radius:8px;border:none;">' +
-
-      '<button onclick="editarMaterial(this)" ' +
-      'style="margin-top:10px;padding:8px 12px;border:none;background:#ff9800;color:white;border-radius:8px;cursor:pointer;">Editar</button> ' +
-
-      '<button onclick="removerMaterial(this)" ' +
-      'style="margin-top:10px;padding:8px 12px;border:none;background:#d40000;color:white;border-radius:8px;cursor:pointer;">Remover</button>';
-
+      <button onclick="editarMaterial(this)" 
+        style="margin:10px 5px 0 0; padding:8px 12px; border:none; background:#ff9800; color:white; border-radius:8px; cursor:pointer;">
+        Editar
+      </button>
+      
+      <button onclick="removerMaterial(this)" 
+        style="margin:10px 5px 0 0; padding:8px 12px; border:none; background:#d40000; color:white; border-radius:8px; cursor:pointer;">
+        Remover
+      </button>
+    `;
     lista.appendChild(item);
   });
 
-  document.getElementById('totalMateriais').textContent =
-    total.toFixed(2);
-
-  atualizarResumo();
+  recalcularMateriais();
 }
 
 
