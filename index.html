@@ -131,7 +131,7 @@
                 <div class="top-actions">
                     <button class="btn-primary" onclick="abrirModal()">➕ Novo Material</button>
                     <button class="btn-green" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
-                    <button class="btn-primary" onclick="gerarPDF()">📄 Gerar PDF</button>
+                    <button class="btn-primary" onclick="gerarPDFdoResumo()">📄 Gerar PDF</button>
                 </div>
 
                 <div class="main-layout">
@@ -162,12 +162,12 @@
                         </div>
 
                         <div id="aba-clientes" style="display:none">
-                            <h2>Clientes</h2>
+                            <h2>Clientes Cadastrados</h2>
                             <div class="clientes" id="listaClientes"></div>
                         </div>
 
                         <div id="aba-historico" style="display:none">
-                            <h2>Histórico</h2>
+                            <h2>Histórico de Orçamentos</h2>
                             <div id="historicoLista" style="margin-top: 15px;"></div>
                         </div>
                     </div>
@@ -266,7 +266,7 @@
     let usuarioAtualId = null;
     let materiais = [];
     let historico = [];
-    let clientes = [];
+    let clientes = []; // Guardará objetos {nome, endereco, tel, cidade}
     let maoObraItens = [];
     let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
     let categoriaAtual = 'Todos';
@@ -311,6 +311,9 @@
                 maoObraItens = registro.mao_obra || [];
                 if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
                 
+                // Migração de segurança para clientes antigos (caso fossem apenas strings de texto)
+                clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
+
                 salvarFallbackLocal();
             } else {
                 await salvarNoBanco(true);
@@ -374,10 +377,8 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             dadosOficina.logoBase64 = e.target.result;
-            
-            // Preview rápido na modal
             const preview = document.getElementById('previewLogoModal');
-            preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+            if(preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
         };
         reader.readAsDataURL(file);
     }
@@ -496,9 +497,6 @@
         lista.innerHTML='';
 
         materiais.forEach((item,index)=>{
-            if(categoriaAtual !== 'Todos' && item.cat !== categoryAtual){
-                return;
-            }
             if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual){
                 return;
             }
@@ -544,8 +542,6 @@
         let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
         let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
         let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-        
-        // Lucro Real = Valor que você cobrou do cliente menos o custo bruto dos materiais utilizados
         let lucroReal = valorCobrado - totalMateriais;
 
         const tm = document.getElementById('totalMateriais');
@@ -612,27 +608,46 @@
     }
 
     async function salvarOrcamento(){
-        const cliente = document.getElementById('clienteNome').value || 'Sem nome';
-        const valorCobrado = document.getElementById('valorCliente').value || '0.00';
-        const veiculo = document.getElementById('veiculoModelo').value || 'Não informado';
-        const placa = document.getElementById('veiculoPlaca').value || '---';
+        const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
+        const clienteEndereco = document.getElementById('clienteEndereco').value || '';
+        const clienteTel = document.getElementById('clienteTel').value || '';
+        const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
 
-        const dados = {
-            cliente,
-            veiculo: `${veiculo} (${placa})`,
+        const veiculoModelo = document.getElementById('veiculoModelo').value || 'Não informado';
+        const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
+        const veiculoAno = document.getElementById('veiculoAno').value || '';
+        const veiculoCor = document.getElementById('veiculoCor').value || '';
+        const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
+        const valorCobrado = document.getElementById('valorCliente').value || '0.00';
+
+        // Guarda o estado completo dos materiais selecionados e da mão de obra
+        const snapshotMateriais = materiais.map(m => ({ ...m }));
+        const snapshotMaoObra = maoObraItens.map(m => ({ ...m }));
+
+        const dadosOrcamento = {
+            id: 'orc_' + Date.now(),
+            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade },
+            veiculo: { modelo: veiculoModelo, placa: veiculoPlaca, ano: veiculoAno, cor: veiculoCor, avaliador: nomeAvaliador },
             totalCobrado: parseFloat(valorCobrado).toFixed(2),
-            materiais: document.getElementById('totalMateriais').innerText,
-            maoObra: document.getElementById('totalMaoObra').innerText,
+            totalMateriaisCalculado: document.getElementById('totalMateriais').innerText,
+            totalMaoObraCalculado: document.getElementById('totalMaoObra').innerText,
             lucro: document.getElementById('lucro').innerText,
+            listaMateriais: snapshotMateriais,
+            listaMaoObra: snapshotMaoObra,
             data: new Date().toLocaleString()
         };
 
-        historico.unshift(dados);
-        if(!clientes.includes(cliente) && cliente !== 'Sem nome'){ clientes.unshift(cliente); }
+        historico.unshift(dadosOrcamento);
+
+        // Atualiza a listagem de clientes sem duplicar nomes
+        const clienteExiste = clientes.find(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
+        if (!clienteExiste && clienteNome !== 'Sem nome') {
+            clientes.unshift({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+        }
 
         renderHistorico();
         renderClientes();
-        alert('Orçamento sincronizado na nuvem!');
+        alert('Orçamento sincronizado e salvo no histórico!');
         await salvarNoBanco();
     }
 
@@ -640,20 +655,24 @@
         const h = document.getElementById('historicoLista');
         if(!h) return;
         h.innerHTML='';
-        historico.forEach((item,index)=>{
+        historico.forEach((item, index)=>{
             h.innerHTML += `
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div>
-                            <strong>👤 Cliente: ${item.cliente}</strong><br>
-                            🚗 Veículo: ${item.veiculo || '---'}<br><br>
-                            💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
-                            📦 Custo Materiais: R$ ${item.materiais}<br>
-                            🔧 Mão de Obra: R$ ${item.maoObra || '0.00'}<br>
-                            📈 Lucro Lindo: R$ ${item.lucro}<br><br>
+                            <strong>👤 Cliente: ${item.cliente.nome}</strong><br>
+                            🚗 Veículo: ${item.veiculo.modelo} (${item.veiculo.placa})<br><br>
+                            💰 Valor Cobrado: R$ ${item.totalCobrado}<br>
+                            📦 Custo Materiais: R$ ${item.totalMateriaisCalculado}<br>
+                            🔧 Mão de Obra: R$ ${item.totalMaoObraCalculado || '0.00'}<br>
+                            📈 Lucro: R$ ${item.lucro}<br><br>
                             🕒 ${item.data}
                         </div>
-                        <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
+                            <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -664,16 +683,73 @@
         const c = document.getElementById('listaClientes');
         if(!c) return;
         c.innerHTML='';
-        clientes.forEach((nome,index)=>{
+        clientes.forEach((cli, index)=>{
             c.innerHTML += `
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-                        <div>${nome}</div>
-                        <button onclick="deletarCliente(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
+                        <div>
+                            <strong>👤 ${cli.nome}</strong><br>
+                            <span style="font-size:13px; color:#555;">📍 ${cli.endereco || 'Sem endereço'} | 📱 ${cli.tel || 'Sem fone'}</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="carregarDadosClienteNoResumo(${index})" style="background:#ffd700; color:#111; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Novo Orç.</button>
+                            <button onclick="gerarPDFClienteCompleto(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                            <button onclick="deletarCliente(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                        </div>
                     </div>
                 </div>
             `;
         });
+    }
+
+    // Carrega dados e estrutura completa do histórico de volta para o resumo para poder alterar
+    function carregarParaEditar(index) {
+        const item = historico[index];
+        if(!item) return;
+
+        document.getElementById('clienteNome').value = item.cliente.nome;
+        document.getElementById('clienteEndereco').value = item.cliente.endereco || '';
+        document.getElementById('clienteTel').value = item.cliente.tel || '';
+        document.getElementById('clienteCidade').value = item.cliente.cidade || '';
+
+        document.getElementById('veiculoModelo').value = item.veiculo.modelo;
+        document.getElementById('veiculoPlaca').value = item.veiculo.placa;
+        document.getElementById('veiculoAno').value = item.veiculo.ano || '';
+        document.getElementById('veiculoCor').value = item.veiculo.cor || '';
+        document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
+        document.getElementById('valorCliente').value = item.totalCobrado;
+
+        // Reconstrói a lista de materiais baseando-se no snapshot
+        if (item.listaMateriais && item.listaMateriais.length > 0) {
+            materiais.forEach(m => {
+                const salvo = item.listaMateriais.find(s => s.nome === m.nome);
+                m.qtd = salvo ? salvo.qtd : 0;
+            });
+        }
+
+        // Reconstrói a mão de obra
+        maoObraItens = item.listaMaoObra ? item.listaMaoObra.map(m => ({ ...m })) : [];
+
+        render();
+        renderMaoObra();
+        atualizarResumo();
+        
+        mostrarAba('materiais');
+        alert(`Orçamento de ${item.cliente.nome} carregado no painel lateral de resumo para edição!`);
+    }
+
+    // Redireciona os dados cadastrais básicos do cliente da aba Clientes para o painel de Resumo
+    function carregarDadosClienteNoResumo(index) {
+        const cli = clientes[index];
+        if(!cli) return;
+
+        document.getElementById('clienteNome').value = cli.nome;
+        document.getElementById('clienteEndereco').value = cli.endereco || '';
+        document.getElementById('clienteTel').value = cli.tel || '';
+        document.getElementById('clienteCidade').value = cli.cidade || 'Sátrio Dias/BA';
+
+        mostrarAba('materiais');
+        alert(`Dados cadastrais de ${cli.nome} jogados no painel de Resumo.`);
     }
 
     function mostrarAba(nome){
@@ -688,158 +764,133 @@
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
-    function gerarPDF(){
+    // Gerador de PDF Base Genérico (Aceita inputs diretos de dados fixos)
+    function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, valorFinal, dataOrc) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        
         let y = 15;
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-        // Carrega a logo customizada da nuvem para o PDF se existir
         if (dadosOficina.logoBase64) {
-            try {
-                doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20);
-            } catch (e) {
-                doc.setFillColor(240,240,240);
-                doc.rect(15, y, 45, 20, 'F');
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
             }
         } else {
-            doc.setFillColor(240,240,240);
-            doc.rect(15, y, 45, 20, 'F');
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
         }
 
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.setTextColor(0,0,0);
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
         doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
         
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(60,60,60);
-        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '00.000.000/0001-00'}`, 65, y + 10);
-        doc.text(`END: ${dadosOficina.end || 'Rua das Oficinas, 123 - Centro'}`, 65, y + 14);
-        doc.text(`CEP: ${dadosOficina.cep || '30.000-000, SALVADOR/BA'}`, 65, y + 18);
-        doc.text(`FONE(s): ${dadosOficina.fone || '(75) 99999-9999'}`, 65, y + 22);
-        doc.text(`EMAIL: ${dadosOficina.email || 'contato@suaoficina.com.br'}`, 65, y + 26);
-        doc.text(`PIX: ${dadosOficina.pix || 'Não configurado'}`, 65, y + 30);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
 
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(0,0,0);
-        doc.text(dataAtual, 175, y + 5);
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(120,120,120);
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(8).setTextColor(120,120,120);
         doc.text(`N° ${Math.floor(10000 + Math.random() * 90000)}`, 175, y + 10);
 
         y += 36;
-        
-        doc.setDrawColor(200, 200, 200);
-        doc.line(15, y, 195, y);
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
         y += 5;
 
-        doc.setDrawColor(0,0,0);
-        doc.rect(85, y, 40, 8);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text('ORÇAMENTO', 92, y + 5.5);
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
         y += 15;
 
-        doc.setFontSize(9);
-        doc.setTextColor(100,100,100);
-        doc.text('PLACA', 25, y);
-        doc.text('MODELO', 95, y);
-        doc.text('AVALIADOR', 155, y);
+        doc.setFontSize(9).setTextColor(100,100,100);
+        doc.text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
         y += 4;
 
-        doc.setFont('Helvetica', 'bold');
-        doc.setTextColor(0,0,0);
-        doc.setFontSize(10);
-        doc.text(document.getElementById('veiculoPlaca').value || '---', 25, y);
-        doc.text(document.getElementById('veiculoModelo').value || '---', 95, y);
-        doc.text(document.getElementById('nomeAvaliador').value || '---', 155, y);
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placVeic || '---', 25, y).text(modVeic || '---', 95, y).text(avaliador || '---', 155, y);
         
         y += 4;
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.4);
-        doc.line(15, y, 195, y);
+        doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y);
         y += 6;
 
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text('VEÍCULO', 15, y);
-        doc.text('CLIENTE', 110, y);
-        
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
         y += 2;
-        doc.setLineWidth(0.2);
-        doc.line(15, y, 100, y);
-        doc.line(110, y, 195, y);
+        doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y);
         y += 5;
 
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(9.5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y);
+        y += 5.5;
+        doc.text(`PLACA: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y);
+        y += 5.5;
+        doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y);
+        y += 5.5;
+        doc.text(`COR: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
         
-        doc.text(`MODELO: ${document.getElementById('veiculoModelo').value || '---'}`, 15, y);
-        doc.text(`NOME: ${document.getElementById('clienteNome').value || '---'}`, 110, y);
-        y += 5.5;
-
-        doc.text(`PLACA: ${document.getElementById('veiculoPlaca').value || '---'}`, 15, y);
-        doc.text(`ENDEREÇO: ${document.getElementById('clienteEndereco').value || '---'}`, 110, y);
-        y += 5.5;
-
-        doc.text(`ANO: ${document.getElementById('veiculoAno').value || '---'}`, 15, y);
-        doc.text(`TEL: ${document.getElementById('clienteTel').value || '---'}`, 110, y);
-        y += 5.5;
-
-        doc.text(`COR: ${document.getElementById('veiculoCor').value || '---'}`, 15, y);
-        doc.text(`CIDADE: ${document.getElementById('clienteCidade').value || 'Sátrio Dias'}`, 110, y);
-        y += 5.5;
-        
-        y += 2;
-        doc.setLineWidth(0.8);
-        doc.line(15, y, 195, y);
+        y += 7;
+        doc.setLineWidth(0.8).line(15, y, 195, y);
         y += 10;
 
-        doc.setLineWidth(0.3);
-        doc.rect(65, y, 80, 16);
-        
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.text('TOTAL R$', 98, y + 5);
-        
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(15);
-        const valorFinal = parseFloat(document.getElementById('valorCliente').value) || 0;
-        doc.text(`R$ ${valorFinal.toFixed(2)}`, 91, y + 12);
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${parseFloat(valorFinal).toFixed(2)}`, 91, y + 12);
         
         y += 26;
-
-        doc.setLineWidth(0.2);
-        doc.rect(15, y, 180, 16);
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.text('OBSERVAÇÕES', 18, y + 5);
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
         
         y += 35;
-
-        doc.setLineWidth(0.2);
-        doc.line(60, y, 150, y);
+        doc.setLineWidth(0.2).line(60, y, 150, y);
         y += 4;
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.text('ASSINATURA DO CLIENTE', 85, y);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
         y += 4;
-        doc.setFont('Helvetica', 'oblique');
-        doc.setFontSize(8);
-        doc.setTextColor(130,130,130);
-        doc.text('Documento gerado eletronicamente', 83, y);
+        doc.setFont('Helvetica', 'oblique').setFontSize(8).setTextColor(130,130,130).text('Documento gerado eletronicamente', 83, y);
 
-        const nomeSalvar = document.getElementById('clienteNome').value || 'Cliente';
-        doc.save(`orcamento_${nomeSalvar.replace(/\s+/g, '_')}.pdf`);
+        doc.save(`orcamento_${nomeCli.replace(/\s+/g, '_')}.pdf`);
     }
+
+    // PDF Gerado a partir dos campos atuais preenchidos na barra lateral
+    function gerarPDFdoResumo(){
+        const nome = document.getElementById('clienteNome').value || 'Cliente';
+        const end = document.getElementById('clienteEndereco').value || '';
+        const tel = document.getElementById('clienteTel').value || '';
+        const cid = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
+        const modelo = document.getElementById('veiculoModelo').value || '---';
+        const placa = document.getElementById('veiculoPlaca').value || '---';
+        const ano = document.getElementById('veiculoAno').value || '';
+        const cor = document.getElementById('veiculoCor').value || '';
+        const avaliador = document.getElementById('nomeAvaliador').value || '';
+        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
+        const data = new Date().toLocaleDateString('pt-BR');
+
+        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, valor, data);
+    }
+
+    // PDF Gerado de um orçamento antigo salvo no Histórico
+    function gerarPDFHistorico(index) {
+        const item = historico[index];
+        if(!item) return;
+        construirDocumentoPDF(
+            item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
+            item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
+            item.totalCobrado, item.data.split(' ')[0]
+        );
+    }
+
+    // PDF do cadastro geral básico do Cliente na aba Clientes
+    function gerarPDFClienteCompleto(index) {
+        const cli = clientes[index];
+        if(!cli) return;
+        construirDocumentoPDF(
+            cli.nome, cli.endereco, cli.tel, cli.cidade,
+            '---', '---', '---', '---', '---',
+            0, new Date().toLocaleDateString('pt-BR')
+        );
+    }
+
+    function abrirModal(){ document.getElementById('modal').style.display='flex'; }
+    function fecharModal(){ document.getElementById('modal').style.display='none'; }
 
     async function adicionarMaoObra(){
         const nome = document.getElementById('nomeServico').value;
@@ -905,7 +956,7 @@
     });
 
     async function deletarHistorico(index){
-        abrirConfirmacao('Deseja excluir este histórico?', async function(){
+        abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){
             historico.splice(index,1);
             renderHistorico();
             await salvarNoBanco();
@@ -913,7 +964,7 @@
     }
 
     async function deletarCliente(index){
-        abrirConfirmacao('Deseja excluir este cliente?', async function(){
+        abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){
             clientes.splice(index,1);
             renderClientes();
             await salvarNoBanco();
