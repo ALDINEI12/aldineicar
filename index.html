@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* ==================== SEU CSS UNIFICADO ==================== */
         * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
         
         header { background: #111; color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
@@ -17,17 +16,22 @@
         .search { width:45%; padding:12px; border-radius:10px; border:none; font-size:16px; }
         
         .container { display:flex; min-height:100vh; }
-        .sidebar { width: 200px; background: white; padding: 20px 15px; border-right: 1px solid #ddd; }
+        .sidebar { width: 200px; background: white; padding: 20px 15px; border-right: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; }
         .sidebar h2 { margin-bottom:15px; color:#ffd700; }
-        .sidebar button { width:100%; padding:12px; margin-bottom:8px; background:#fff; color:#333; border:1px solid #ddd; border-radius:8px; font-size:15px; cursor:pointer; }
+        .sidebar button { width:100%; padding:12px; margin-bottom:8px; background:#fff; color:#333; border:1px solid #ddd; border-radius:8px; font-size:15px; cursor:pointer; text-align: left; }
         .sidebar button:hover { background:#ffe6e6; color:#d40000; }
+        .sidebar .btn-logout { background: #f44336; color: white; border: none; text-align: center; font-weight: bold; margin-top: auto; }
+        .sidebar .btn-logout:hover { background: #b71c1c; color: white; }
         
-        .content { flex:1; padding:20px; }
-        .top-actions { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .content { flex:1; padding:20px; display: flex; flex-direction: column; gap: 20px; }
+        .top-actions { display:flex; gap:10px; flex-wrap:wrap; }
         .top-actions button { padding:14px 18px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
         
         .btn-primary { background:#d40000; color:white; }
         .btn-green { background:#00a651; color:white; }
+        
+        .main-layout { display: flex; gap: 20px; flex: 1; }
+        .aba-container { flex: 1; }
         
         .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:15px; }
         .card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: 0.2s; }
@@ -41,9 +45,9 @@
         .btn-minus { background:#444; color:white; }
         .qtd { font-size:20px; font-weight:bold; }
         
-        .resumo { width: 320px; background: white; padding: 20px; border-left: 1px solid #ddd; position:relative; }
+        .resumo { width: 320px; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 10px; height: fit-content; }
         .resumo h2 { margin-bottom:15px; color:#ffd700; }
-        .resumo div { margin-bottom:10px; }
+        .resumo div { margin-bottom:10px; font-size: 15px; }
         .resumo input { width:100%; padding:12px; margin-top:10px; border:1px solid #ddd; border-radius:10px; }
         .resumo button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
         
@@ -61,14 +65,16 @@
         
         .categorias-materiais { display:flex; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
         .categorias-materiais button { padding:12px 18px; border:none; border-radius:30px; background:white; color:#444; font-weight:bold; font-size:14px; cursor:pointer; transition:0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); border:1px solid #e5e5e5; }
-        .categorias-materiais button:hover { transform:translateY(-2px); background:#d40000; color:white; box-shadow:0 4px 12px rgba(212,0,0,0.25); }
+        .categorias-materiais button:hover, .categorias-materiais button.active { transform:translateY(-2px); background:#d40000; color:white; box-shadow:0 4px 12px rgba(212,0,0,0.25); }
         
         @media(max-width:900px){
             .container { flex-direction:column; }
-            .sidebar { width:100%; display:flex; gap:10px; overflow:auto; }
-            .sidebar button { min-width:160px; }
+            .sidebar { width:100%; display:flex; flex-direction: row; gap:10px; overflow:auto; padding: 10px; }
+            .sidebar button { min-width:160px; margin-bottom: 0; }
+            .sidebar .btn-logout { margin-top: 0; }
             .search { width:55%; }
-            .resumo { position:relative; right:auto; bottom:auto; width:100%; margin-top:20px; }
+            .main-layout { flex-direction: column; }
+            .resumo { width:100%; margin-top:20px; }
         }
     </style>
 </head>
@@ -113,8 +119,8 @@
                     <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                     <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                     <button onclick="mostrarAba('historico')">📋 Histórico</button>
-                    <button onclick="mostrarAba('cores')">🎨 Cores</button>
                 </div>
+                <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
             </div>
 
             <div class="content">
@@ -124,69 +130,74 @@
                     <button class="btn-primary" onclick="gerarPDF()">📄 Gerar PDF</button>
                 </div>
 
-                <div id="aba-materiais">
-                    <div class="categorias-materiais">
-                        <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
-                        <button onclick="filtrarCategoria('Primer')">Primer</button>
-                        <button onclick="filtrarCategoria('Tintas')">Tintas</button>
-                        <button onclick="filtrarCategoria('Verniz')">Verniz</button>
-                        <button onclick="filtrarCategoria('Massa')">Massa</button>
-                        <button onclick="filtrarCategoria('Thinner')">Thinner</button>
-                        <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+                <div class="main-layout">
+                    <div class="aba-container">
+                        <div id="aba-materiais">
+                            <div class="categorias-materiais">
+                                <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
+                                <button onclick="filtrarCategoria('Primer')">Primer</button>
+                                <button onclick="filtrarCategoria('Tintas')">Tintas</button>
+                                <button onclick="filtrarCategoria('Verniz')">Verniz</button>
+                                <button onclick="filtrarCategoria('Massa')">Massa</button>
+                                <button onclick="filtrarCategoria('Thinner')">Thinner</button>
+                                <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+                            </div>
+                            <div class="cards" id="lista"></div>
+                        </div>
+
+                        <div id="aba-maoobra" style="display:none">
+                            <h2>Mão de Obra</h2>
+                            <div class="card" style="margin-bottom:20px; margin-top: 15px;">
+                                <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
+                                    <span>＋</span> Adicionar Serviço
+                                </button>
+                            </div>
+                            <div id="listaMaoObra"></div>
+                        </div>
+
+                        <div id="aba-clientes" style="display:none">
+                            <h2>Clientes</h2>
+                            <div class="clientes" id="listaClientes"></div>
+                        </div>
+
+                        <div id="aba-historico" style="display:none">
+                            <h2>Histórico</h2>
+                            <div id="historicoLista" style="margin-top: 15px;"></div>
+                        </div>
                     </div>
-                    <div class="cards" id="lista"></div>
-                </div>
 
-                <div id="aba-maoobra" style="display:none">
-                    <h2>Mão de Obra</h2>
-                    <div class="card" style="margin-bottom:20px;">
-                        <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                        <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                        <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
-                            <span>＋</span> Adicionar Serviço
-                        </button>
+                    <div class="resumo">
+                        <h2>Resumo</h2>
+                        <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
+                        <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        <input type="text" id="clienteNome" placeholder="Nome do cliente">
+                        <input type="number" id="valorCliente" placeholder="Valor cobrado do cliente" oninput="atualizarResumo()">
+                        <div style="margin-top: 15px; font-weight: bold; font-size: 16px;">
+                            Lucro Real: <span style="color: #00a651;">R$ <span id="lucro">0.00</span></span>
+                        </div>
+                        <button class="btn-green" onclick="enviarWhatsApp()">📱 Enviar WhatsApp</button>
+                        <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
                     </div>
-                    <div id="listaMaoObra"></div>
                 </div>
+            </div> 
+        </div> 
+    </div>
 
-                <div id="aba-clientes" style="display:none">
-                    <h2>Clientes</h2>
-                    <div class="clientes" id="listaClientes"></div>
-                </div>
-
-                <div id="aba-historico" style="display:none">
-                    <h2>Histórico</h2>
-                    <div id="historico"></div>
-                </div>
-
-                <div id="aba-cores" style="display:none">
-                    <h2>Cores cadastradas</h2>
-                    <div id="coresLista"></div>
-                </div>
-
-                <div class="resumo">
-                    <h2>Resumo</h2>
-                    <div>Materiais: R$ <span id="totalMateriais">0.00</span></div>
-                    <div>Mão de obra: R$ <span id="totalMaoObra">0.00</span></div>
-                    <div>Saldo Atual: R$ <span id="total">0.00</span></div>
-                    <input type="text" id="clienteNome" placeholder="Nome do cliente">
-                    <input type="number" id="valorCliente" placeholder="Valor cobrado do cliente" oninput="atualizarResumo()">
-                    <div>Lucro: R$ <span id="lucro">0.00</span></div>
-                    <button class="btn-green" onclick="enviarWhatsApp()">WhatsApp</button>
-                    <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
-                </div>
-            </div> </div> </div> <div class="modal" id="modal">
+    <div class="modal" id="modal">
         <div class="modal-content">
             <h2>Novo Material</h2>
             <input type="text" id="nomeMaterial" placeholder="Nome">
             <input type="number" id="valorMaterial" placeholder="Valor">
             <select id="categoriaMaterial" aria-label="Selecione a categoria do material">
-                <option>Primer</option>
-                <option>Tinta</option>
-                <option>Verniz</option>
-                <option>Massa</option>
-                <option>Thinner</option>
-                <option>Acessórios</option>
+                <option value="Primer">Primer</option>
+                <option value="Tintas">Tintas</option>
+                <option value="Verniz">Verniz</option>
+                <option value="Massa">Massa</option>
+                <option value="Thinner">Thinner</option>
+                <option value="Acessórios">Acessórios</option>
             </select>
             <button class="btn-green" onclick="salvarMaterial()">Salvar</button>
             <button class="btn-primary" onclick="fecharModal()">Cancelar</button>
@@ -205,12 +216,10 @@
     </div>
 
     <script>
-    // ====================== CONFIGURAÇÃO SUPABASE ======================
     const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ====================== VARIÁVEIS GLOBAIS REATIVAS POR USUÁRIO ======================
     let usuarioAtualId = null;
     let materiais = [];
     let historico = [];
@@ -219,44 +228,37 @@
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
 
-    // Valores padrão caso o usuário seja novo
     const materiaisPadrao = [
         {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
         {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
         {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
-        {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tinta'}
+        {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
     ];
 
-    // FUNÇÃO PARA CARREGAR OS DADOS DA CONTA LOGADA
     function carregarDadosDoUsuario(userId) {
         if (!userId) return;
         usuarioAtualId = userId;
         
-        // Tenta buscar o que já existe salvo para ESSE usuário específico
         const materiaisSalvos = localStorage.getItem(`materiais_${userId}`);
         const historicoSalvo = localStorage.getItem(`historico_${userId}`);
         const clientesSalvos = localStorage.getItem(`clientes_${userId}`);
         const maoObraSalvo = localStorage.getItem(`maoObra_${userId}`);
 
-        // SE existir dados salvos, carrega. SE NÃO, inicia com o padrão (vazio ou materiais padrões)
         materiais = materiaisSalvos ? JSON.parse(materiaisSalvos) : [...materiaisPadrao];
         historico = historicoSalvo ? JSON.parse(historicoSalvo) : [];
         clientes = clientesSalvos ? JSON.parse(clientesSalvos) : [];
         maoObraItens = maoObraSalvo ? JSON.parse(maoObraSalvo) : [];
         
-        // Força o salvamento inicial caso seja um usuário novo para criar as chaves
         if (!materiaisSalvos) {
             salvarLocal();
         }
 
-        // Atualiza a tela com os dados recuperados
         render();
         renderMaoObra();
         renderHistorico();
         renderClientes();
     }
     
-    // FUNÇÃO PARA SALVAR OS DADOS DA CONTA LOGADA
     function salvarLocal() {
         if (!usuarioAtualId) return;
         localStorage.setItem(`materiais_${usuarioAtualId}`, JSON.stringify(materiais));
@@ -265,7 +267,6 @@
         localStorage.setItem(`maoObra_${usuarioAtualId}`, JSON.stringify(maoObraItens));
     }
 
-    // ====================== FUNÇÕES DE LOGIN / LOGOUT ======================
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
         document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
@@ -288,9 +289,7 @@
         }
 
         carregarDadosDoUsuario(data.user.id);
-
         document.getElementById('loginOverlay').style.display = 'none';
-        alert("✅ Login realizado com sucesso!");
         mostrarAba('materiais');
     }
 
@@ -313,7 +312,7 @@
             return;
         }
 
-        alert("Cadastro realizado! Verifique seu email.");
+        alert("Cadastro realizado com sucesso! Prossiga com o login.");
         toggleTab('login');
     }
 
@@ -333,10 +332,8 @@
         document.getElementById('loginPassword').value = '';
         document.getElementById('loginOverlay').style.display = 'flex';
         toggleTab('login');
-        alert("Você saiu do sistema!");
     }
 
-    // ====================== REGRAS DE NEGÓCIO E RENDERIZAÇÃO ======================
     function render(){
         const lista = document.getElementById('lista');
         if(!lista) return;
@@ -351,7 +348,7 @@
                     <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
                         <div>
                             <h3>${item.nome}</h3>
-                            <div>${item.cat}</div>
+                            <div style="color: #777; font-size:13px; margin-top:2px;">${item.cat}</div>
                             <div class="preco">R$ ${item.valor.toFixed(2)}</div>
                         </div>
                         <div style="display:flex;gap:6px;">
@@ -387,18 +384,17 @@
     function atualizarResumo(){
         let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
         let maoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-        let total = maoObra - totalMateriais;
-        let lucro = total;
+        
+        let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        let lucroReal = valorCobrado - totalMateriais;
 
         const tm = document.getElementById('totalMateriais');
         const tmo = document.getElementById('totalMaoObra');
-        const t = document.getElementById('total');
         const l = document.getElementById('lucro');
 
         if(tm) tm.innerText = totalMateriais.toFixed(2);
         if(tmo) tmo.innerText = maoObra.toFixed(2);
-        if(t) t.innerText = total.toFixed(2);
-        if(l) l.innerText = lucro.toFixed(2);
+        if(l) l.innerText = lucroReal.toFixed(2);
     }
 
     function abrirModal(){ document.getElementById('modal').style.display='flex'; }
@@ -409,8 +405,8 @@
         const valor = parseFloat(document.getElementById('valorMaterial').value);
         const cat = document.getElementById('categoriaMaterial').value;
 
-        if(!nome || !valor){
-            alert('Preencha os campos');
+        if(!nome || isNaN(valor)){
+            alert('Preencha os campos corretamente');
             return;
         }
 
@@ -457,27 +453,28 @@
 
     function salvarOrcamento(){
         const cliente = document.getElementById('clienteNome').value || 'Sem nome';
-        const total = document.getElementById('total').innerText;
+        const valorCobrado = document.getElementById('valorCliente').value || '0.00';
 
         const dados = {
             cliente,
-            total,
+            totalCobrado: parseFloat(valorCobrado).toFixed(2),
             materiais: document.getElementById('totalMateriais').innerText,
             maoObra: document.getElementById('totalMaoObra').innerText,
+            lucro: document.getElementById('lucro').innerText,
             data: new Date().toLocaleString()
         };
 
         historico.unshift(dados);
-        if(!clientes.includes(cliente)){ clientes.unshift(cliente); }
+        if(!clientes.includes(cliente) && cliente !== 'Sem nome'){ clientes.unshift(cliente); }
 
         salvarLocal();
         renderHistorico();
         renderClientes();
-        alert('Orçamento salvo');
+        alert('Orçamento salvo com sucesso!');
     }
 
     function renderHistorico(){
-        const h = document.getElementById('historico');
+        const h = document.getElementById('historicoLista');
         if(!h) return;
         h.innerHTML='';
         historico.forEach((item,index)=>{
@@ -485,10 +482,11 @@
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div>
-                            <strong>${item.cliente}</strong><br><br>
-                            💰 Total: R$ ${item.total}<br>
-                            🔧 Mão de obra: R$ ${item.maoObra}<br>
-                            📦 Materiais: R$ ${item.materiais}<br><br>
+                            <strong>👤 Cliente: ${item.cliente}</strong><br><br>
+                            💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
+                            🔧 Mão de obra calculada: R$ ${item.maoObra}<br>
+                            📦 Custo Materiais: R$ ${item.materiais}<br>
+                            📈 Lucro Lindo: R$ ${item.lucro}<br><br>
                             🕒 ${item.data}
                         </div>
                         <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
@@ -518,13 +516,11 @@
         document.getElementById('aba-materiais').style.display='none';
         document.getElementById('aba-clientes').style.display='none';
         document.getElementById('aba-historico').style.display='none';
-        document.getElementById('aba-cores').style.display='none';
         document.getElementById('aba-maoobra').style.display='none';
 
         if(nome==='materiais') document.getElementById('aba-materiais').style.display='block';
         if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
         if(nome==='historico') document.getElementById('aba-historico').style.display='block';
-        if(nome==='cores') document.getElementById('aba-cores').style.display='block';
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
@@ -532,21 +528,52 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         let y = 20;
+        const cliente = document.getElementById('clienteNome').value || 'Cliente';
 
         doc.setFontSize(22);
-        doc.text('ALDINEICAR',20,y);
+        doc.text('ALDINEICAR - Orçamento Profissional',20,y);
+        y += 12;
+        doc.setFontSize(14);
+        doc.text(`Cliente: ${cliente}`, 20, y);
         y += 15;
 
+        doc.setFontSize(16);
+        doc.text('Materiais Utilizados:', 20, y);
+        y += 10;
+
+        let temMateriais = false;
         materiais.forEach(item=>{
             if(item.qtd>0){
-                doc.setFontSize(14);
-                doc.text(`${item.nome} - ${item.qtd}x - R$ ${(item.valor*item.qtd).toFixed(2)}`,20,y);
-                y += 10;
+                temMateriais = true;
+                doc.setFontSize(12);
+                doc.text(`• ${item.nome} (${item.qtd}x) - R$ ${(item.valor*item.qtd).toFixed(2)}`,20,y);
+                y += 8;
             }
         });
+        if(!temMateriais) { doc.text('Nenhum material selecionado.', 25, y); y+=8; }
+
+        y += 5;
+        doc.setFontSize(16);
+        doc.text('Mão de Obra / Serviços:', 20, y);
         y += 10;
-        doc.text(`Total: R$ ${document.getElementById('total').innerText}`,20,y);
-        doc.save('orcamento.pdf');
+
+        if(maoObraItens.length > 0){
+            maoObraItens.forEach(item => {
+                doc.setFontSize(12);
+                doc.text(`• ${item.nome} - R$ ${item.valor.toFixed(2)}`, 20, y);
+                y += 8;
+            });
+        } else {
+            doc.text('Nenhum serviço listado.', 25, y);
+            y += 8;
+        }
+
+        y += 10;
+        doc.setFontSize(14);
+        const valorTotal = document.getElementById('valorCliente').value || '0.00';
+        doc.text(`Valor Final do Orçamento: R$ ${parseFloat(valorTotal).toFixed(2)}`,20,y);
+        
+        doc.save(`orcamento_${cliente.replace(/\s+/g, '_')}.pdf`);
     }
 
     function adicionarMaoObra(){
@@ -554,7 +581,7 @@
         const valor = parseFloat(document.getElementById('valorServico').value);
 
         if(!nome || isNaN(valor)){
-            alert('Preencha os campos');
+            alert('Preencha os campos da mão de obra corretamente');
             return;
         }
 
@@ -573,10 +600,13 @@
         maoObraItens.forEach((item,index)=>{
             lista.innerHTML += `
                 <div class="cliente-item">
-                    <strong>${item.nome}</strong><br>
-                    R$ ${item.valor.toFixed(2)}
-                    <br><br>
-                    <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">Remover</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong>${item.nome}</strong><br>
+                            <span style="color:#00a651; font-weight:bold;">R$ ${item.valor.toFixed(2)}</span>
+                        </div>
+                        <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer; font-size:12px;">Remover</button>
+                    </div>
                 </div>
             `;
         });
@@ -591,8 +621,8 @@
 
     function enviarWhatsApp(){
         const cliente = document.getElementById('clienteNome').value || 'Cliente';
-        const total = document.getElementById('total').innerText;
-        const texto = `Olá ${cliente}, seu orçamento ficou em R$ ${total}`;
+        const valorTotal = document.getElementById('valorCliente').value || '0.00';
+        const texto = `Olá ${cliente}, o orçamento do seu veículo na ALDINEICAR ficou em R$ ${parseFloat(valorTotal).toFixed(2)}.`;
         window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
     }
 
@@ -604,11 +634,9 @@
 
     function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
 
-    document.addEventListener('click', function(e){
-        if(e.target.id === 'btnConfirmarAcao'){
-            if(acaoConfirmada){ acaoConfirmada(); }
-            fecharConfirmacao();
-        }
+    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){
+        if(acaoConfirmada){ acaoConfirmada(); }
+        fecharConfirmacao();
     });
 
     function deletarHistorico(index){
@@ -645,19 +673,15 @@
         render();
     }
 
-    // ====================== CONTROLE DE SESSÃO SEGURO (F5 E NOVA ABA) ======================
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
         
-        // Monitora o estado da autenticação em tempo real
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session && session.user) {
-                // Se encontrou o usuário (no login, F5 ou nova aba), carrega os dados dele
                 carregarDadosDoUsuario(session.user.id);
                 document.getElementById('loginOverlay').style.display = 'none';
                 mostrarAba('materiais');
             } else {
-                // Se não há usuário (ou fez logout), força a tela de login
                 document.getElementById('loginOverlay').style.display = 'flex';
                 toggleTab('login');
             }
