@@ -47,10 +47,7 @@
 </div>
 </div>
 <!-- ==================== FIM LOGIN ==================== -->
-
-<!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
-<div id="appContainer" style="display: none;">
-
+ 
 <header>
 <div class="logo">ALDINEICAR</div>
 <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
@@ -1204,8 +1201,13 @@ async function handleLogin() {
     return;
   }
 
+  // FORÇA A EXIBIÇÃO DO SITE
   document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'block';
+  
+  document.querySelector('header').style.display = 'flex';
+  document.querySelector('.container').style.display = 'flex';
+  document.querySelector('.resumo').style.display = 'block';
+
   alert("✅ Login realizado com sucesso!");
   mostrarAba('materiais');
 }
