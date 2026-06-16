@@ -229,21 +229,33 @@
 
     // FUNÇÃO PARA CARREGAR OS DADOS DA CONTA LOGADA
     function carregarDadosDoUsuario(userId) {
+        if (!userId) return;
         usuarioAtualId = userId;
         
-        // Puxa os dados usando o ID do usuário como parte da chave
-        materiais = JSON.parse(localStorage.getItem(`materiais_${userId}`)) || [...materiaisPadrao];
-        historico = JSON.parse(localStorage.getItem(`historico_${userId}`)) || [];
-        clientes = JSON.parse(localStorage.getItem(`clientes_${userId}`)) || [];
-        maoObraItens = JSON.parse(localStorage.getItem(`maoObra_${userId}`)) || [];
+        // Tenta buscar o que já existe salvo para ESSE usuário específico
+        const materiaisSalvos = localStorage.getItem(`materiais_${userId}`);
+        const historicoSalvo = localStorage.getItem(`historico_${userId}`);
+        const clientesSalvos = localStorage.getItem(`clientes_${userId}`);
+        const maoObraSalvo = localStorage.getItem(`maoObra_${userId}`);
+
+        // SE existir dados salvos, carrega. SE NÃO, inicia com o padrão (vazio ou materiais padrões)
+        materiais = materiaisSalvos ? JSON.parse(materiaisSalvos) : [...materiaisPadrao];
+        historico = historicoSalvo ? JSON.parse(historicoSalvo) : [];
+        clientes = clientesSalvos ? JSON.parse(clientesSalvos) : [];
+        maoObraItens = maoObraSalvo ? JSON.parse(maoObraSalvo) : [];
         
-        // Atualiza a tela com os dados deste usuário específico
+        // Força o salvamento inicial caso seja um usuário novo para criar as chaves
+        if (!materiaisSalvos) {
+            salvarLocal();
+        }
+
+        // Atualiza a tela com os dados recuperados
         render();
         renderMaoObra();
         renderHistorico();
         renderClientes();
     }
-
+    
     // FUNÇÃO PARA SALVAR OS DADOS DA CONTA LOGADA
     function salvarLocal() {
         if (!usuarioAtualId) return;
