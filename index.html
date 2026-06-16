@@ -81,7 +81,9 @@ async function handleLogin() {
     return;
   }
 
+  // Login OK - Mostra o site corretamente
   document.getElementById('loginOverlay').style.display = 'none';
+  document.querySelector('.container').style.display = 'flex'; // Força o layout
   alert("✅ Login realizado com sucesso!");
   mostrarAba('materiais');
 }
@@ -92,7 +94,7 @@ async function handleSignup() {
   const password = document.getElementById('signupPassword').value;
 
   if (!email || !password || password.length < 6) {
-    alert("Preencha todos os campos corretamente (senha mínima 6 caracteres)");
+    alert("Preencha todos os campos corretamente");
     return;
   }
 
@@ -114,6 +116,8 @@ async function handleSignup() {
 // Inicia mostrando o login
 document.addEventListener('DOMContentLoaded', () => {
   toggleTab('login');
+  // Esconde o container até login
+  document.querySelector('.container').style.display = 'none';
 });
 </script>
 
