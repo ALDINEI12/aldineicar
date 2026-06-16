@@ -207,7 +207,6 @@
         </div> 
     </div>
 
-    <!-- MODAL MATERIAL -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2>Novo Material</h2>
@@ -226,7 +225,6 @@
         </div>
     </div>
 
-    <!-- MODAL CONFIGURAÇÃO DA OFICINA -->
     <div class="modal" id="modalOficina">
         <div class="modal-content">
             <h2>Dados da Minha Oficina</h2>
@@ -498,6 +496,9 @@
         lista.innerHTML='';
 
         materiais.forEach((item,index)=>{
+            if(categoriaAtual !== 'Todos' && item.cat !== categoryAtual){
+                return;
+            }
             if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual){
                 return;
             }
@@ -541,13 +542,18 @@
 
     function atualizarResumo(){
         let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+        let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
         let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        
+        // Lucro Real = Valor que você cobrou do cliente menos o custo bruto dos materiais utilizados
         let lucroReal = valorCobrado - totalMateriais;
 
         const tm = document.getElementById('totalMateriais');
+        const tmo = document.getElementById('totalMaoObra');
         const l = document.getElementById('lucro');
 
         if(tm) tm.innerText = totalMateriais.toFixed(2);
+        if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
         if(l) l.innerText = lucroReal.toFixed(2);
     }
 
@@ -643,6 +649,7 @@
                             🚗 Veículo: ${item.veiculo || '---'}<br><br>
                             💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
                             📦 Custo Materiais: R$ ${item.materiais}<br>
+                            🔧 Mão de Obra: R$ ${item.maoObra || '0.00'}<br>
                             📈 Lucro Lindo: R$ ${item.lucro}<br><br>
                             🕒 ${item.data}
                         </div>
