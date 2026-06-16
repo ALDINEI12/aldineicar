@@ -235,36 +235,64 @@
         {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
     ];
 
-    function carregarDadosDoUsuario(userId) {
+    // BUSCA OS DADOS DIRETO NO BANCO DO SUPABASE
+    async function carregarDadosDoUsuario(userId) {
         if (!userId) return;
         usuarioAtualId = userId;
         
-        const materiaisSalvos = localStorage.getItem(`materiais_${userId}`);
-        const historicoSalvo = localStorage.getItem(`historico_${userId}`);
-        const clientesSalvos = localStorage.getItem(`clientes_${userId}`);
-        const maoObraSalvo = localStorage.getItem(`maoObra_${userId}`);
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_data')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
 
-        materiais = materiaisSalvos ? JSON.parse(materiaisSalvos) : [...materiaisPadrao];
-        historico = historicoSalvo ? JSON.parse(historicoSalvo) : [];
-        clientes = clientesSalvos ? JSON.parse(clientesSalvos) : [];
-        maoObraItens = maoObraSalvo ? JSON.parse(maoObraSalvo) : [];
-        
-        if (!materiaisSalvos) {
-            salvarLocal();
+            if (error && error.code !== 'PGRST116') {
+                console.error("Erro ao carregar dados do Supabase:", error.message);
+                return;
+            }
+
+            if (data) {
+                materiais = data.materiais || [...materiaisPadrao];
+                historico = data.historico || [];
+                clientes = data.clientes || [];
+                maoObraItens = data.mao_obra || [];
+            } else {
+                // Se o usuário for novo e não tiver registro, cria um com dados padrão
+                materiais = [...materiaisPadrao];
+                historico = [];
+                clientes = [];
+                maoObraItens = [];
+                await salvarNoBanco();
+            }
+
+            render();
+            renderMaoObra();
+            renderHistorico();
+            renderClientes();
+        } catch (err) {
+            console.error("Falha na sincronização:", err);
         }
-
-        render();
-        renderMaoObra();
-        renderHistorico();
-        renderClientes();
     }
     
-    function salvarLocal() {
+    // SALVA OS DADOS DIRETO NO BANCO DO SUPABASE (SINCRONIZAÇÃO EM NUVEM)
+    async function salvarNoBanco() {
         if (!usuarioAtualId) return;
-        localStorage.setItem(`materiais_${usuarioAtualId}`, JSON.stringify(materiais));
-        localStorage.setItem(`historico_${usuarioAtualId}`, JSON.stringify(historico));
-        localStorage.setItem(`clientes_${usuarioAtualId}`, JSON.stringify(clientes));
-        localStorage.setItem(`maoObra_${usuarioAtualId}`, JSON.stringify(maoObraItens));
+        
+        const { error } = await supabaseClient
+            .from('user_data')
+            .upsert({
+                user_id: usuarioAtualId,
+                materiais: materiais,
+                historico: historico,
+                clientes: clientes,
+                mao_obra: maoObraItens,
+                updated_at: new Date()
+            });
+
+        if (error) {
+            console.error("Erro ao salvar dados em nuvem:", error.message);
+        }
     }
 
     function toggleTab(tab) {
@@ -288,7 +316,7 @@
             return;
         }
 
-        carregarDadosDoUsuario(data.user.id);
+        await carregarDadosDoUsuario(data.user.id);
         document.getElementById('loginOverlay').style.display = 'none';
         mostrarAba('materiais');
     }
@@ -317,11 +345,7 @@
     }
 
     async function handleLogout() {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) {
-            alert("Erro ao sair: " + error.message);
-            return;
-        }
+        await supabaseClient.auth.signOut();
         usuarioAtualId = null;
         materiais = [];
         historico = [];
@@ -367,17 +391,17 @@
         atualizarResumo();
     }
 
-    function mais(i){
+    async function mais(i){
         materiais[i].qtd++;
-        salvarLocal();
         render();
+        await salvarNoBanco();
     }
 
-    function menos(i){
+    async function menos(i){
         if(materiais[i].qtd>0){
             materiais[i].qtd--;
-            salvarLocal();
             render();
+            await salvarNoBanco();
         }
     }
 
@@ -400,7 +424,7 @@
     function abrirModal(){ document.getElementById('modal').style.display='flex'; }
     function fecharModal(){ document.getElementById('modal').style.display='none'; }
 
-    function salvarMaterial(){
+    async function salvarMaterial(){
         const nome = document.getElementById('nomeMaterial').value;
         const valor = parseFloat(document.getElementById('valorMaterial').value);
         const cat = document.getElementById('categoriaMaterial').value;
@@ -411,22 +435,22 @@
         }
 
         materiais.push({nome,valor,qtd:0,cat});
-        salvarLocal();
         render();
         fecharModal();
         document.getElementById('nomeMaterial').value = '';
         document.getElementById('valorMaterial').value = '';
+        await salvarNoBanco();
     }
 
-    function deletarMaterial(index){
-        abrirConfirmacao('Deseja remover este material?', function(){
+    async function deletarMaterial(index){
+        abrirConfirmacao('Deseja remover este material?', async function(){
             materiais.splice(index,1);
-            salvarLocal();
             render();
+            await salvarNoBanco();
         });
     }
 
-    function editarMaterial(index){
+    async function editarMaterial(index){
         const material = materiais[index];
         const novoNome = prompt('Editar nome:', material.nome);
         if(!novoNome) return;
@@ -435,8 +459,8 @@
 
         material.nome = novoNome;
         material.valor = novoValor;
-        salvarLocal();
         render();
+        await salvarNoBanco();
     }
 
     function buscar(texto){
@@ -451,7 +475,7 @@
         });
     }
 
-    function salvarOrcamento(){
+    async function salvarOrcamento(){
         const cliente = document.getElementById('clienteNome').value || 'Sem nome';
         const valorCobrado = document.getElementById('valorCliente').value || '0.00';
 
@@ -467,10 +491,10 @@
         historico.unshift(dados);
         if(!clientes.includes(cliente) && cliente !== 'Sem nome'){ clientes.unshift(cliente); }
 
-        salvarLocal();
         renderHistorico();
         renderClientes();
-        alert('Orçamento salvo com sucesso!');
+        alert('Orçamento salvo no banco com sucesso!');
+        await salvarNoBanco();
     }
 
     function renderHistorico(){
@@ -576,7 +600,7 @@
         doc.save(`orcamento_${cliente.replace(/\s+/g, '_')}.pdf`);
     }
 
-    function adicionarMaoObra(){
+    async function adicionarMaoObra(){
         const nome = document.getElementById('nomeServico').value;
         const valor = parseFloat(document.getElementById('valorServico').value);
 
@@ -586,11 +610,11 @@
         }
 
         maoObraItens.push({nome,valor});
-        salvarLocal();
         renderMaoObra();
         atualizarResumo();
         document.getElementById('nomeServico').value='';
         document.getElementById('valorServico').value='';
+        await salvarNoBanco();
     }
 
     function renderMaoObra(){
@@ -612,11 +636,11 @@
         });
     }
 
-    function removerMaoObra(i){
+    async function removerMaoObra(i){
         maoObraItens.splice(i,1);
-        salvarLocal();
         renderMaoObra();
         atualizarResumo();
+        await salvarNoBanco();
     }
 
     function enviarWhatsApp(){
@@ -639,32 +663,32 @@
         fecharConfirmacao();
     });
 
-    function deletarHistorico(index){
-        abrirConfirmacao('Deseja excluir este histórico?', function(){
+    async function deletarHistorico(index){
+        abrirConfirmacao('Deseja excluir este histórico?', async function(){
             historico.splice(index,1);
-            salvarLocal();
             renderHistorico();
+            await salvarNoBanco();
         });
     }
 
-    function deletarCliente(index){
-        abrirConfirmacao('Deseja excluir este cliente?', function(){
+    async function deletarCliente(index){
+        abrirConfirmacao('Deseja excluir este cliente?', async function(){
             clientes.splice(index,1);
-            salvarLocal();
             renderClientes();
+            await salvarNoBanco();
         });
     }
 
-    function limparResumo(){
-        abrirConfirmacao('Deseja limpar todo o resumo?', function(){
+    async function limparResumo(){
+        abrirConfirmacao('Deseja limpar todo o resumo?', async function(){
             materiais.forEach(item=>{ item.qtd = 0; });
             maoObraItens = [];
-            salvarLocal();
             document.getElementById('clienteNome').value = '';
             document.getElementById('valorCliente').value = '';
             render();
             renderMaoObra();
             atualizarResumo();
+            await salvarNoBanco();
         });
     }
 
@@ -676,9 +700,9 @@
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
         
-        supabaseClient.auth.onAuthStateChange((event, session) => {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
-                carregarDadosDoUsuario(session.user.id);
+                await carregarDadosDoUsuario(session.user.id);
                 document.getElementById('loginOverlay').style.display = 'none';
                 mostrarAba('materiais');
             } else {
