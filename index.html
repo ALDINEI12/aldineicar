@@ -266,7 +266,7 @@
     let usuarioAtualId = null;
     let materiais = [];
     let historico = [];
-    let clientes = []; // Guardará objetos {nome, endereco, tel, cidade}
+    let clientes = []; 
     let maoObraItens = [];
     let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
     let categoriaAtual = 'Todos';
@@ -311,9 +311,7 @@
                 maoObraItens = registro.mao_obra || [];
                 if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
                 
-                // Migração de segurança para clientes antigos (caso fossem apenas strings de texto)
                 clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
-
                 salvarFallbackLocal();
             } else {
                 await salvarNoBanco(true);
@@ -339,9 +337,7 @@
 
     async function salvarNoBanco(silencioso = false) {
         if (!usuarioAtualId) return;
-        
         salvarFallbackLocal();
-
         try {
             const { error } = await supabaseClient
                 .from('user_data')
@@ -354,10 +350,6 @@
                     dados_oficina: dadosOficina,
                     updated_at: new Date()
                 }, { onConflict: 'user_id' });
-
-            if (error) {
-                console.error("Erro crítico ao salvar no Supabase:", error.message);
-            }
         } catch(e) {
             console.error("Falha de rede ao tentar sincronizar:", e);
         }
@@ -373,7 +365,6 @@
     function processarNovaLogo(input) {
         const file = input.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = function(e) {
             dadosOficina.logoBase64 = e.target.result;
@@ -386,7 +377,6 @@
     function atualizarLogoHeader() {
         const container = document.getElementById('headerLogoContainer');
         if (!container) return;
-
         if (dadosOficina.logoBase64) {
             container.innerHTML = `<img src="${dadosOficina.logoBase64}" alt="Logo Oficina" class="logo-img">`;
         } else {
@@ -419,10 +409,9 @@
         dadosOficina.fone = document.getElementById('oficinaFone').value;
         dadosOficina.email = document.getElementById('oficinaEmail').value;
         dadosOficina.pix = document.getElementById('oficinaPix').value;
-        
         atualizarLogoHeader();
         fecharModalOficina();
-        alert("Informações da oficina e logo salvas com sucesso!");
+        alert("Informações da oficina salvas!");
         await salvarNoBanco();
     }
 
@@ -432,59 +421,83 @@
     }
 
     async function handleLogin() {
-        const email = document.getElementById('loginEmail').value;
+        const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
+        const btnEntrar = document.querySelector('#loginForm button');
 
         if (!email || !password) {
-            alert("Preencha email e senha");
+            alert("Por favor, preencha o e-mail e a senha.");
             return;
         }
 
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const textoOriginal = btnEntrar.innerText;
+        btnEntrar.innerText = "Entrando...";
+        btnEntrar.disabled = true;
 
-        if (error) {
-            alert("Erro ao entrar: " + error.message);
-            return;
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert("Erro ao entrar: " + error.message);
+                btnEntrar.innerText = textoOriginal;
+                btnEntrar.disabled = false;
+                return;
+            }
+
+            if (data && data.user) {
+                await carregarDadosDoUsuario(data.user.id);
+                document.getElementById('loginOverlay').style.display = 'none';
+                mostrarAba('materiais');
+            }
+        } catch (err) {
+            alert("Erro de conexão ou no servidor: " + err.message);
+        } finally {
+            btnEntrar.innerText = textoOriginal;
+            btnEntrar.disabled = false;
         }
-
-        await carregarDadosDoUsuario(data.user.id);
-        document.getElementById('loginOverlay').style.display = 'none';
-        mostrarAba('materiais');
     }
 
     async function handleSignup() {
-        const nome = document.getElementById('signupName').value;
-        const email = document.getElementById('signupEmail').value;
+        const nome = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
         const password = document.getElementById('signupPassword').value;
+        const btnCadastrar = document.querySelector('#signupForm button');
 
         if (!email || !password || password.length < 6) {
-            alert("Preencha todos os campos corretamente (Senha mín. 6 caracteres)");
+            alert("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
             return;
         }
 
-        const { error } = await supabaseClient.auth.signUp({
-            email, password, options: { data: { nome } }
-        });
+        const textoOriginal = btnCadastrar.innerText;
+        btnCadastrar.innerText = "Cadastrando...";
+        btnCadastrar.disabled = true;
 
-        if (error) {
-            alert("Erro ao cadastrar: " + error.message);
-            return;
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email, password, options: { data: { nome } }
+            });
+
+            if (error) {
+                alert("Erro ao cadastrar: " + error.message);
+                return;
+            }
+
+            alert("Cadastro realizado com sucesso! Agora faça login.");
+            toggleTab('login');
+        } catch (err) {
+            alert("Erro no processo de cadastro: " + err.message);
+        } finally {
+            btnCadastrar.innerText = textoOriginal;
+            btnCadastrar.disabled = false;
         }
-
-        alert("Cadastro realizado com sucesso! Prossiga com o login.");
-        toggleTab('login');
     }
 
     async function handleLogout() {
         await supabaseClient.auth.signOut();
         usuarioAtualId = null;
-        materiais = [];
-        historico = [];
-        clientes = [];
-        maoObraItens = [];
+        materiais = []; historico = []; clientes = []; maoObraItens = [];
         dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
         localStorage.clear();
-
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
         document.getElementById('loginOverlay').style.display = 'flex';
@@ -495,11 +508,8 @@
         const lista = document.getElementById('lista');
         if(!lista) return;
         lista.innerHTML='';
-
         materiais.forEach((item,index)=>{
-            if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual){
-                return;
-            }
+            if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual) return;
             lista.innerHTML += `
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
@@ -524,19 +534,8 @@
         atualizarResumo();
     }
 
-    async function mais(i){
-        materiais[i].qtd++;
-        render();
-        await salvarNoBanco();
-    }
-
-    async function menos(i){
-        if(materiais[i].qtd>0){
-            materiais[i].qtd--;
-            render();
-            await salvarNoBanco();
-        }
-    }
+    async function mais(i){ materiais[i].qtd++; render(); await salvarNoBanco(); }
+    async function menos(i){ if(materiais[i].qtd>0){ materiais[i].qtd--; render(); await salvarNoBanco(); } }
 
     function atualizarResumo(){
         let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
@@ -553,22 +552,13 @@
         if(l) l.innerText = lucroReal.toFixed(2);
     }
 
-    function abrirModal(){ document.getElementById('modal').style.display='flex'; }
-    function fecharModal(){ document.getElementById('modal').style.display='none'; }
-
     async function salvarMaterial(){
         const nome = document.getElementById('nomeMaterial').value;
         const valor = parseFloat(document.getElementById('valorMaterial').value);
         const cat = document.getElementById('categoriaMaterial').value;
-
-        if(!nome || isNaN(valor)){
-            alert('Preencha os campos corretamente');
-            return;
-        }
-
+        if(!nome || isNaN(valor)) return;
         materiais.push({nome,valor,qtd:0,cat});
-        render();
-        fecharModal();
+        render(); fecharModal();
         document.getElementById('nomeMaterial').value = '';
         document.getElementById('valorMaterial').value = '';
         await salvarNoBanco();
@@ -576,9 +566,7 @@
 
     async function deletarMaterial(index){
         abrirConfirmacao('Deseja remover este material?', async function(){
-            materiais.splice(index,1);
-            render();
-            await salvarNoBanco();
+            materiais.splice(index,1); render(); await salvarNoBanco();
         });
     }
 
@@ -588,22 +576,14 @@
         if(!novoNome) return;
         const novoValor = parseFloat(prompt('Editar valor:', material.valor));
         if(isNaN(novoValor)) return;
-
-        material.nome = novoNome;
-        material.valor = novoValor;
-        render();
-        await salvarNoBanco();
+        material.nome = novoNome; material.valor = novoValor;
+        render(); await salvarNoBanco();
     }
 
     function buscar(texto){
         texto = texto.toLowerCase();
-        const cards = document.querySelectorAll('#lista .card');
-        cards.forEach(card=>{
-            if(card.innerText.toLowerCase().includes(texto)){
-                card.style.display='block';
-            }else{
-                card.style.display='none';
-            }
+        document.querySelectorAll('#lista .card').forEach(card=>{
+            card.style.display = card.innerText.toLowerCase().includes(texto) ? 'block' : 'none';
         });
     }
 
@@ -620,7 +600,6 @@
         const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
         const valorCobrado = document.getElementById('valorCliente').value || '0.00';
 
-        // Guarda o estado completo dos materiais selecionados e da mão de obra
         const snapshotMateriais = materiais.map(m => ({ ...m }));
         const snapshotMaoObra = maoObraItens.map(m => ({ ...m }));
 
@@ -638,23 +617,18 @@
         };
 
         historico.unshift(dadosOrcamento);
-
-        // Atualiza a listagem de clientes sem duplicar nomes
         const clienteExiste = clientes.find(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
         if (!clienteExiste && clienteNome !== 'Sem nome') {
             clientes.unshift({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
         }
-
-        renderHistorico();
-        renderClientes();
-        alert('Orçamento sincronizado e salvo no histórico!');
+        renderHistorico(); renderClientes();
+        alert('Orçamento salvo com sucesso!');
         await salvarNoBanco();
     }
 
     function renderHistorico(){
         const h = document.getElementById('historicoLista');
-        if(!h) return;
-        h.innerHTML='';
+        if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
             h.innerHTML += `
                 <div class="cliente-item">
@@ -681,8 +655,7 @@
 
     function renderClientes(){
         const c = document.getElementById('listaClientes');
-        if(!c) return;
-        c.innerHTML='';
+        if(!c) return; c.innerHTML='';
         clientes.forEach((cli, index)=>{
             c.innerHTML += `
                 <div class="cliente-item">
@@ -702,7 +675,6 @@
         });
     }
 
-    // Carrega dados e estrutura completa do histórico de volta para o resumo para poder alterar
     function carregarParaEditar(index) {
         const item = historico[index];
         if(!item) return;
@@ -711,7 +683,6 @@
         document.getElementById('clienteEndereco').value = item.cliente.endereco || '';
         document.getElementById('clienteTel').value = item.cliente.tel || '';
         document.getElementById('clienteCidade').value = item.cliente.cidade || '';
-
         document.getElementById('veiculoModelo').value = item.veiculo.modelo;
         document.getElementById('veiculoPlaca').value = item.veiculo.placa;
         document.getElementById('veiculoAno').value = item.veiculo.ano || '';
@@ -719,37 +690,27 @@
         document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
         document.getElementById('valorCliente').value = item.totalCobrado;
 
-        // Reconstrói a lista de materiais baseando-se no snapshot
         if (item.listaMateriais && item.listaMateriais.length > 0) {
             materiais.forEach(m => {
                 const salvo = item.listaMateriais.find(s => s.nome === m.nome);
                 m.qtd = salvo ? salvo.qtd : 0;
             });
         }
-
-        // Reconstrói a mão de obra
         maoObraItens = item.listaMaoObra ? item.listaMaoObra.map(m => ({ ...m })) : [];
 
-        render();
-        renderMaoObra();
-        atualizarResumo();
-        
+        render(); renderMaoObra(); atualizarResumo();
         mostrarAba('materiais');
-        alert(`Orçamento de ${item.cliente.nome} carregado no painel lateral de resumo para edição!`);
+        alert(`Orçamento de ${item.cliente.nome} carregado para edição!`);
     }
 
-    // Redireciona os dados cadastrais básicos do cliente da aba Clientes para o painel de Resumo
     function carregarDadosClienteNoResumo(index) {
         const cli = clientes[index];
         if(!cli) return;
-
         document.getElementById('clienteNome').value = cli.nome;
         document.getElementById('clienteEndereco').value = cli.endereco || '';
         document.getElementById('clienteTel').value = cli.tel || '';
         document.getElementById('clienteCidade').value = cli.cidade || 'Sátrio Dias/BA';
-
         mostrarAba('materiais');
-        alert(`Dados cadastrais de ${cli.nome} jogados no painel de Resumo.`);
     }
 
     function mostrarAba(nome){
@@ -764,7 +725,6 @@
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
-    // Gerador de PDF Base Genérico (Aceita inputs diretos de dados fixos)
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, valorFinal, dataOrc) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -791,9 +751,6 @@
 
         doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
         doc.text(dataOrc, 175, y + 5);
-        doc.setFont('Helvetica', 'normal').setFontSize(8).setTextColor(120,120,120);
-        doc.text(`N° ${Math.floor(10000 + Math.random() * 90000)}`, 175, y + 10);
-
         y += 36;
         doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
         y += 5;
@@ -802,55 +759,37 @@
         doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
         y += 15;
 
-        doc.setFontSize(9).setTextColor(100,100,100);
-        doc.text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
         y += 4;
-
         doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
         doc.text(placVeic || '---', 25, y).text(modVeic || '---', 95, y).text(avaliador || '---', 155, y);
         
-        y += 4;
-        doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y);
-        y += 6;
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
 
         doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
-        y += 2;
-        doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y);
-        y += 5;
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
 
         doc.setFont('Helvetica', 'normal').setFontSize(9.5);
-        doc.text(`MODELO: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y);
-        y += 5.5;
-        doc.text(`PLACA: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y);
-        y += 5.5;
-        doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y);
-        y += 5.5;
+        doc.text(`MODELO: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
         doc.text(`COR: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
         
-        y += 7;
-        doc.setLineWidth(0.8).line(15, y, 195, y);
-        y += 10;
-
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
         doc.setLineWidth(0.3).rect(65, y, 80, 16);
         doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
         doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${parseFloat(valorFinal).toFixed(2)}`, 91, y + 12);
         
-        y += 26;
-        doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
         doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
         doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
         
-        y += 35;
-        doc.setLineWidth(0.2).line(60, y, 150, y);
-        y += 4;
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
         doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
-        y += 4;
-        doc.setFont('Helvetica', 'oblique').setFontSize(8).setTextColor(130,130,130).text('Documento gerado eletronicamente', 83, y);
 
         doc.save(`orcamento_${nomeCli.replace(/\s+/g, '_')}.pdf`);
     }
 
-    // PDF Gerado a partir dos campos atuais preenchidos na barra lateral
     function gerarPDFdoResumo(){
         const nome = document.getElementById('clienteNome').value || 'Cliente';
         const end = document.getElementById('clienteEndereco').value || '';
@@ -862,12 +801,9 @@
         const cor = document.getElementById('veiculoCor').value || '';
         const avaliador = document.getElementById('nomeAvaliador').value || '';
         const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
-        const data = new Date().toLocaleDateString('pt-BR');
-
-        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, valor, data);
+        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, valor, new Date().toLocaleDateString('pt-BR'));
     }
 
-    // PDF Gerado de um orçamento antigo salvo no Histórico
     function gerarPDFHistorico(index) {
         const item = historico[index];
         if(!item) return;
@@ -878,15 +814,10 @@
         );
     }
 
-    // PDF do cadastro geral básico do Cliente na aba Clientes
     function gerarPDFClienteCompleto(index) {
         const cli = clientes[index];
         if(!cli) return;
-        construirDocumentoPDF(
-            cli.nome, cli.endereco, cli.tel, cli.cidade,
-            '---', '---', '---', '---', '---',
-            0, new Date().toLocaleDateString('pt-BR')
-        );
+        construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
     }
 
     function abrirModal(){ document.getElementById('modal').style.display='flex'; }
@@ -895,15 +826,9 @@
     async function adicionarMaoObra(){
         const nome = document.getElementById('nomeServico').value;
         const valor = parseFloat(document.getElementById('valorServico').value);
-
-        if(!nome || isNaN(valor)){
-            alert('Preencha os campos da mão de obra corretamente');
-            return;
-        }
-
+        if(!nome || isNaN(valor)) return;
         maoObraItens.push({nome,valor});
-        renderMaoObra();
-        atualizarResumo();
+        renderMaoObra(); atualizarResumo();
         document.getElementById('nomeServico').value='';
         document.getElementById('valorServico').value='';
         await salvarNoBanco();
@@ -911,16 +836,12 @@
 
     function renderMaoObra(){
         const lista = document.getElementById('listaMaoObra');
-        if(!lista) return;
-        lista.innerHTML='';
+        if(!lista) return; lista.innerHTML='';
         maoObraItens.forEach((item,index)=>{
             lista.innerHTML += `
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong>${item.nome}</strong><br>
-                            <span style="color:#00a651; font-weight:bold;">R$ ${item.valor.toFixed(2)}</span>
-                        </div>
+                        <div><strong>${item.nome}</strong><br><span style="color:#00a651; font-weight:bold;">R$ ${item.valor.toFixed(2)}</span></div>
                         <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer; font-size:12px;">Remover</button>
                     </div>
                 </div>
@@ -928,13 +849,7 @@
         });
     }
 
-    async function removerMaoObra(i){
-        maoObraItens.splice(i,1);
-        renderMaoObra();
-        atualizarResumo();
-        await salvarNoBanco();
-    }
-
+    async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
     function enviarWhatsApp(){
         const cliente = document.getElementById('clienteNome').value || 'Cliente';
         const valorTotal = document.getElementById('valorCliente').value || '0.00';
@@ -947,63 +862,34 @@
         document.getElementById('textoConfirmacao').innerText = texto;
         acaoConfirmada = callback;
     }
-
     function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
+    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){ if(acaoConfirmada) acaoConfirmada(); fecharConfirmacao(); });
 
-    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){
-        if(acaoConfirmada){ acaoConfirmada(); }
-        fecharConfirmacao();
-    });
-
-    async function deletarHistorico(index){
-        abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){
-            historico.splice(index,1);
-            renderHistorico();
-            await salvarNoBanco();
-        });
-    }
-
-    async function deletarCliente(index){
-        abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){
-            clientes.splice(index,1);
-            renderClientes();
-            await salvarNoBanco();
-        });
-    }
-
+    async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
+    async function deletarCliente(index){ abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){ clientes.splice(index,1); renderClientes(); await salvarNoBanco(); }); }
     async function limparResumo(){
         abrirConfirmacao('Deseja limpar todo o resumo?', async function(){
-            materiais.forEach(item=>{ item.qtd = 0; });
-            maoObraItens = [];
-            document.getElementById('clienteNome').value = '';
-            document.getElementById('clienteEndereco').value = '';
-            document.getElementById('clienteTel').value = '';
-            document.getElementById('veiculoModelo').value = '';
-            document.getElementById('veiculoPlaca').value = '';
-            document.getElementById('veiculoAno').value = '';
-            document.getElementById('veiculoCor').value = '';
-            document.getElementById('nomeAvaliador').value = '';
+            materiais.forEach(item=>{ item.qtd = 0; }); maoObraItens = [];
+            document.getElementById('clienteNome').value = ''; document.getElementById('clienteEndereco').value = '';
+            document.getElementById('clienteTel').value = ''; document.getElementById('veiculoModelo').value = '';
+            document.getElementById('veiculoPlaca').value = ''; document.getElementById('veiculoAno').value = '';
+            document.getElementById('veiculoCor').value = ''; document.getElementById('nomeAvaliador').value = '';
             document.getElementById('valorCliente').value = '';
-            render();
-            renderMaoObra();
-            atualizarResumo();
-            await salvarNoBanco();
+            render(); renderMaoObra(); atualizarResumo(); await salvarNoBanco();
         });
     }
 
-    function filtrarCategoria(cat){
-        categoriaAtual = cat;
-        render();
-    }
+    function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
 
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
-        
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
                 await carregarDadosDoUsuario(session.user.id);
                 document.getElementById('loginOverlay').style.display = 'none';
-                mostrarAba('materiais');
+                const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
+                const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
+                if (!algumaAtiva) mostrarAba('materiais');
             } else {
                 document.getElementById('loginOverlay').style.display = 'flex';
                 toggleTab('login');
