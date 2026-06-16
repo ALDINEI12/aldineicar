@@ -854,11 +854,92 @@
     }
 
     async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
-    function enviarWhatsApp(){
+    async function enviarWhatsApp() {
         const cliente = document.getElementById('clienteNome').value || 'Cliente';
         const valorTotal = document.getElementById('valorCliente').value || '0.00';
-        const texto = `Olá ${cliente}, o orçamento do seu veículo na ALDINEICAR ficou em R$ ${parseFloat(valorTotal).toFixed(2)}.`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
+        const modelo = document.getElementById('veiculoModelo').value || 'Não informado';
+        const placa = document.getElementById('veiculoPlaca').value || '---';
+        const custoMateriais = document.getElementById('totalMateriais').innerText || '0.00';
+        const custoMaoObra = document.getElementById('totalMaoObra').innerText || '0.00';
+
+        if (!usuarioAtualId) {
+            alert("Você precisa estar logado para realizar esta operação.");
+            return;
+        }
+
+        // 1. Mudar o texto do botão para dar feedback visual
+        const btnWhats = document.querySelector("button[onclick='enviarWhatsApp()']");
+        const textoOriginal = btnWhats.innerText;
+        btnWhats.innerText = "⏳ Gerando Link...";
+        btnWhats.disabled = true;
+
+        try {
+            // 2. Gerar o PDF em memória (sem baixar na tela ainda)
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // Reutiliza a estrutura visual que você já tem no seu PDF
+            let y = 15;
+            if (dadosOficina.logoBase64) {
+                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) { doc.rect(15, y, 45, 20, 'F'); }
+            } else { doc.rect(15, y, 45, 20, 'F'); }
+
+            doc.setFont('Helvetica', 'bold').setFontSize(16).text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+            doc.text(`CNPJ: ${dadosOficina.cnpj || '---'} | FONE: ${dadosOficina.fone || '---'}`, 65, y + 12);
+            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 18);
+            
+            y += 30;
+            doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+            doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+            
+            y += 15;
+            doc.setFontSize(10).text(`CLIENTE: ${cliente}`, 15, y);
+            doc.text(`VEÍCULO: ${modelo} (${placa})`, 110, y);
+            
+            y += 15;
+            doc.setLineWidth(0.3).rect(65, y, 80, 16);
+            doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${parseFloat(valorTotal).toFixed(2)}`, 91, y + 12);
+
+            // Convertendo o PDF gerado em um arquivo binário (Blob) para upload
+            const pdfBlob = doc.output('blob');
+            const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+            // 3. Fazer o Upload do arquivo para o Storage do Supabase
+            const { data, error } = await supabaseClient.storage
+                .from('orcamentos')
+                .upload(nomeArquivo, pdfBlob, {
+                    contentType: 'application/pdf',
+                    upsert: true
+                });
+
+            if (error) throw error;
+
+            // 4. Pegar a URL pública do documento salvo
+            const { data: urlData } = supabaseClient.storage
+                .from('orcamentos')
+                .getPublicUrl(nomeArquivo);
+
+            const linkPdfPublico = urlData.publicUrl;
+
+            // 5. Construir a mensagem do WhatsApp incluindo o link do PDF
+            let textoWhats = `Olá *${cliente}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+            textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+            textoWhats += `💰 *Valor Total:* R$ ${parseFloat(valorTotal).toFixed(2)}\n\n`;
+            textoWhats += `👉 *Clique no link abaixo para abrir o PDF completo e detalhado:* \n${linkPdfPublico}`;
+
+            // 6. Abrir o WhatsApp com tudo pronto
+            window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+        } catch (err) {
+            alert("Erro ao gerar link automático do PDF: " + err.message);
+            console.error(err);
+        } finally {
+            // Restaurar botão
+            btnWhats.innerText = textoOriginal;
+            btnWhats.disabled = false;
+        }
     }
 
     function abrirConfirmacao(texto, callback){
