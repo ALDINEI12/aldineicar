@@ -855,58 +855,99 @@
 
     async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
     async function enviarWhatsApp() {
-        const cliente = document.getElementById('clienteNome').value || 'Cliente';
-        const valorTotal = document.getElementById('valorCliente').value || '0.00';
-        const modelo = document.getElementById('veiculoModelo').value || 'Não informado';
+        const nome = document.getElementById('clienteNome').value || 'Cliente';
+        const end = document.getElementById('clienteEndereco').value || '';
+        const tel = document.getElementById('clienteTel').value || '';
+        const cid = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
+        const modelo = document.getElementById('veiculoModelo').value || '---';
         const placa = document.getElementById('veiculoPlaca').value || '---';
-        const custoMateriais = document.getElementById('totalMateriais').innerText || '0.00';
-        const custoMaoObra = document.getElementById('totalMaoObra').innerText || '0.00';
+        const ano = document.getElementById('veiculoAno').value || '';
+        const cor = document.getElementById('veiculoCor').value || '';
+        const avaliador = document.getElementById('nomeAvaliador').value || '';
+        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
 
         if (!usuarioAtualId) {
             alert("Você precisa estar logado para realizar esta operação.");
             return;
         }
 
-        // 1. Mudar o texto do botão para dar feedback visual
+        // Feedback visual no botão
         const btnWhats = document.querySelector("button[onclick='enviarWhatsApp()']");
         const textoOriginal = btnWhats.innerText;
-        btnWhats.innerText = "⏳ Gerando Link...";
+        btnWhats.innerText = "⏳ Gerando PDF Completo...";
         btnWhats.disabled = true;
 
         try {
-            // 2. Gerar o PDF em memória (sem baixar na tela ainda)
+            // 1. Usando a MESMA biblioteca e lógica do seu PDF padrão completo
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            
-            // Reutiliza a estrutura visual que você já tem no seu PDF
             let y = 15;
-            if (dadosOficina.logoBase64) {
-                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) { doc.rect(15, y, 45, 20, 'F'); }
-            } else { doc.rect(15, y, 45, 20, 'F'); }
 
-            doc.setFont('Helvetica', 'bold').setFontSize(16).text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
-            doc.text(`CNPJ: ${dadosOficina.cnpj || '---'} | FONE: ${dadosOficina.fone || '---'}`, 65, y + 12);
-            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 18);
+            // --- INÍCIO DA MESMA ESTRUTURA DO SEU PDF OFICIAL ---
+            if (dadosOficina.logoBase64) {
+                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                    doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+                }
+            } else {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+            }
+
+            doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+            doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
             
-            y += 30;
+            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+            doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+            doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+            doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+            doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+            doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+            const dataOrc = new Date().toLocaleDateString('pt-BR');
+            doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+            doc.text(dataOrc, 175, y + 5);
+            y += 36;
+            doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+            y += 5;
+
             doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
             doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
-            
             y += 15;
-            doc.setFontSize(10).text(`CLIENTE: ${cliente}`, 15, y);
-            doc.text(`VEÍCULO: ${modelo} (${placa})`, 110, y);
+
+            doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+            y += 4;
+            doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+            doc.text(placa || '---', 25, y).text(modelo || '---', 95, y).text(avaliador || '---', 155, y);
             
-            y += 15;
+            y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+            doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+            y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+            doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+            doc.text(`MODELO: ${modelo || '---'}`, 15, y).text(`NOME: ${nome || '---'}`, 110, y); y += 5.5;
+            doc.text(`PLACA: ${placa || '---'}`, 15, y).text(`ENDEREÇO: ${end || '---'}`, 110, y); y += 5.5;
+            doc.text(`ANO: ${ano || '---'}`, 15, y).text(`TEL: ${tel || '---'}`, 110, y); y += 5.5;
+            doc.text(`COR: ${cor || '---'}`, 15, y).text(`CIDADE: ${cid || '---'}`, 110, y);
+            
+            y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
             doc.setLineWidth(0.3).rect(65, y, 80, 16);
             doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
-            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${parseFloat(valorTotal).toFixed(2)}`, 91, y + 12);
+            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+            
+            y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+            doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+            doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+            
+            y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+            doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+            // --- FIM DA MESMA ESTRUTURA DO SEU PDF OFICIAL ---
 
-            // Convertendo o PDF gerado em um arquivo binário (Blob) para upload
+            // Convertendo o PDF idêntico em arquivo binário
             const pdfBlob = doc.output('blob');
             const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
 
-            // 3. Fazer o Upload do arquivo para o Storage do Supabase
+            // Envia para o Supabase Storage público
             const { data, error } = await supabaseClient.storage
                 .from('orcamentos')
                 .upload(nomeArquivo, pdfBlob, {
@@ -916,27 +957,26 @@
 
             if (error) throw error;
 
-            // 4. Pegar a URL pública do documento salvo
+            // Resgata o link direto
             const { data: urlData } = supabaseClient.storage
                 .from('orcamentos')
                 .getPublicUrl(nomeArquivo);
 
             const linkPdfPublico = urlData.publicUrl;
 
-            // 5. Construir a mensagem do WhatsApp incluindo o link do PDF
-            let textoWhats = `Olá *${cliente}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+            // Monta a mensagem final para o WhatsApp
+            let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
             textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
-            textoWhats += `💰 *Valor Total:* R$ ${parseFloat(valorTotal).toFixed(2)}\n\n`;
-            textoWhats += `👉 *Clique no link abaixo para abrir o PDF completo e detalhado:* \n${linkPdfPublico}`;
+            textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+            textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
 
-            // 6. Abrir o WhatsApp com tudo pronto
+            // Abre o WhatsApp com a mensagem e link idêntico
             window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
 
         } catch (err) {
-            alert("Erro ao gerar link automático do PDF: " + err.message);
+            alert("Erro ao sincronizar PDF completo: " + err.message);
             console.error(err);
         } finally {
-            // Restaurar botão
             btnWhats.innerText = textoOriginal;
             btnWhats.disabled = false;
         }
