@@ -44,14 +44,19 @@
     </div>
   </div>
 </div>
+</div>
+</div>
 <!-- ==================== FIM LOGIN ==================== -->
 
-<script>
-// ====================== CONFIGURAÇÃO SUPABASE ======================
-const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
-const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+<!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
+<div id="appContainer" style="display: none;">
 
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+<header>
+<div class="logo">ALDINEICAR</div>
+<input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+</header>
+
+<div class="container">
 
 // ====================== FUNÇÕES DE LOGIN ======================
 function toggleTab(tab) {
@@ -1161,7 +1166,79 @@ Excluir
 </div>
 
 </div>
+</div> <!-- fim .container -->
+</div> <!-- fim #appContainer -->
+<!-- ==================== FIM CONTEÚDO PRINCIPAL ==================== -->
+
+<script>
+// ====================== CONFIGURAÇÃO SUPABASE ======================
+const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
+const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+// ====================== FUNÇÕES DE LOGIN ======================
+function toggleTab(tab) {
+  if (tab === 'login') {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('signupForm').style.display = 'none';
+  } else {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'block';
+  }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    alert("Preencha email e senha");
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    alert("Erro ao entrar: " + error.message);
+    return;
+  }
+
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'block';
+  alert("✅ Login realizado com sucesso!");
+  mostrarAba('materiais');
+}
+
+async function handleSignup() {
+  const nome = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
+
+  if (!email || !password || password.length < 6) {
+    alert("Preencha todos os campos corretamente");
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: { data: { nome } }
+  });
+
+  if (error) {
+    alert("Erro ao cadastrar: " + error.message);
+    return;
+  }
+
+  alert("Cadastro realizado! Verifique seu email e faça login.");
+  toggleTab('login');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  toggleTab('login');
+});
+</script>
 </body>
 </html>
 
-ficou assim
