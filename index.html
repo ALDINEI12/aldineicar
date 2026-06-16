@@ -11,8 +11,9 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
         
-        header { background: #111; color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 26px; font-weight: bold; color: #ffd700; }
+        header { background: #111; color: white; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; height: 70px; }
+        .logo-container { height: 100%; display: flex; align-items: center; }
+        .logo-img { height: 55px; width: auto; object-fit: contain; }
         .search { width:45%; padding:12px; border-radius:10px; border:none; font-size:16px; }
         
         .container { display:flex; min-height:100vh; }
@@ -48,7 +49,7 @@
         .resumo { width: 320px; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 10px; height: fit-content; }
         .resumo h2 { margin-bottom:15px; color:#ffd700; }
         .resumo div { margin-bottom:10px; font-size: 15px; }
-        .resumo input { width:100%; padding:12px; margin-top:10px; border:1px solid #ddd; border-radius:10px; }
+        .resumo input { width:100%; padding:10px; margin-top:5px; border:1px solid #ddd; border-radius:8px; font-size: 14px; }
         .resumo button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
         
         .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; z-index:999; }
@@ -69,7 +70,7 @@
         
         @media(max-width:900px){
             .container { flex-direction:column; }
-            .sidebar { width:100%; display:flex; flex-direction: row; gap:10px; overflow:auto; padding: 10px; }
+            .sidebar { width:100%; display:flex; flex-direction: row; gap:10px; overflow:auto; padding: 10px; height: auto; }
             .sidebar button { min-width:160px; margin-bottom: 0; }
             .sidebar .btn-logout { margin-top: 0; }
             .search { width:55%; }
@@ -107,7 +108,9 @@
 
     <div id="appContainer">
         <header>
-            <div class="logo">ALDINEICAR</div>
+            <div class="logo-container">
+                <img src="logo.png" alt="ALDINEICAR PINTURA AUTOMOTIVA" class="logo-img" onerror="this.style.display='none'; this.after('ALDINEICAR')">
+            </div>
             <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
         </header>
 
@@ -119,6 +122,7 @@
                     <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                     <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                     <button onclick="mostrarAba('historico')">📋 Histórico</button>
+                    <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
                 </div>
                 <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
             </div>
@@ -173,8 +177,25 @@
                         <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
                         <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
                         <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        
+                        <label style="font-size:12px; font-weight:bold; color:#555;">CLIENTE</label>
                         <input type="text" id="clienteNome" placeholder="Nome do cliente">
-                        <input type="number" id="valorCliente" placeholder="Valor cobrado do cliente" oninput="atualizarResumo()">
+                        <input type="text" id="clienteEndereco" placeholder="Endereço">
+                        <input type="text" id="clienteTel" placeholder="Telefone">
+                        <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátrio Dias/BA">
+                        
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">VEÍCULO</label>
+                        <input type="text" id="veiculoModelo" placeholder="Modelo (Ex: Palio)">
+                        <input type="text" id="veiculoPlaca" placeholder="Placa">
+                        <input type="text" id="veiculoAno" placeholder="Ano">
+                        <input type="text" id="veiculoCor" placeholder="Cor">
+                        <input type="text" id="nomeAvaliador" placeholder="Nome do Avaliador">
+
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">FINANCEIRO</label>
+                        <input type="number" id="valorCliente" placeholder="Valor total cobrado" oninput="atualizarResumo()">
+                        
                         <div style="margin-top: 15px; font-weight: bold; font-size: 16px;">
                             Lucro Real: <span style="color: #00a651;">R$ <span id="lucro">0.00</span></span>
                         </div>
@@ -204,6 +225,21 @@
         </div>
     </div>
 
+    <div class="modal" id="modalOficina">
+        <div class="modal-content">
+            <h2>Dados da Minha Oficina</h2>
+            <input type="text" id="oficinaNome" placeholder="Nome Comercial" value="ALDINEICAR">
+            <input type="text" id="oficinaCnpj" placeholder="CNPJ / CPF">
+            <input type="text" id="oficinaEnd" placeholder="Endereço Completo">
+            <input type="text" id="oficinaCep" placeholder="CEP e Cidade/UF">
+            <input type="text" id="oficinaFone" placeholder="Telefone(s)">
+            <input type="text" id="oficinaEmail" placeholder="E-mail">
+            <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento">
+            <button class="btn-green" onclick="salvarDadosOficina()">Salvar Dados</button>
+            <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
+        </div>
+    </div>
+
     <div id="modalConfirmar" class="modal">
         <div class="modal-content" style="max-width:350px; text-align:center; background:white; color:#333;">
             <h2 style="margin-bottom:15px;">Confirmar exclusão</h2>
@@ -225,6 +261,7 @@
     let historico = [];
     let clientes = [];
     let maoObraItens = [];
+    let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '' };
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
 
@@ -235,64 +272,113 @@
         {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
     ];
 
-    // BUSCA OS DADOS DIRETO NO BANCO DO SUPABASE
     async function carregarDadosDoUsuario(userId) {
         if (!userId) return;
         usuarioAtualId = userId;
         
+        const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
+        if(fallback){
+            const parsed = JSON.parse(fallback);
+            materiais = parsed.materiais || [...materiaisPadrao];
+            historico = parsed.historico || [];
+            clientes = parsed.clientes || [];
+            maoObraItens = parsed.maoObraItens || [];
+            dadosOficina = parsed.dadosOficina || dadosOficina;
+        } else {
+            materiais = [...materiaisPadrao];
+        }
+
         try {
             const { data, error } = await supabaseClient
                 .from('user_data')
                 .select('*')
-                .eq('user_id', userId)
-                .single();
+                .eq('user_id', userId);
 
-            if (error && error.code !== 'PGRST116') {
-                console.error("Erro ao carregar dados do Supabase:", error.message);
-                return;
-            }
-
-            if (data) {
-                materiais = data.materiais || [...materiaisPadrao];
-                historico = data.historico || [];
-                clientes = data.clientes || [];
-                maoObraItens = data.mao_obra || [];
+            if (error) {
+                await salvarNoBanco(true); 
+            } else if (data && data.length > 0) {
+                const registro = data[0];
+                materiais = registro.materiais || [...materiaisPadrao];
+                historico = registro.historico || [];
+                clientes = registro.clientes || [];
+                maoObraItens = registro.mao_obra || [];
+                // Se houver metadados salvos no banco para dados da oficina, extraímos
+                if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
+                
+                salvarFallbackLocal();
             } else {
-                // Se o usuário for novo e não tiver registro, cria um com dados padrão
-                materiais = [...materiaisPadrao];
-                historico = [];
-                clientes = [];
-                maoObraItens = [];
-                await salvarNoBanco();
+                await salvarNoBanco(true);
             }
-
-            render();
-            renderMaoObra();
-            renderHistorico();
-            renderClientes();
         } catch (err) {
-            console.error("Falha na sincronização:", err);
+            console.error("Erro na comunicação com a nuvem:", err);
         }
+
+        // Aplica os dados da oficina nos inputs correspondentes da modal
+        atualizarInputsOficina();
+        render();
+        renderMaoObra();
+        renderHistorico();
+        renderClientes();
     }
     
-    // SALVA OS DADOS DIRETO NO BANCO DO SUPABASE (SINCRONIZAÇÃO EM NUVEM)
-    async function salvarNoBanco() {
+    function salvarFallbackLocal() {
+        if (!usuarioAtualId) return;
+        localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
+            materiais, historico, clientes, maoObraItens, dadosOficina
+        }));
+    }
+
+    async function salvarNoBanco(silencioso = false) {
         if (!usuarioAtualId) return;
         
-        const { error } = await supabaseClient
-            .from('user_data')
-            .upsert({
-                user_id: usuarioAtualId,
-                materiais: materiais,
-                historico: historico,
-                clientes: clientes,
-                mao_obra: maoObraItens,
-                updated_at: new Date()
-            });
+        salvarFallbackLocal();
 
-        if (error) {
-            console.error("Erro ao salvar dados em nuvem:", error.message);
+        try {
+            const { error } = await supabaseClient
+                .from('user_data')
+                .upsert({
+                    user_id: usuarioAtualId,
+                    materiais: materiais,
+                    historico: historico,
+                    clientes: clientes,
+                    mao_obra: maoObraItens,
+                    dados_oficina: dadosOficina,
+                    updated_at: new Date()
+                }, { onConflict: 'user_id' });
+
+            if (error) {
+                console.error("Erro crítico ao salvar no Supabase:", error.message);
+            }
+        } catch(e) {
+            console.error("Falha de rede ao tentar sincronizar:", e);
         }
+    }
+
+    function abrirModalOficina() { document.getElementById('modalOficina').style.display='flex'; }
+    function fecharModalOficina() { document.getElementById('modalOficina').style.display='none'; }
+    
+    function atualizarInputsOficina() {
+        document.getElementById('oficinaNome').value = dadosOficina.nome || 'ALDINEICAR';
+        document.getElementById('oficinaCnpj').value = dadosOficina.cnpj || '';
+        document.getElementById('oficinaEnd').value = dadosOficina.end || '';
+        document.getElementById('oficinaCep').value = dadosOficina.cep || '';
+        document.getElementById('oficinaFone').value = dadosOficina.fone || '';
+        document.getElementById('oficinaEmail').value = dadosOficina.email || '';
+        document.getElementById('oficinaPix').value = dadosOficina.pix || '';
+    }
+
+    async function salvarDadosOficina() {
+        dadosOficina.nome = document.getElementById('oficinaNome').value;
+        dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
+        dadosOficina.end = document.getElementById('oficinaEnd').value;
+        dadosOficina.cep = document.getElementById('oficinaCep').value;
+        dadosOficina.fone = document.getElementById('oficinaFone').value;
+        dadosOficina.email = document.getElementById('oficinaEmail').value;
+        dadosOficina.pix = document.getElementById('oficinaPix').value;
+        
+        fecharModalOficina();
+        alert("Informações da oficina atualizadas!");
+        await salvarNoBanco();
     }
 
     function toggleTab(tab) {
@@ -351,6 +437,7 @@
         historico = [];
         clientes = [];
         maoObraItens = [];
+        localStorage.clear();
 
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
@@ -407,17 +494,13 @@
 
     function atualizarResumo(){
         let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
-        let maoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-        
         let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
         let lucroReal = valorCobrado - totalMateriais;
 
         const tm = document.getElementById('totalMateriais');
-        const tmo = document.getElementById('totalMaoObra');
         const l = document.getElementById('lucro');
 
         if(tm) tm.innerText = totalMateriais.toFixed(2);
-        if(tmo) tmo.innerText = maoObra.toFixed(2);
         if(l) l.innerText = lucroReal.toFixed(2);
     }
 
@@ -478,9 +561,12 @@
     async function salvarOrcamento(){
         const cliente = document.getElementById('clienteNome').value || 'Sem nome';
         const valorCobrado = document.getElementById('valorCliente').value || '0.00';
+        const veiculo = document.getElementById('veiculoModelo').value || 'Não informado';
+        const placa = document.getElementById('veiculoPlaca').value || '---';
 
         const dados = {
             cliente,
+            veiculo: `${veiculo} (${placa})`,
             totalCobrado: parseFloat(valorCobrado).toFixed(2),
             materiais: document.getElementById('totalMateriais').innerText,
             maoObra: document.getElementById('totalMaoObra').innerText,
@@ -493,7 +579,7 @@
 
         renderHistorico();
         renderClientes();
-        alert('Orçamento salvo no banco com sucesso!');
+        alert('Orçamento sincronizado na nuvem!');
         await salvarNoBanco();
     }
 
@@ -506,9 +592,9 @@
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div>
-                            <strong>👤 Cliente: ${item.cliente}</strong><br><br>
+                            <strong>👤 Cliente: ${item.cliente}</strong><br>
+                            🚗 Veículo: ${item.veiculo || '---'}<br><br>
                             💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
-                            🔧 Mão de obra calculada: R$ ${item.maoObra}<br>
                             📦 Custo Materiais: R$ ${item.materiais}<br>
                             📈 Lucro Lindo: R$ ${item.lucro}<br><br>
                             🕒 ${item.data}
@@ -548,56 +634,165 @@
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
+    // GERAÇÃO DE PDF CUSTOMIZADA BASEADA NO SEU MODELO ENVIADO
     function gerarPDF(){
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        let y = 20;
-        const cliente = document.getElementById('clienteNome').value || 'Cliente';
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        let y = 15;
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-        doc.setFontSize(22);
-        doc.text('ALDINEICAR - Orçamento Profissional',20,y);
-        y += 12;
-        doc.setFontSize(14);
-        doc.text(`Cliente: ${cliente}`, 20, y);
-        y += 15;
-
-        doc.setFontSize(16);
-        doc.text('Materiais Utilizados:', 20, y);
-        y += 10;
-
-        let temMateriais = false;
-        materiais.forEach(item=>{
-            if(item.qtd>0){
-                temMateriais = true;
-                doc.setFontSize(12);
-                doc.text(`• ${item.nome} (${item.qtd}x) - R$ ${(item.valor*item.qtd).toFixed(2)}`,20,y);
-                y += 8;
-            }
-        });
-        if(!temMateriais) { doc.text('Nenhum material selecionado.', 25, y); y+=8; }
-
-        y += 5;
-        doc.setFontSize(16);
-        doc.text('Mão de Obra / Serviços:', 20, y);
-        y += 10;
-
-        if(maoObraItens.length > 0){
-            maoObraItens.forEach(item => {
-                doc.setFontSize(12);
-                doc.text(`• ${item.nome} - R$ ${item.valor.toFixed(2)}`, 20, y);
-                y += 8;
-            });
-        } else {
-            doc.text('Nenhum serviço listado.', 25, y);
-            y += 8;
+        // Adiciona a Imagem da Logo no PDF se ela existir localmente
+        try {
+            doc.addImage('logo.png', 'PNG', 15, y, 45, 20);
+        } catch (e) {
+            // Se falhar (imagem offline), renderiza um box cinza suave alternativo
+            doc.setFillColor(240,240,240);
+            doc.rect(15, y, 45, 20, 'F');
         }
 
-        y += 10;
-        doc.setFontSize(14);
-        const valorTotal = document.getElementById('valorCliente').value || '0.00';
-        doc.text(`Valor Final do Orçamento: R$ ${parseFloat(valorTotal).toFixed(2)}`,20,y);
+        // Cabeçalho da Oficina (Alinhado ao lado da imagem da logo)
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text(dadosOficina.nome.toUpperCase(), 65, y + 5);
         
-        doc.save(`orcamento_${cliente.replace(/\s+/g, '_')}.pdf`);
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '00.000.000/0001-00'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || 'Rua das Oficinas, 123 - Centro'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '30.000-000, SALVADOR/BA'}`, 65, y + 18);
+        doc.text(`FONE(s): ${dadosOficina.fone || '(75) 99999-9999'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || 'contato@suaoficina.com.br'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || 'Não configurado'}`, 65, y + 30);
+
+        // Data e Número do orçamento no canto direito superior
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(0,0,0);
+        doc.text(dataAtual, 175, y + 5);
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(120,120,120);
+        doc.text(`N° ${Math.floor(10000 + Math.random() * 90000)}`, 175, y + 10);
+
+        y += 36;
+        
+        // Linha divisória horizontal
+        doc.setDrawColor(200, 200, 200);
+        doc.line(15, y, 195, y);
+        y += 5;
+
+        // Caixa Título centralizado: ORÇAMENTO
+        doc.setDrawColor(0,0,0);
+        doc.rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        // Cabeçalhos rápidos do topo do modelo (Placa, Modelo, Avaliador)
+        doc.setFontSize(9);
+        doc.setTextColor(100,100,100);
+        doc.text('PLACA', 25, y);
+        doc.text('MODELO', 95, y);
+        doc.text('AVALIADOR', 155, y);
+        y += 4;
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setTextColor(0,0,0);
+        doc.setFontSize(10);
+        doc.text(document.getElementById('veiculoPlaca').value || '---', 25, y);
+        doc.text(document.getElementById('veiculoModelo').value || '---', 95, y);
+        doc.text(document.getElementById('nomeAvaliador').value || '---', 155, y);
+        
+        y += 4;
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.4);
+        doc.line(15, y, 195, y);
+        y += 6;
+
+        // Blocos Paralelos de Informações: VEÍCULO (Esquerda) e CLIENTE (Direita)
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text('VEÍCULO', 15, y);
+        doc.text('CLIENTE', 110, y);
+        
+        y += 2;
+        doc.setLineWidth(0.2);
+        doc.line(15, y, 100, y);
+        doc.line(110, y, 195, y);
+        y += 5;
+
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9.5);
+        
+        // Escreve os Dados do Veículo
+        doc.text(`MODELO: ${document.getElementById('veiculoModelo').value || '---'}`, 15, y);
+        // Escreve os Dados do Cliente
+        doc.text(`NOME: ${document.getElementById('clienteNome').value || '---'}`, 110, y);
+        y += 5.5;
+
+        doc.text(`PLACA: ${document.getElementById('veiculoPlaca').value || '---'}`, 15, y);
+        doc.text(`ENDEREÇO: ${document.getElementById('clienteEndereco').value || '---'}`, 110, y);
+        y += 5.5;
+
+        doc.text(`ANO: ${document.getElementById('veiculoAno').value || '---'}`, 15, y);
+        doc.text(`TEL: ${document.getElementById('clienteTel').value || '---'}`, 110, y);
+        y += 5.5;
+
+        doc.text(`COR: ${document.getElementById('veiculoCor').value || '---'}`, 15, y);
+        doc.text(`CIDADE: ${document.getElementById('clienteCidade').value || 'Sátrio Dias'}`, 110, y);
+        y += 5.5;
+        
+        // Linha grossa abaixo dos dados conforme o modelo
+        y += 2;
+        doc.setLineWidth(0.8);
+        doc.line(15, y, 195, y);
+        y += 10;
+
+        // Bloco Único de Valor Total (Centralizado e em destaque igual ao desenho do modelo)
+        doc.setLineWidth(0.3);
+        doc.rect(65, y, 80, 16);
+        
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('TOTAL R$', 98, y + 5);
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(15);
+        const valorFinal = parseFloat(document.getElementById('valorCliente').value) || 0;
+        doc.text(`R$ ${valorFinal.toFixed(2)}`, 91, y + 12);
+        
+        y += 26;
+
+        // Caixa de Observações
+        doc.setLineWidth(0.2);
+        doc.rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35;
+
+        // Linha de Assinatura
+        doc.setLineWidth(0.2);
+        doc.line(60, y, 150, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('ASSINATURA DO CLIENTE', 85, y);
+        y += 4;
+        doc.setFont('Helvetica', 'oblique');
+        doc.setFontSize(8);
+        doc.setTextColor(130,130,130);
+        doc.text('Documento gerado eletronicamente', 83, y);
+
+        const nomeSalvar = document.getElementById('clienteNome').value || 'Cliente';
+        doc.save(`orcamento_${nomeSalvar.replace(/\s+/g, '_')}.pdf`);
     }
 
     async function adicionarMaoObra(){
@@ -684,6 +879,13 @@
             materiais.forEach(item=>{ item.qtd = 0; });
             maoObraItens = [];
             document.getElementById('clienteNome').value = '';
+            document.getElementById('clienteEndereco').value = '';
+            document.getElementById('clienteTel').value = '';
+            document.getElementById('veiculoModelo').value = '';
+            document.getElementById('veiculoPlaca').value = '';
+            document.getElementById('veiculoAno').value = '';
+            document.getElementById('veiculoCor').value = '';
+            document.getElementById('nomeAvaliador').value = '';
             document.getElementById('valorCliente').value = '';
             render();
             renderMaoObra();
