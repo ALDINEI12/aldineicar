@@ -205,460 +205,446 @@
     </div>
 
     <script>
-        // ====================== CONFIGURAÇÃO SUPABASE ======================
-const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
-const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    // ====================== CONFIGURAÇÃO SUPABASE ======================
+    const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
+    const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// ====================== VARIÁVEIS GLOBAIS REATIVAS POR USUÁRIO ======================
-let usuarioAtualId = null;
-let materiais = [];
-let historico = [];
-let clientes = [];
-let maoObraItens = [];
-let categoriaAtual = 'Todos';
-let acaoConfirmada = null;
+    // ====================== VARIÁVEIS GLOBAIS REATIVAS POR USUÁRIO ======================
+    let usuarioAtualId = null;
+    let materiais = [];
+    let historico = [];
+    let clientes = [];
+    let maoObraItens = [];
+    let categoriaAtual = 'Todos';
+    let acaoConfirmada = null;
 
-// Valores padrão caso o usuário seja novo
-const materiaisPadrao = [
-    {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
-    {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
-    {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
-    {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tinta'}
-];
+    // Valores padrão caso o usuário seja novo
+    const materiaisPadrao = [
+        {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
+        {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
+        {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
+        {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tinta'}
+    ];
 
-// FUNÇÃO PARA CARREGAR OS DADOS DA CONTA LOGADA
-function carregarDadosDoUsuario(userId) {
-    usuarioAtualId = userId;
-    
-    // Puxa os dados usando o ID do usuário como parte da chave
-    materiais = JSON.parse(localStorage.getItem(`materiais_${userId}`)) || [...materiaisPadrao];
-    historico = JSON.parse(localStorage.getItem(`historico_${userId}`)) || [];
-    clientes = JSON.parse(localStorage.getItem(`clientes_${userId}`)) || [];
-    maoObraItens = JSON.parse(localStorage.getItem(`maoObra_${userId}`)) || [];
-    
-    // Atualiza a tela com os dados deste usuário específico
-    render();
-    renderMaoObra();
-    renderHistorico();
-    renderClientes();
-}
-
-// FUNÇÃO PARA SALVAR OS DADOS DA CONTA LOGADA
-function salvarLocal() {
-    if (!usuarioAtualId) return;
-    localStorage.setItem(`materiais_${usuarioAtualId}`, JSON.stringify(materiais));
-    localStorage.setItem(`historico_${usuarioAtualId}`, JSON.stringify(historico));
-    localStorage.setItem(`clientes_${usuarioAtualId}`, JSON.stringify(clientes));
-    localStorage.setItem(`maoObra_${usuarioAtualId}`, JSON.stringify(maoObraItens));
-}
-
-// Sobrescrevendo as funções antigas de salvar específicas para usar a nova lógica unificada
-function salvarOrcamento(){
-    const cliente = document.getElementById('clienteNome').value || 'Sem nome';
-    const total = document.getElementById('total').innerText;
-
-    const dados = {
-        cliente,
-        total,
-        materiais: document.getElementById('totalMateriais').innerText,
-        maoObra: document.getElementById('totalMaoObra').innerText,
-        data: new Date().toLocaleString()
-    };
-
-    historico.unshift(dados);
-    if(!clientes.includes(cliente)){ clientes.unshift(cliente); }
-
-    salvarLocal(); // Salva no local correto do usuário
-
-    renderHistorico();
-    renderClientes();
-    alert('Orçamento salvo');
-}
-
-// ====================== FUNÇÕES DE LOGIN ======================
-function toggleTab(tab) {
-    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
-    document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
-}
-
-async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    if (!email || !password) {
-        alert("Preencha email e senha");
-        return;
+    // FUNÇÃO PARA CARREGAR OS DADOS DA CONTA LOGADA
+    function carregarDadosDoUsuario(userId) {
+        usuarioAtualId = userId;
+        
+        // Puxa os dados usando o ID do usuário como parte da chave
+        materiais = JSON.parse(localStorage.getItem(`materiais_${userId}`)) || [...materiaisPadrao];
+        historico = JSON.parse(localStorage.getItem(`historico_${userId}`)) || [];
+        clientes = JSON.parse(localStorage.getItem(`clientes_${userId}`)) || [];
+        maoObraItens = JSON.parse(localStorage.getItem(`maoObra_${userId}`)) || [];
+        
+        // Atualiza a tela com os dados deste usuário específico
+        render();
+        renderMaoObra();
+        renderHistorico();
+        renderClientes();
     }
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        alert("Erro ao entrar: " + error.message);
-        return;
+    // FUNÇÃO PARA SALVAR OS DADOS DA CONTA LOGADA
+    function salvarLocal() {
+        if (!usuarioAtualId) return;
+        localStorage.setItem(`materiais_${usuarioAtualId}`, JSON.stringify(materiais));
+        localStorage.setItem(`historico_${usuarioAtualId}`, JSON.stringify(historico));
+        localStorage.setItem(`clientes_${usuarioAtualId}`, JSON.stringify(clientes));
+        localStorage.setItem(`maoObra_${usuarioAtualId}`, JSON.stringify(maoObraItens));
     }
 
-    // Identifica o usuário e carrega os dados dele
-    carregarDadosDoUsuario(data.user.id);
-
-    document.getElementById('loginOverlay').style.display = 'none';
-    alert("✅ Login realizado com sucesso!");
-    mostrarAba('materiais');
-}
-
-async function handleSignup() {
-    const nome = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const password = document.getElementById('signupPassword').value;
-
-    if (!email || !password || password.length < 6) {
-        alert("Preencha todos os campos corretamente (Senha mín. 6 caracteres)");
-        return;
+    // ====================== FUNÇÕES DE LOGIN / LOGOUT ======================
+    function toggleTab(tab) {
+        document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
     }
 
-    const { error } = await supabaseClient.auth.signUp({
-        email, password, options: { data: { nome } }
-    });
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
 
-    if (error) {
-        alert("Erro ao cadastrar: " + error.message);
-        return;
-    }
+        if (!email || !password) {
+            alert("Preencha email e senha");
+            return;
+        }
 
-    alert("Cadastro realizado! Verifique seu email.");
-    toggleTab('login');
-}
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-// EXECUÇÕES INICIAIS AO CARREGAR A PÁGINA
-document.addEventListener('DOMContentLoaded', async () => {
-    toggleTab('login');
-    
-    // Verifica se o usuário já estava logado anteriormente para não pedir login toda hora
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        carregarDadosDoUsuario(session.user.id);
+        if (error) {
+            alert("Erro ao entrar: " + error.message);
+            return;
+        }
+
+        carregarDadosDoUsuario(data.user.id);
+
         document.getElementById('loginOverlay').style.display = 'none';
+        alert("✅ Login realizado com sucesso!");
         mostrarAba('materiais');
     }
-});
-        // REGRAS DE NEGÓCIO DO APP
-        function render(){
-            const lista = document.getElementById('lista');
-            if(!lista) return;
-            lista.innerHTML='';
 
-            materiais.forEach((item,index)=>{
-                if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual){
-                    return;
-                }
-                lista.innerHTML += `
-                    <div class="card">
-                        <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
-                            <div>
-                                <h3>${item.nome}</h3>
-                                <div>${item.cat}</div>
-                                <div class="preco">R$ ${item.valor.toFixed(2)}</div>
-                            </div>
-                            <div style="display:flex;gap:6px;">
-                                <button onclick="editarMaterial(${index})" style="background:#f4b400;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">✏️</button>
-                                <button onclick="deletarMaterial(${index})" style="background:#d40000;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="controls">
-                            <button class="btn-minus" onclick="menos(${index})">-</button>
-                            <div class="qtd">${item.qtd}</div>
-                            <button class="btn-plus" onclick="mais(${index})">+</button>
-                        </div>
-                    </div>
-                `;
-            });
-            atualizarResumo();
+    async function handleSignup() {
+        const nome = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+
+        if (!email || !password || password.length < 6) {
+            alert("Preencha todos os campos corretamente (Senha mín. 6 caracteres)");
+            return;
         }
 
-        function mais(i){
-            materiais[i].qtd++;
-            salvarLocal();
-            render();
-        }
-
-        function menos(i){
-            if(materiais[i].qtd>0){
-                materiais[i].qtd--;
-                salvarLocal();
-                render();
-            }
-        }
-
-        function atualizarResumo(){
-            let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
-            let maoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-            let total = maoObra - totalMateriais;
-            let lucro = total;
-
-            document.getElementById('totalMateriais').innerText = totalMateriais.toFixed(2);
-            document.getElementById('totalMaoObra').innerText = maoObra.toFixed(2);
-            document.getElementById('total').innerText = total.toFixed(2);
-            document.getElementById('lucro').innerText = lucro.toFixed(2);
-        }
-
-        function abrirModal(){ document.getElementById('modal').style.display='flex'; }
-        function fecharModal(){ document.getElementById('modal').style.display='none'; }
-
-        function salvarMaterial(){
-            const nome = document.getElementById('nomeMaterial').value;
-            const valor = parseFloat(document.getElementById('valorMaterial').value);
-            const cat = document.getElementById('categoriaMaterial').value;
-
-            if(!nome || !valor){
-                alert('Preencha os campos');
-                return;
-            }
-
-            materiais.push({nome,valor,qtd:0,cat});
-            salvarLocal();
-            render();
-            fecharModal();
-            document.getElementById('nomeMaterial').value = '';
-            document.getElementById('valorMaterial').value = '';
-        }
-
-        function salvarLocal(){ localStorage.setItem('materiaisAldinei',JSON.stringify(materiais)); }
-
-        function deletarMaterial(index){
-            abrirConfirmacao('Deseja remover este material?', function(){
-                materiais.splice(index,1);
-                salvarLocal();
-                render();
-            });
-        }
-
-        function editarMaterial(index){
-            const material = materiais[index];
-            const novoNome = prompt('Editar nome:', material.nome);
-            if(!novoNome) return;
-            const novoValor = parseFloat(prompt('Editar valor:', material.valor));
-            if(isNaN(novoValor)) return;
-
-            material.nome = novoNome;
-            material.valor = novoValor;
-            salvarLocal();
-            render();
-        }
-
-        function buscar(texto){
-            texto = texto.toLowerCase();
-            const cards = document.querySelectorAll('#lista .card');
-            cards.forEach(card=>{
-                if(card.innerText.toLowerCase().includes(texto)){
-                    card.style.display='block';
-                }else{
-                    card.style.display='none';
-                }
-            });
-        }
-
-        function salvarOrcamento(){
-            const cliente = document.getElementById('clienteNome').value || 'Sem nome';
-            const total = document.getElementById('total').innerText;
-
-            const dados = {
-                cliente,
-                total,
-                materiais: document.getElementById('totalMateriais').innerText,
-                maoObra: document.getElementById('totalMaoObra').innerText,
-                data: new Date().toLocaleString()
-            };
-
-            historico.unshift(dados);
-            if(!clientes.includes(cliente)){ clientes.unshift(cliente); }
-
-            salvarLocal();
-            localStorage.setItem('clientesAldinei',JSON.stringify(clientes));
-
-            renderHistorico();
-            renderClientes();
-            alert('Orçamento salvo');
-        }
-
-        function renderHistorico(){
-            const h = document.getElementById('historico');
-            if(!h) return;
-            h.innerHTML='';
-            historico.forEach((item,index)=>{
-                h.innerHTML += `
-                    <div class="cliente-item">
-                        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
-                            <div>
-                                <strong>${item.cliente}</strong><br><br>
-                                💰 Total: R$ ${item.total}<br>
-                                🔧 Mão de obra: R$ ${item.maoObra}<br>
-                                📦 Materiais: R$ ${item.materiais}<br><br>
-                                🕒 ${item.data}
-                            </div>
-                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderClientes(){
-            const c = document.getElementById('listaClientes');
-            if(!c) return;
-            c.innerHTML='';
-            clientes.forEach((nome,index)=>{
-                c.innerHTML += `
-                    <div class="cliente-item">
-                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-                            <div>${nome}</div>
-                            <button onclick="deletarCliente(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function mostrarAba(nome){
-            document.getElementById('aba-materiais').style.display='none';
-            document.getElementById('aba-clientes').style.display='none';
-            document.getElementById('aba-historico').style.display='none';
-            document.getElementById('aba-cores').style.display='none';
-            document.getElementById('aba-maoobra').style.display='none';
-
-            if(nome==='materiais') document.getElementById('aba-materiais').style.display='block';
-            if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
-            if(nome==='historico') document.getElementById('aba-historico').style.display='block';
-            if(nome==='cores') document.getElementById('aba-cores').style.display='block';
-            if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
-        }
-
-        function gerarPDF(){
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            let y = 20;
-
-            doc.setFontSize(22);
-            doc.text('ALDINEICAR',20,y);
-            y += 15;
-
-            materiais.forEach(item=>{
-                if(item.qtd>0){
-                    doc.setFontSize(14);
-                    doc.text(`${item.nome} - ${item.qtd}x - R$ ${(item.valor*item.qtd).toFixed(2)}`,20,y);
-                    y += 10;
-                }
-            });
-            y += 10;
-            doc.text(`Total: R$ ${document.getElementById('total').innerText}`,20,y);
-            doc.save('orcamento.pdf');
-        }
-
-        function adicionarMaoObra(){
-            const nome = document.getElementById('nomeServico').value;
-            const valor = parseFloat(document.getElementById('valorServico').value);
-
-            if(!nome || isNaN(valor)){
-                alert('Preencha os campos');
-                return;
-            }
-
-            maoObraItens.push({nome,valor});
-            localStorage.setItem('maoObraAldinei',JSON.stringify(maoObraItens));
-
-            renderMaoObra();
-            atualizarResumo();
-            document.getElementById('nomeServico').value='';
-            document.getElementById('valorServico').value='';
-        }
-
-        function renderMaoObra(){
-            const lista = document.getElementById('listaMaoObra');
-            if(!lista) return;
-            lista.innerHTML='';
-            maoObraItens.forEach((item,index)=>{
-                lista.innerHTML += `
-                    <div class="cliente-item">
-                        <strong>${item.nome}</strong><br>
-                        R$ ${item.valor.toFixed(2)}
-                        <br><br>
-                        <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">Remover</button>
-                    </div>
-                `;
-            });
-        }
-
-        function removerMaoObra(i){
-            maoObraItens.splice(i,1);
-            localStorage.setItem('maoObraAldinei',JSON.stringify(maoObraItens));
-            renderMaoObra();
-            atualizarResumo();
-        }
-
-        function enviarWhatsApp(){
-            const cliente = document.getElementById('clienteNome').value || 'Cliente';
-            const total = document.getElementById('total').innerText;
-            const texto = `Olá ${cliente}, seu orçamento ficou em R$ ${total}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
-        }
-
-        function abrirConfirmacao(texto, callback){
-            document.getElementById('modalConfirmar').style.display='flex';
-            document.getElementById('textoConfirmacao').innerText = texto;
-            acaoConfirmada = callback;
-        }
-
-        function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
-
-        document.addEventListener('click', function(e){
-            if(e.target.id === 'btnConfirmarAcao'){
-                if(acaoConfirmada){ acaoConfirmada(); }
-                fecharConfirmacao();
-            }
+        const { error } = await supabaseClient.auth.signUp({
+            email, password, options: { data: { nome } }
         });
 
-        function deletarHistorico(index){
-            abrirConfirmacao('Deseja excluir este histórico?', function(){
-                historico.splice(index,1);
-                localStorage.setItem('historicoAldinei',JSON.stringify(historico));
-                renderHistorico();
-            });
+        if (error) {
+            alert("Erro ao cadastrar: " + error.message);
+            return;
         }
 
-        function deletarCliente(index){
-            abrirConfirmacao('Deseja excluir este cliente?', function(){
-                clientes.splice(index,1);
-                localStorage.setItem('clientesAldinei',JSON.stringify(clientes));
-                renderClientes();
-            });
-        }
+        alert("Cadastro realizado! Verifique seu email.");
+        toggleTab('login');
+    }
 
-        function limparResumo(){
-            abrirConfirmacao('Deseja limpar todo o resumo?', function(){
-                materiais.forEach(item=>{ item.qtd = 0; });
-                maoObraItens = [];
-                localStorage.setItem('maoObraAldinei',JSON.stringify(maoObraItens));
-                document.getElementById('clienteNome').value = '';
-                document.getElementById('valorCliente').value = '';
-                render();
-                renderMaoObra();
-                atualizarResumo();
-            });
+    async function handleLogout() {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) {
+            alert("Erro ao sair: " + error.message);
+            return;
         }
+        usuarioAtualId = null;
+        materiais = [];
+        historico = [];
+        clientes = [];
+        maoObraItens = [];
 
-        function filtrarCategoria(cat){
-            categoriaAtual = cat;
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        toggleTab('login');
+        alert("Você saiu do sistema!");
+    }
+
+    // ====================== REGRAS DE NEGÓCIO E RENDERIZAÇÃO ======================
+    function render(){
+        const lista = document.getElementById('lista');
+        if(!lista) return;
+        lista.innerHTML='';
+
+        materiais.forEach((item,index)=>{
+            if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual){
+                return;
+            }
+            lista.innerHTML += `
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
+                        <div>
+                            <h3>${item.nome}</h3>
+                            <div>${item.cat}</div>
+                            <div class="preco">R$ ${item.valor.toFixed(2)}</div>
+                        </div>
+                        <div style="display:flex;gap:6px;">
+                            <button onclick="editarMaterial(${index})" style="background:#f4b400;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">✏️</button>
+                            <button onclick="deletarMaterial(${index})" style="background:#d40000;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-minus" onclick="menos(${index})">-</button>
+                        <div class="qtd">${item.qtd}</div>
+                        <button class="btn-plus" onclick="mais(${index})">+</button>
+                    </div>
+                </div>
+            `;
+        });
+        atualizarResumo();
+    }
+
+    function mais(i){
+        materiais[i].qtd++;
+        salvarLocal();
+        render();
+    }
+
+    function menos(i){
+        if(materiais[i].qtd>0){
+            materiais[i].qtd--;
+            salvarLocal();
             render();
         }
+    }
 
-        // EXECUÇÕES INICIAIS AO CARREGAR A PÁGINA
-        document.addEventListener('DOMContentLoaded', () => {
-            toggleTab('login');
+    function atualizarResumo(){
+        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+        let maoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
+        let total = maoObra - totalMateriais;
+        let lucro = total;
+
+        const tm = document.getElementById('totalMateriais');
+        const tmo = document.getElementById('totalMaoObra');
+        const t = document.getElementById('total');
+        const l = document.getElementById('lucro');
+
+        if(tm) tm.innerText = totalMateriais.toFixed(2);
+        if(tmo) tmo.innerText = maoObra.toFixed(2);
+        if(t) t.innerText = total.toFixed(2);
+        if(l) l.innerText = lucro.toFixed(2);
+    }
+
+    function abrirModal(){ document.getElementById('modal').style.display='flex'; }
+    function fecharModal(){ document.getElementById('modal').style.display='none'; }
+
+    function salvarMaterial(){
+        const nome = document.getElementById('nomeMaterial').value;
+        const valor = parseFloat(document.getElementById('valorMaterial').value);
+        const cat = document.getElementById('categoriaMaterial').value;
+
+        if(!nome || !valor){
+            alert('Preencha os campos');
+            return;
+        }
+
+        materiais.push({nome,valor,qtd:0,cat});
+        salvarLocal();
+        render();
+        fecharModal();
+        document.getElementById('nomeMaterial').value = '';
+        document.getElementById('valorMaterial').value = '';
+    }
+
+    function deletarMaterial(index){
+        abrirConfirmacao('Deseja remover este material?', function(){
+            materiais.splice(index,1);
+            salvarLocal();
+            render();
+        });
+    }
+
+    function editarMaterial(index){
+        const material = materiais[index];
+        const novoNome = prompt('Editar nome:', material.nome);
+        if(!novoNome) return;
+        const novoValor = parseFloat(prompt('Editar valor:', material.valor));
+        if(isNaN(novoValor)) return;
+
+        material.nome = novoNome;
+        material.valor = novoValor;
+        salvarLocal();
+        render();
+    }
+
+    function buscar(texto){
+        texto = texto.toLowerCase();
+        const cards = document.querySelectorAll('#lista .card');
+        cards.forEach(card=>{
+            if(card.innerText.toLowerCase().includes(texto)){
+                card.style.display='block';
+            }else{
+                card.style.display='none';
+            }
+        });
+    }
+
+    function salvarOrcamento(){
+        const cliente = document.getElementById('clienteNome').value || 'Sem nome';
+        const total = document.getElementById('total').innerText;
+
+        const dados = {
+            cliente,
+            total,
+            materiais: document.getElementById('totalMateriais').innerText,
+            maoObra: document.getElementById('totalMaoObra').innerText,
+            data: new Date().toLocaleString()
+        };
+
+        historico.unshift(dados);
+        if(!clientes.includes(cliente)){ clientes.unshift(cliente); }
+
+        salvarLocal();
+        renderHistorico();
+        renderClientes();
+        alert('Orçamento salvo');
+    }
+
+    function renderHistorico(){
+        const h = document.getElementById('historico');
+        if(!h) return;
+        h.innerHTML='';
+        historico.forEach((item,index)=>{
+            h.innerHTML += `
+                <div class="cliente-item">
+                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                        <div>
+                            <strong>${item.cliente}</strong><br><br>
+                            💰 Total: R$ ${item.total}<br>
+                            🔧 Mão de obra: R$ ${item.maoObra}<br>
+                            📦 Materiais: R$ ${item.materiais}<br><br>
+                            🕒 ${item.data}
+                        </div>
+                        <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function renderClientes(){
+        const c = document.getElementById('listaClientes');
+        if(!c) return;
+        c.innerHTML='';
+        clientes.forEach((nome,index)=>{
+            c.innerHTML += `
+                <div class="cliente-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>${nome}</div>
+                        <button onclick="deletarCliente(${index})" style="background:#d40000; color:white; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:bold;">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function mostrarAba(nome){
+        document.getElementById('aba-materiais').style.display='none';
+        document.getElementById('aba-clientes').style.display='none';
+        document.getElementById('aba-historico').style.display='none';
+        document.getElementById('aba-cores').style.display='none';
+        document.getElementById('aba-maoobra').style.display='none';
+
+        if(nome==='materiais') document.getElementById('aba-materiais').style.display='block';
+        if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
+        if(nome==='historico') document.getElementById('aba-historico').style.display='block';
+        if(nome==='cores') document.getElementById('aba-cores').style.display='block';
+        if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
+    }
+
+    function gerarPDF(){
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let y = 20;
+
+        doc.setFontSize(22);
+        doc.text('ALDINEICAR',20,y);
+        y += 15;
+
+        materiais.forEach(item=>{
+            if(item.qtd>0){
+                doc.setFontSize(14);
+                doc.text(`${item.nome} - ${item.qtd}x - R$ ${(item.valor*item.qtd).toFixed(2)}`,20,y);
+                y += 10;
+            }
+        });
+        y += 10;
+        doc.text(`Total: R$ ${document.getElementById('total').innerText}`,20,y);
+        doc.save('orcamento.pdf');
+    }
+
+    function adicionarMaoObra(){
+        const nome = document.getElementById('nomeServico').value;
+        const valor = parseFloat(document.getElementById('valorServico').value);
+
+        if(!nome || isNaN(valor)){
+            alert('Preencha os campos');
+            return;
+        }
+
+        maoObraItens.push({nome,valor});
+        salvarLocal();
+        renderMaoObra();
+        atualizarResumo();
+        document.getElementById('nomeServico').value='';
+        document.getElementById('valorServico').value='';
+    }
+
+    function renderMaoObra(){
+        const lista = document.getElementById('listaMaoObra');
+        if(!lista) return;
+        lista.innerHTML='';
+        maoObraItens.forEach((item,index)=>{
+            lista.innerHTML += `
+                <div class="cliente-item">
+                    <strong>${item.nome}</strong><br>
+                    R$ ${item.valor.toFixed(2)}
+                    <br><br>
+                    <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">Remover</button>
+                </div>
+            `;
+        });
+    }
+
+    function removerMaoObra(i){
+        maoObraItens.splice(i,1);
+        salvarLocal();
+        renderMaoObra();
+        atualizarResumo();
+    }
+
+    function enviarWhatsApp(){
+        const cliente = document.getElementById('clienteNome').value || 'Cliente';
+        const total = document.getElementById('total').innerText;
+        const texto = `Olá ${cliente}, seu orçamento ficou em R$ ${total}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
+    }
+
+    function abrirConfirmacao(texto, callback){
+        document.getElementById('modalConfirmar').style.display='flex';
+        document.getElementById('textoConfirmacao').innerText = texto;
+        acaoConfirmada = callback;
+    }
+
+    function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
+
+    document.addEventListener('click', function(e){
+        if(e.target.id === 'btnConfirmarAcao'){
+            if(acaoConfirmada){ acaoConfirmada(); }
+            fecharConfirmacao();
+        }
+    });
+
+    function deletarHistorico(index){
+        abrirConfirmacao('Deseja excluir este histórico?', function(){
+            historico.splice(index,1);
+            salvarLocal();
+            renderHistorico();
+        });
+    }
+
+    function deletarCliente(index){
+        abrirConfirmacao('Deseja excluir este cliente?', function(){
+            clientes.splice(index,1);
+            salvarLocal();
+            renderClientes();
+        });
+    }
+
+    function limparResumo(){
+        abrirConfirmacao('Deseja limpar todo o resumo?', function(){
+            materiais.forEach(item=>{ item.qtd = 0; });
+            maoObraItens = [];
+            salvarLocal();
+            document.getElementById('clienteNome').value = '';
+            document.getElementById('valorCliente').value = '';
             render();
             renderMaoObra();
-            renderHistorico();
-            renderClientes();
-            mostrarAba('materiais'); 
+            atualizarResumo();
         });
-    </script>
+    }
+
+    function filtrarCategoria(cat){
+        categoriaAtual = cat;
+        render();
+    }
+
+    // EXECUÇÕES INICIAIS AO CARREGAR A PÁGINA
+    document.addEventListener('DOMContentLoaded', async () => {
+        toggleTab('login');
+        
+        // Mantém logado caso dê F5
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            carregarDadosDoUsuario(session.user.id);
+            document.getElementById('loginOverlay').style.display = 'none';
+            mostrarAba('materiais');
+        }
+    });
+</script>
 </body>
 </html>
