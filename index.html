@@ -53,7 +53,7 @@
         .resumo button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
         
         .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; z-index:999; }
-        .modal-content { background:#1e1e1e; padding:25px; border-radius:15px; width:90%; max-width:400px; color: white; }
+        .modal-content { background:#1e1e1e; padding:25px; border-radius:15px; width:90%; max-width:400px; color: white; max-height: 90vh; overflow-y: auto; }
         .modal-content input, .modal-content select { width:100%; padding:12px; margin:10px 0; border:none; border-radius:10px; color: #000; }
         .modal-content button { width:100%; padding:14px; border:none; border-radius:10px; margin-top:10px; font-weight:bold; cursor:pointer; }
         
@@ -108,8 +108,8 @@
 
     <div id="appContainer">
         <header>
-            <div class="logo-container">
-                <img src="logo.png" alt="ALDINEICAR PINTURA AUTOMOTIVA" class="logo-img" onerror="this.style.display='none'; this.after('ALDINEICAR')">
+            <div class="logo-container" id="headerLogoContainer">
+                <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
             </div>
             <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
         </header>
@@ -207,6 +207,7 @@
         </div> 
     </div>
 
+    <!-- MODAL MATERIAL -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2>Novo Material</h2>
@@ -225,10 +226,18 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIGURAÇÃO DA OFICINA -->
     <div class="modal" id="modalOficina">
         <div class="modal-content">
             <h2>Dados da Minha Oficina</h2>
+            
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
+            <input type="file" id="oficinaLogoFile" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
+            <div id="previewLogoModal" style="margin-top: 5px; text-align: center;"></div>
+            
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">NOME COMERCIAL</label>
             <input type="text" id="oficinaNome" placeholder="Nome Comercial" value="ALDINEICAR">
+            
             <input type="text" id="oficinaCnpj" placeholder="CNPJ / CPF">
             <input type="text" id="oficinaEnd" placeholder="Endereço Completo">
             <input type="text" id="oficinaCep" placeholder="CEP e Cidade/UF">
@@ -261,7 +270,7 @@
     let historico = [];
     let clientes = [];
     let maoObraItens = [];
-    let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '' };
+    let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
 
@@ -302,7 +311,6 @@
                 historico = registro.historico || [];
                 clientes = registro.clientes || [];
                 maoObraItens = registro.mao_obra || [];
-                // Se houver metadados salvos no banco para dados da oficina, extraímos
                 if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
                 
                 salvarFallbackLocal();
@@ -313,8 +321,8 @@
             console.error("Erro na comunicação com a nuvem:", err);
         }
 
-        // Aplica os dados da oficina nos inputs correspondentes da modal
         atualizarInputsOficina();
+        atualizarLogoHeader();
         render();
         renderMaoObra();
         renderHistorico();
@@ -354,9 +362,39 @@
         }
     }
 
-    function abrirModalOficina() { document.getElementById('modalOficina').style.display='flex'; }
+    function abrirModalOficina() { 
+        atualizarInputsOficina();
+        document.getElementById('modalOficina').style.display='flex'; 
+    }
+    
     function fecharModalOficina() { document.getElementById('modalOficina').style.display='none'; }
     
+    function processarNovaLogo(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            dadosOficina.logoBase64 = e.target.result;
+            
+            // Preview rápido na modal
+            const preview = document.getElementById('previewLogoModal');
+            preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function atualizarLogoHeader() {
+        const container = document.getElementById('headerLogoContainer');
+        if (!container) return;
+
+        if (dadosOficina.logoBase64) {
+            container.innerHTML = `<img src="${dadosOficina.logoBase64}" alt="Logo Oficina" class="logo-img">`;
+        } else {
+            container.innerHTML = `<span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; color: white;">${dadosOficina.nome ? dadosOficina.nome.toUpperCase() : 'ALDINEICAR'}</span>`;
+        }
+    }
+
     function atualizarInputsOficina() {
         document.getElementById('oficinaNome').value = dadosOficina.nome || 'ALDINEICAR';
         document.getElementById('oficinaCnpj').value = dadosOficina.cnpj || '';
@@ -365,6 +403,13 @@
         document.getElementById('oficinaFone').value = dadosOficina.fone || '';
         document.getElementById('oficinaEmail').value = dadosOficina.email || '';
         document.getElementById('oficinaPix').value = dadosOficina.pix || '';
+        
+        const preview = document.getElementById('previewLogoModal');
+        if (dadosOficina.logoBase64 && preview) {
+            preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+        } else if (preview) {
+            preview.innerHTML = '';
+        }
     }
 
     async function salvarDadosOficina() {
@@ -376,8 +421,9 @@
         dadosOficina.email = document.getElementById('oficinaEmail').value;
         dadosOficina.pix = document.getElementById('oficinaPix').value;
         
+        atualizarLogoHeader();
         fecharModalOficina();
-        alert("Informações da oficina atualizadas!");
+        alert("Informações da oficina e logo salvas com sucesso!");
         await salvarNoBanco();
     }
 
@@ -437,6 +483,7 @@
         historico = [];
         clientes = [];
         maoObraItens = [];
+        dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
         localStorage.clear();
 
         document.getElementById('loginEmail').value = '';
@@ -634,7 +681,6 @@
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
-    // GERAÇÃO DE PDF CUSTOMIZADA BASEADA NO SEU MODELO ENVIADO
     function gerarPDF(){
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -642,19 +688,23 @@
         let y = 15;
         const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-        // Adiciona a Imagem da Logo no PDF se ela existir localmente
-        try {
-            doc.addImage('logo.png', 'PNG', 15, y, 45, 20);
-        } catch (e) {
-            // Se falhar (imagem offline), renderiza um box cinza suave alternativo
+        // Carrega a logo customizada da nuvem para o PDF se existir
+        if (dadosOficina.logoBase64) {
+            try {
+                doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20);
+            } catch (e) {
+                doc.setFillColor(240,240,240);
+                doc.rect(15, y, 45, 20, 'F');
+            }
+        } else {
             doc.setFillColor(240,240,240);
             doc.rect(15, y, 45, 20, 'F');
         }
 
-        // Cabeçalho da Oficina (Alinhado ao lado da imagem da logo)
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(16);
-        doc.text(dadosOficina.nome.toUpperCase(), 65, y + 5);
+        doc.setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
         
         doc.setFont('Helvetica', 'normal');
         doc.setFontSize(9);
@@ -666,7 +716,6 @@
         doc.text(`EMAIL: ${dadosOficina.email || 'contato@suaoficina.com.br'}`, 65, y + 26);
         doc.text(`PIX: ${dadosOficina.pix || 'Não configurado'}`, 65, y + 30);
 
-        // Data e Número do orçamento no canto direito superior
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(0,0,0);
@@ -678,12 +727,10 @@
 
         y += 36;
         
-        // Linha divisória horizontal
         doc.setDrawColor(200, 200, 200);
         doc.line(15, y, 195, y);
         y += 5;
 
-        // Caixa Título centralizado: ORÇAMENTO
         doc.setDrawColor(0,0,0);
         doc.rect(85, y, 40, 8);
         doc.setFont('Helvetica', 'bold');
@@ -691,7 +738,6 @@
         doc.text('ORÇAMENTO', 92, y + 5.5);
         y += 15;
 
-        // Cabeçalhos rápidos do topo do modelo (Placa, Modelo, Avaliador)
         doc.setFontSize(9);
         doc.setTextColor(100,100,100);
         doc.text('PLACA', 25, y);
@@ -712,7 +758,6 @@
         doc.line(15, y, 195, y);
         y += 6;
 
-        // Blocos Paralelos de Informações: VEÍCULO (Esquerda) e CLIENTE (Direita)
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(11);
         doc.text('VEÍCULO', 15, y);
@@ -727,9 +772,7 @@
         doc.setFont('Helvetica', 'normal');
         doc.setFontSize(9.5);
         
-        // Escreve os Dados do Veículo
         doc.text(`MODELO: ${document.getElementById('veiculoModelo').value || '---'}`, 15, y);
-        // Escreve os Dados do Cliente
         doc.text(`NOME: ${document.getElementById('clienteNome').value || '---'}`, 110, y);
         y += 5.5;
 
@@ -745,13 +788,11 @@
         doc.text(`CIDADE: ${document.getElementById('clienteCidade').value || 'Sátrio Dias'}`, 110, y);
         y += 5.5;
         
-        // Linha grossa abaixo dos dados conforme o modelo
         y += 2;
         doc.setLineWidth(0.8);
         doc.line(15, y, 195, y);
         y += 10;
 
-        // Bloco Único de Valor Total (Centralizado e em destaque igual ao desenho do modelo)
         doc.setLineWidth(0.3);
         doc.rect(65, y, 80, 16);
         
@@ -766,7 +807,6 @@
         
         y += 26;
 
-        // Caixa de Observações
         doc.setLineWidth(0.2);
         doc.rect(15, y, 180, 16);
         doc.setFont('Helvetica', 'bold');
@@ -778,7 +818,6 @@
         
         y += 35;
 
-        // Linha de Assinatura
         doc.setLineWidth(0.2);
         doc.line(60, y, 150, y);
         y += 4;
