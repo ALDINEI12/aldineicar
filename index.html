@@ -633,17 +633,23 @@
         render();
     }
 
-    // EXECUÇÕES INICIAIS AO CARREGAR A PÁGINA
-    document.addEventListener('DOMContentLoaded', async () => {
+    // ====================== CONTROLE DE SESSÃO SEGURO (F5 E NOVA ABA) ======================
+    document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
         
-        // Mantém logado caso dê F5
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            carregarDadosDoUsuario(session.user.id);
-            document.getElementById('loginOverlay').style.display = 'none';
-            mostrarAba('materiais');
-        }
+        // Monitora o estado da autenticação em tempo real
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session && session.user) {
+                // Se encontrou o usuário (no login, F5 ou nova aba), carrega os dados dele
+                carregarDadosDoUsuario(session.user.id);
+                document.getElementById('loginOverlay').style.display = 'none';
+                mostrarAba('materiais');
+            } else {
+                // Se não há usuário (ou fez logout), força a tela de login
+                document.getElementById('loginOverlay').style.display = 'flex';
+                toggleTab('login');
+            }
+        });
     });
 </script>
 </body>
