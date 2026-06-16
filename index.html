@@ -630,17 +630,21 @@
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
+            // Proteção contra dados corrompidos ou antigos vazios
+            const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
+            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '' };
+
             h.innerHTML += `
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div>
-                            <strong>👤 Cliente: ${item.cliente.nome}</strong><br>
-                            🚗 Veículo: ${item.veiculo.modelo} (${item.veiculo.placa})<br><br>
-                            💰 Valor Cobrado: R$ ${item.totalCobrado}<br>
-                            📦 Custo Materiais: R$ ${item.totalMateriaisCalculado}<br>
+                            <strong>👤 Cliente: ${cliente.nome}</strong><br>
+                            🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br><br>
+                            💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
+                            📦 Custo Materiais: R$ ${item.totalMateriaisCalculado || '0.00'}<br>
                             🔧 Mão de Obra: R$ ${item.totalMaoObraCalculado || '0.00'}<br>
-                            📈 Lucro: R$ ${item.lucro}<br><br>
-                            🕒 ${item.data}
+                            📈 Lucro: R$ ${item.lucro || '0.00'}<br><br>
+                            🕒 ${item.data || '---'}
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;">
                             <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
