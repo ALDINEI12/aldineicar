@@ -150,6 +150,8 @@
             .top-actions { gap: 8px; }
             .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
         }
+
+        
     </style>
 </head>
 <body>
@@ -809,19 +811,17 @@
         }
     }
 
-    // 2. Preenche o valor total cobrado do cliente
+    // 2. Preenche o valor total cobrado
     if (document.getElementById('valorCliente')) {
         document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
     }
 
     // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
-    // Zeramos todas as quantidades antes de carregar as antigas
     if (typeof materiais !== 'undefined' && Array.isArray(materiais)) {
         materiais.forEach(m => m.qtd = 0);
 
         if (item.materiais && Array.isArray(item.materiais)) {
             item.materiais.forEach(matSalvo => {
-                // Procura o material correspondente por ID ou Nome
                 const matGeral = materiais.find(m => 
                     (m.id && matSalvo.id && m.id == matSalvo.id) || 
                     (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase())
@@ -838,50 +838,36 @@
         maoObraItens = [...item.mao_obra];
     }
 
-    // 4. FORÇAR A ATUALIZAÇÃO VISUAL NA TELA
-    // Tentativa automática usando as funções mais prováveis do seu código:
-    let renderizou = false;
-    const funcoesRender = ['renderMateriais', 'renderCards', 'exibirMateriais', 'mostrarMateriais', 'carregarMateriais', 'atualizarInterface'];
-    
-    funcoesRender.forEach(nomeFuncao => {
-        if (typeof window[nomeFuncao] === 'function') {
-            window[nomeFuncao]();
-            renderizou = true;
+    // 4 e 5. GATILHO AUTOMÁTICO E CLIQUE FANTASMA (Resolve o problema do atraso visual)
+    setTimeout(() => {
+        // Primeiro força o clique na categoria para desenhar a lista de cards na tela
+        const botaoCategoria = document.querySelector('.categorias-materiais button.active') || 
+                               document.querySelector('.categorias-materiais button');
+        if (botaoCategoria) {
+            botaoCategoria.click();
         }
-    });
 
-    // Se as funções automáticas falharem, fazemos uma varredura cirúrgica direto nas caixinhas de texto da tela
-    if (!renderizou) {
-        try {
-            materiais.forEach(m => {
-                // Procura na tela por IDs comuns que guardam a quantidade do material
-                const elementoQtd = document.getElementById(`qtd-${m.id}`) || 
-                                    document.getElementById(`qtd_${m.id}`) || 
-                                    document.getElementById(`qtd-${m.nome.replace(/\s+/g, '')}`) ||
-                                    document.querySelector(`[data-id="${m.id}"] .qtd`);
-                
-                if (elementoQtd) {
-                    if (elementoQtd.tagName === 'INPUT') {
-                        elementoQtd.value = m.qtd;
-                    } else {
-                        elementoQtd.innerText = m.qtd;
-                    }
-                }
-            });
-        } catch (e) {
-            console.log("Aviso: Varredura direta falhou, criando os cards manualmente.", e);
-        }
-    }
+        // Aguarda os cards aparecerem no HTML e simula a interação para forçar o update visual geral
+        setTimeout(() => {
+            const primeiroBotaoMenos = document.querySelector('.btn-minus');
+            const primeiroBotaoMais = document.querySelector('.btn-plus');
+            
+            if (primeiroBotaoMenos && primeiroBotaoMais) {
+                primeiroBotaoMenos.click();
+                primeiroBotaoMais.click();
+            }
+        }, 100); 
+    }, 50);
 
-    // 5. RECALCULA OS TOTAIS DO RESUMO
-    const funcoesCalculo = ['atualizarTotais', 'calcularTotal', 'calcular', 'atualizarResumo', 'calcTotal'];
-    funcoesCalculo.forEach(nomeFuncao => {
-        if (typeof window[nomeFuncao] === 'function') {
-            window[nomeFuncao]();
-        }
-    });
+    // Tentativa complementar executando as funções padrão do escopo global
+    try {
+        const funcoesCalculo = ['atualizarTotais', 'calcularTotal', 'calcular', 'atualizarResumo', 'calcTotal'];
+        funcoesCalculo.forEach(nomeFuncao => {
+            if (typeof window[nomeFuncao] === 'function') window[nomeFuncao]();
+        });
+    } catch (e) { console.log("Aviso no recálculo secundário:", e); }
 
-    // 6. MOVE A TELA DO USUÁRIO PARA A ABA DE ORÇAMENTO (Evita que ele tenha que rolar para cima ou mudar de aba na mão)
+    // 6. MUDA DE ABA AUTOMATICAMENTE PARA A TELA DE ORÇAMENTO
     if (typeof mudarAba === 'function') { 
         mudarAba('resumo'); 
     } else if (typeof mudarAba === 'function') {
