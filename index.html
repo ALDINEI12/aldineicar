@@ -599,47 +599,46 @@
         const veiculoAno = document.getElementById('veiculoAno').value || '';
         const veiculoCor = document.getElementById('veiculoCor').value || '';
         const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---'; // Captura o serviço
+        const tipoServico = document.getElementById('tipoServico').value || '---';
         
         const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
         
-        // Mantendo exatamente o cálculo padrão de materiais e mão de obra
         let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+        let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         
-        // Criando o objeto do novo orçamento EXATAMENTE como o seu histórico e lucro esperam
         const novoOrcamento = {
             data: new Date().toLocaleString('pt-BR'),
-            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade }, // Mantenha 'city' ou 'cidade' conforme seu original
+            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
             veiculo: { 
                 modelo: veiculoModelo, 
                 placa: veiculoPlaca, 
                 ano: veiculoAno, 
                 cor: veiculoCor, 
                 avaliador: nomeAvaliador,
-                tipo_servico: tipoServico // O serviço fica bem guardado aqui dentro
+                tipo_servico: tipoServico 
             },
-            // Garante que a lista de materiais vai completa e correta
             materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
             mao_obra: [...maoObraItens],
+            
+            // Salvando com os dois nomes para garantir compatibilidade total:
             totalMateriais: totalMateriais,
-            totalCobrado: valorCobrado
+            totalMateriaisCalculado: totalMateriais,
+            totalMaoObraCalculado: totalMaoObra,
+            
+            totalCobrado: valorCobrado,
+            lucro: valorCobrado - totalMateriais
         };
         
-        // O Lucro geralmente é calculado na hora de exibir (no renderHistorico) baseando-se no totalCobrado - totalMateriais.
-        // Adicionamos aqui também por segurança caso seu sistema use direto do objeto:
-        novoOrcamento.lucro = valorCobrado - totalMateriais;
+        historico.unshift(novoOrcamento);
         
-        historico.unshift(novoOrcamento); // Adiciona no início do histórico
-        
-        // Se o cliente ainda não existir na lista, adiciona
         const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
         if(!clienteExiste && clienteNome !== 'Sem nome') {
             clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
             renderClientes();
         }
         
-        renderHistorico(); // Atualiza a tela do histórico para recalcular tudo visualmente
-        alert("Orçamento salvo com sucesso no histórico!");
+        renderHistorico();
+        alert("Orçamento saved com sucesso no histórico!");
         await salvarNoBanco();
     }
 
@@ -648,18 +647,32 @@
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
-            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '' };
+            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
+
+            // Pega o valor dos materiais (tenta uma propriedade ou a outra para não dar erro)
+            let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
+            
+            // Pega ou calcula a mão de obra se houver a lista de itens
+            let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
+            if (custoMaoObra === 0 && item.mao_obra) {
+                custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+            }
+
+            // Calcula o lucro real: Valor Cobrado - Custo do Material
+            let valorCobrado = parseFloat(item.totalCobrado) || 0;
+            let lucroReal = valorCobrado - custoMat;
 
             h.innerHTML += `
                 <div class="cliente-item">
                     <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div>
                             <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                            🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br><br>
-                            💰 Valor Cobrado: R$ ${item.totalCobrado || '0.00'}<br>
-                            📦 Custo Materiais: R$ ${item.totalMateriaisCalculado || '0.00'}<br>
-                            🔧 Mão de Obra: R$ ${item.totalMaoObraCalculado || '0.00'}<br>
-                            📈 Lucro: R$ ${item.lucro || '0.00'}<br><br>
+                            🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br>
+                            🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
+                            💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
+                            📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
+                            🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
+                            📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
                             🕒 ${item.data || '---'}
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;" id="actions-hist-${index}">
