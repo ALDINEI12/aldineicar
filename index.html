@@ -150,6 +150,88 @@
             .top-actions { gap: 8px; }
             .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
         }
+
+
+        /* Container de Planos */
+.pricing-container {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+    background: #f8fafc;
+}
+
+/* Card de Plano Individual */
+.pricing-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 32px;
+    width: 280px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.pricing-card:hover {
+    border-color: #0f172a;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(15, 23, 42, 0.04);
+}
+
+/* Destaque para o plano mais vendido (Trimensal ou Anual) */
+.pricing-card.featured {
+    border-color: #e11d48;
+    background: #0f172a;
+    color: white;
+}
+
+.pricing-card.featured .plan-price { color: white; }
+.pricing-card.featured .btn-plan { background: #e11d48; color: white; }
+.pricing-card.featured .btn-plan:hover { background: #be123c; }
+
+.pricing-card .badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e11d48;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.plan-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.plan-price { font-size: 32px; font-weight: 800; color: #0f172a; margin: 16px 0; }
+.plan-price span { font-size: 14px; font-weight: 500; color: #64748b; }
+.pricing-card.featured .plan-price span { color: #94a3b8; }
+
+.plan-features { list-style: none; margin: 24px 0; text-align: left; font-size: 14px; color: #475569; }
+.pricing-card.featured .plan-features { color: #cbd5e1; }
+.plan-features li { margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+.btn-plan {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #0f172a;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-plan:hover { background: #f1f5f9; border-color: #0f172a; }
+
+
     </style>
 </head>
 <body>
@@ -332,6 +414,87 @@
         </div>
     </div>
 
+    <div id="modalPlanos" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 1000px; background: #f8fafc; color: #0f172a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: #0f172a; margin: 0;">Escolha o seu plano</h3>
+            <button onclick="fecharModalPlanos()" style="background: transparent; border: none; font-size: 24px; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        
+        <div class="pricing-container">
+            <div class="pricing-card">
+                <div class="plan-name">Mensal</div>
+                <div class="plan-price">R$ 20<span> /mês</span></div>
+                <ul class="plan-features">
+                    <li>✓ Orçamentos ilimitados</li>
+                    <li>✓ Envio por WhatsApp</li>
+                    <li>✓ Geração de PDF</li>
+                </ul>
+                <button class="btn-plan" onclick="selecionarPlano('mensal')">Assinar Agora</button>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="badge">Melhor Custo-Benefício</div>
+                <div class="plan-name">Trimensal</div>
+                <div class="plan-price">R$ 50<span> /3 meses</span></div>
+                <ul class="plan-features">
+                    <li>✓ Economize R$ 10</li>
+                    <li>✓ Orçamentos ilimitados</li>
+                    <li>✓ Envio por WhatsApp</li>
+                    <li>✓ Geração de PDF</li>
+                </ul>
+                <button class="btn-plan" onclick="selecionarPlano('trimensal')">Assinar Agora</button>
+            </div>
+
+            <div class="pricing-card">
+                <div class="plan-name">Anual</div>
+                <div class="plan-price">R$ 150<span> /ano</span></div>
+                <ul class="plan-features">
+                    <li>✓ Economize R$ 90!</li>
+                    <li>✓ Suporte Prioritário</li>
+                    <li>✓ Orçamentos ilimitados</li>
+                    <li>✓ Geração de PDF</li>
+                </ul>
+                <button class="btn-plan" onclick="selecionarPlano('anual')">Assinar Agora</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalBloqueio" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.95); z-index: 99999; justify-content: center; align-items: center; font-family: sans-serif; color: white; padding: 20px; box-sizing: border-box;">
+    <div style="background: #1e293b; border: 1px solid #334155; padding: 40px; border-radius: 16px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+        
+        <div style="font-size: 50px; margin-bottom: 20px;">⚠️</div>
+        <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800;">Sua assinatura expirou!</h2>
+        <p style="color: #94a3b8; font-size: 15px; margin-bottom: 25px;">O seu acesso ao sistema de orçamentos terminou em <strong id="txtVencimento" style="color: #ef4444;">--/--/----</strong>. Realize a renovação para liberar suas ferramentas imediatamente.</p>
+        
+        <div style="background: #0f172a; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #1e293b; text-align: left;">
+            <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 14px; color: #cbd5e1;">Selecione o período de renovação:</label>
+            <select id="selectRenovar" style="width: 100%; padding: 12px; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 8px; font-weight: bold; font-size: 15px; outline: none; cursor: pointer;">
+                <option value="20.00">Plano Mensal - R$ 20,00</option>
+                <option value="50.00">Plano Trimensal - R$ 50,00</option>
+                <option value="150.00">Plano Anual - R$ 150,00</option>
+            </select>
+        </div>
+
+        <button onclick="gerarPixPagamento()" style="width: 100%; background: #00a651; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.2s;">
+            ⚡ Pagar via PIX (Liberação Imediata)
+        </button>
+        
+        <div id="areaPix" style="display: none; margin-top: 25px; padding-top: 25px; border-top: 1px solid #334155;">
+            <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 15px;">Escaneie o QR Code abaixo ou copie o código Copia e Cola:</p>
+            
+            <div style="background: white; padding: 10px; display: inline-block; border-radius: 8px; margin-bottom: 15px;">
+                <div style="width: 180px; height: 180px; background: #ccc; display: flex; align-items: center; justify-content: center; color: #333; font-weight: bold; font-size: 12px;">QR CODE DO PIX</div>
+            </div>
+
+            <input type="text" id="pixCopiaCola" value="00020101021226870014br.gov.bcb.pix..." readonly style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: #38bdf8; border-radius: 6px; font-size: 12px; text-align: center; outline: none; margin-bottom: 10px;">
+            <button onclick="copiarPix()" style="background: transparent; border: 1px solid #38bdf8; color: #38bdf8; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold;">📋 Copiar Código PIX</button>
+        </div>
+
+    </div>
+</div>
+
     <script>
     const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
@@ -498,6 +661,9 @@
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
         const btnEntrar = document.querySelector('#loginForm button');
+       const user = data.user; // Pega o usuário retornado pelo Supabase
+verificarStatusAssinatura(user.user_metadata); // Roda a nossa verificação automática!
+    
 
         if (!email || !password) {
             alert("Por favor, preencha o e-mail e a senha.");
@@ -529,43 +695,149 @@
             btnEntrar.innerText = textoOriginal;
             btnEntrar.disabled = false;
         }
+
+        
+        // 1. Função que checa se o plano do usuário venceu
+function verificarStatusAssinatura(userMetadata) {
+    // Se não tiver dados de plano (ex: admin ou conta antiga), deixa passar ou define padrão
+    if (!userMetadata.data_expiracao) return;
+
+    const dataHoje = new Date();
+    const dataVencimento = new Date(userMetadata.data_expiracao);
+
+    // Se o dia de hoje passou da data de vencimento
+    if (dataHoje > dataVencimento) {
+        bloquearSistemaParaRenovacao(userMetadata.data_expiracao);
+    }
+}
+
+// 2. Função que bloqueia o sistema e exige o pagamento
+function bloquearSistemaParaRenovacao(dataVencida) {
+    // Esconde a tela principal do seu sistema de orçamentos para ele não conseguir usar
+    // Ajuste a classe ou ID '.container' ou '#dashboard' para o nome da sua div principal
+    const painelPrincipal = document.querySelector('.container') || document.getElementById('dashboard');
+    if (painelPrincipal) {
+        painelPrincipal.style.display = 'none';
+    }
+
+    // Formata a data antiga para exibir na tela de forma amigável (DD/MM/AAAA)
+    const partesData = dataVencida.split('-');
+    const dataFormatada = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+
+    // Altera o texto do modal de bloqueio informando o vencimento
+    document.getElementById('txtVencimento').innerText = dataFormatada;
+
+    // Abre o Modal de Bloqueio/Renovação por cima de tudo
+    document.getElementById('modalBloqueio').style.display = 'flex';
+}
     }
 
     async function handleSignup() {
-        const nome = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        const btnCadastrar = document.querySelector('#signupForm button');
+    const nome = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const btnCadastrar = document.querySelector('#signupForm button');
 
-        if (!email || !password || password.length < 6) {
-            alert("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
+    if (!email || !password || password.length < 6) {
+        alert("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
+        return;
+    }
+
+
+    const textoOriginal = btnCadastrar.innerText;
+    btnCadastrar.innerText = "Cadastrando...";
+    btnCadastrar.disabled = true;
+
+    // ─── LÓGICA DE CÁLCULO DA EXPIRAÇÃO ───
+    const dataExpiracao = new Date();
+    
+    if (planoSelecionado === 'trimensal') {
+        dataExpiracao.setMonth(dataExpiracao.getMonth() + 3); // +3 meses
+    } else if (planoSelecionado === 'anual') {
+        dataExpiracao.setFullYear(dataExpiracao.getFullYear() + 1); // +1 ano
+    } else {
+        dataExpiracao.setMonth(dataExpiracao.getMonth() + 1); // +1 mês (padrão mensal)
+    }
+
+    // Transforma a data no formato ISO limpo (AAAA-MM-DD)
+    const dataFormatada = dataExpiracao.toISOString().split('T')[0];
+
+    try {
+        // Envia o nome, o plano e a data de expiração para os metadados do Supabase Auth
+        const { data, error } = await supabaseClient.auth.signUp({
+            email, 
+            password, 
+            options: { 
+                data: { 
+                    nome: nome,
+                    plano: planoSelecionado,
+                    data_expiracao: dataFormatada,
+                    plano_ativo: true
+                } 
+            }
+        });
+
+        if (error) {
+            alert("Erro ao cadastrar: " + error.message);
             return;
         }
 
-        const textoOriginal = btnCadastrar.innerText;
-        btnCadastrar.innerText = "Cadastrando...";
-        btnCadastrar.disabled = true;
-
-        try {
-            const { data, error } = await supabaseClient.auth.signUp({
-                email, password, options: { data: { nome } }
-            });
-
-            if (error) {
-                alert("Erro ao cadastrar: " + error.message);
-                return;
-            }
-
-            alert("Cadastro realizado com sucesso! Agora faça login.");
-            toggleTab('login');
-        } catch (err) {
-            alert("Erro no processo de cadastro: " + err.message);
-        } finally {
-            btnCadastrar.innerText = textoOriginal;
-            btnCadastrar.disabled = false;
-        }
+        alert("Cadastro realizado com sucesso no plano " + planoSelecionado.toUpperCase() + "! Agora faça login.");
+        toggleTab('login');
+    } catch (err) {
+        alert("Erro no processo de cadastro: " + err.message);
+    } finally {
+        btnCadastrar.innerText = textoOriginal;
+        btnCadastrar.disabled = false;
     }
+}
 
+// ... Outras funções que você já tinha antes ...
+
+async function handleSignup() {
+    // ... Todo o código do cadastro que alteramos antes ...
+} // <--- Aqui termina o seu handleSignup
+
+// ─── COLE AS NOVAS FUNÇÕES EXATAMENTE AQUI ───
+
+// 1. Função que checa se o plano do usuário venceu
+function verificarStatusAssinatura(userMetadata) {
+    if (!userMetadata.data_expiracao) return;
+    const dataHoje = new Date();
+    const dataVencimento = new Date(userMetadata.data_expiracao);
+
+    if (dataHoje > dataVencimento) {
+        bloquearSistemaParaRenovacao(userMetadata.data_expiracao);
+    }
+}
+
+// 2. Função que bloqueia o sistema e exige o pagamento
+function bloquearSistemaParaRenovacao(dataVencida) {
+    const painelPrincipal = document.querySelector('.container') || document.getElementById('dashboard');
+    if (painelPrincipal) {
+        painelPrincipal.style.display = 'none';
+    }
+    const partesData = dataVencida.split('-');
+    const dataFormatada = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+    document.getElementById('txtVencimento').innerText = dataFormatada;
+    document.getElementById('modalBloqueio').style.display = 'flex';
+}
+
+// 3. Funções de clique do botão do PIX
+function gerarPixPagamento() {
+    const valorSelecionado = document.getElementById('selectRenovar').value;
+    alert("Gerando PIX no valor de R$ " + valorSelecionado + "...");
+    document.getElementById('areaPix').style.display = 'block';
+}
+
+function copiarPix() {
+    const inputPix = document.getElementById('pixCopiaCola');
+    inputPix.select();
+    inputPix.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(inputPix.value);
+    alert("Código PIX Copiado! Cole no aplicativo do seu banco para pagar.");
+}
+    
     async function handleLogout() {
         await supabaseClient.auth.signOut();
         usuarioAtualId = null;
@@ -661,6 +933,28 @@
         });
     }
 
+    // Crie essa variável no início do seu arquivo de script, junto com seus outros arrays
+let planoSelecionado = 'mensal'; // Padrão caso ele não clique em nenhum
+
+function abrirModalPlanos() {
+    document.getElementById('modalPlanos').style.display = 'flex';
+}
+
+function fecharModalPlanos() {
+    document.getElementById('modalPlanos').style.display = 'none';
+}
+
+function selecionarPlano(plano) {
+    planoSelecionado = plano; // Guarda se foi mensal, trimensal ou anual
+    fecharModalPlanos();
+    
+    // Altera para a aba de cadastro automaticamente para ele criar a conta
+    if (typeof toggleTab === 'function') {
+        toggleTab('signup'); 
+    }
+    
+    alert("Plano " + plano.toUpperCase() + " selecionado! Prossiga com o seu cadastro.");
+}
    async function salvarOrcamento(){
         const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
         const clienteEndereco = document.getElementById('clienteEndereco').value || '';
