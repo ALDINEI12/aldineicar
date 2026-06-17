@@ -599,28 +599,35 @@
         const veiculoAno = document.getElementById('veiculoAno').value || '';
         const veiculoCor = document.getElementById('veiculoCor').value || '';
         const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- Captura o serviço
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // Captura o serviço
         
         const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
         
-        // Criando o objeto do novo orçamento para o histórico
+        // Mantendo exatamente o cálculo padrão de materiais e mão de obra
+        let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+        
+        // Criando o objeto do novo orçamento EXATAMENTE como o seu histórico e lucro esperam
         const novoOrcamento = {
             data: new Date().toLocaleString('pt-BR'),
-            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade },
+            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade }, // Mantenha 'city' ou 'cidade' conforme seu original
             veiculo: { 
                 modelo: veiculoModelo, 
                 placa: veiculoPlaca, 
                 ano: veiculoAno, 
                 cor: veiculoCor, 
                 avaliador: nomeAvaliador,
-                tipo_servico: tipoServico // <-- Salva o serviço aqui dentro
+                tipo_servico: tipoServico // O serviço fica bem guardado aqui dentro
             },
-            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ nome: m.nome, qtd: m.qtd, valor: m.valor })),
+            // Garante que a lista de materiais vai completa e correta
+            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
             mao_obra: [...maoObraItens],
             totalMateriais: totalMateriais,
             totalCobrado: valorCobrado
         };
+        
+        // O Lucro geralmente é calculado na hora de exibir (no renderHistorico) baseando-se no totalCobrado - totalMateriais.
+        // Adicionamos aqui também por segurança caso seu sistema use direto do objeto:
+        novoOrcamento.lucro = valorCobrado - totalMateriais;
         
         historico.unshift(novoOrcamento); // Adiciona no início do histórico
         
@@ -631,7 +638,7 @@
             renderClientes();
         }
         
-        renderHistorico();
+        renderHistorico(); // Atualiza a tela do histórico para recalcular tudo visualmente
         alert("Orçamento salvo com sucesso no histórico!");
         await salvarNoBanco();
     }
