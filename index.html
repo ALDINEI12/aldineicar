@@ -9,134 +9,143 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
-        body { background-color: #f4f6f9; color: #333; }
+        body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         
-        header { background: #111; color: white; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 70px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        header { background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; }
         .logo-container { height: 100%; display: flex; align-items: center; }
-        .logo-img { height: 45px; width: auto; object-fit: contain; }
-        .search { width:35%; padding:12px 16px; border-radius:12px; border: 1px solid #222; background: #222; color: white; font-size:15px; transition: all 0.3s ease; }
-        .search::placeholder { color: #888; }
-        .search:focus { outline: none; border-color: #ffd700; background: #2a2a2a; box-shadow: 0 0 0 3px rgba(255,215,0,0.15); }
+        .logo-img { height: 42px; width: auto; object-fit: contain; }
+        .search { width:35%; padding:12px 18px; border-radius:12px; border: 1px solid #27272a; background: #18181b; color: white; font-size:14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .search::placeholder { color: #71717a; }
+        .search:focus { outline: none; border-color: #f43f5e; background: #18181b; box-shadow: 0 0 0 1px #f43f5e; }
         
-        .container { display:flex; min-height:calc(100vh - 70px); }
+        .container { display:flex; min-height:calc(100vh - 72px); }
         
-        /* Menu Lateral - Estilo Clean Moderno */
-        .sidebar { width: 250px; background: white; padding: 24px 16px; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 6px; }
-        .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; color:#94a3b8; padding-left: 12px; font-weight: 700; }
-        .sidebar button { width:100%; padding:12px 16px; background: transparent; color:#475569; border: none; border-radius: 10px; font-size:14px; font-weight: 600; cursor:pointer; text-align: left; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; }
+        /* Menu Lateral - Minimalista */
+        .sidebar { width: 260px; background: white; padding: 32px 20px; border-right: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; color:#94a3b8; padding-left: 12px; font-weight: 700; }
+        .sidebar button { width:100%; padding:12px 14px; background: transparent; color:#64748b; border: none; border-radius: 10px; font-size:14px; font-weight: 600; cursor:pointer; text-align: left; transition: all 0.15s ease; display: flex; align-items: center; gap: 12px; }
         .sidebar button:hover { background:#f8fafc; color:#0f172a; }
-        .sidebar button.active { background: #fff5f5; color: #d40000; }
+        .sidebar button.active { background: #fff1f2; color: #e11d48; font-weight: 700; }
         
-        /* Botão Sair no PC */
-        .sidebar .btn-logout { background: #fff1f2; color: #f43f5e; border: none; text-align: center; font-weight: 700; margin-top: auto; justify-content: center; border: 1px solid #ffe4e6; }
-        .sidebar .btn-logout:hover { background: #ffe4e6; color: #e11d48; border-color: #fecdd3; }
+        /* Botão Sair Premium */
+        .sidebar .btn-logout { background: transparent; color: #f43f5e; border: none; text-align: center; font-weight: 700; margin-top: auto; justify-content: center; border: 1px solid #ffe4e6; background: #fff5f5; }
+        .sidebar .btn-logout:hover { background: #ffe4e6; color: #be123c; border-color: #fecdd3; }
         
         /* Área de Conteúdo Principal */
-        .content { flex:1; padding:32px; display: flex; flex-direction: column; gap: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .content { flex:1; padding:40px; display: flex; flex-direction: column; gap: 32px; max-width: 1440px; margin: 0 auto; width: 100%; }
         .top-actions { display:flex; gap:12px; flex-wrap:wrap; }
-        .top-actions button { padding:12px 20px; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
-        .top-actions button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .top-actions button { padding:12px 24px; border:none; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .top-actions button:hover { transform: translateY(-1px); }
         
-        .btn-primary { background:#d40000; color:white; }
-        .btn-primary:hover { background:#b20000; }
-        .btn-green { background:#00a651; color:white; }
-        .btn-green:hover { background:#008540; }
+        .btn-primary { background:#e11d48; color:white; }
+        .btn-primary:hover { background:#be123c; }
+        .btn-green { background:#10b981; color:white; }
+        .btn-green:hover { background:#059669; }
         
-        .main-layout { display: flex; gap: 32px; align-items: flex-start; }
+        .main-layout { display: flex; gap: 36px; align-items: flex-start; }
         .aba-container { flex: 1; }
         
-        /* Grid de Cards Inteligente */
-        .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:20px; }
-        .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-        .card h3 { font-size:15px; color: #1e293b; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+        /* Grid de Cards Elegantes */
+        .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:24px; }
+        .card { background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
+        .card:hover { border-color: #94a3b8; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); }
+        .card h3 { font-size: 14px; color: #334155; font-weight: 600; line-height: 1.5; margin-bottom: 8px; }
         
-        .preco { color: #d40000; font-size: 22px; font-weight: 700; margin: 8px 0; }
-        .controls { display:flex; align-items:center; justify-content: space-between; background: #f1f5f9; padding: 4px; border-radius: 30px; margin-top: auto; border: 1px solid #e2e8f0; }
-        .controls button { width:34px; height:34px; border:none; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; transition: all 0.15s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .preco { color: #0f172a; font-size: 20px; font-weight: 700; margin: 12px 0; letter-spacing: -0.5px; }
+        .controls { display:flex; align-items:center; justify-content: space-between; background: #f8fafc; padding: 4px; border-radius: 30px; margin-top: auto; border: 1px solid #e2e8f0; }
+        .controls button { width:32px; height:32px; border:none; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; }
         .controls button:active { transform: scale(0.9); }
-        .btn-plus { background:#00a651; color:white; }
-        .btn-plus:hover { background: #008540; }
-        .btn-minus { background: white; color:#475569; border: 1px solid #cbd5e1 !important; }
-        .btn-minus:hover { background: #f8fafc; color: #0f172a; }
-        .qtd { font-size:15px; font-weight:700; color: #1e293b; padding: 0 4px; }
+        .btn-plus { background:#0f172a; color:white; }
+        .btn-plus:hover { background: #1e293b; }
+        .btn-minus { background: white; color:#64748b; border: 1px solid #cbd5e1 !important; }
+        .btn-minus:hover { background: #f1f5f9; color: #0f172a; }
+        .qtd { font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
         
-        /* Painel Lateral de Resumo */
-        .resumo { width: 380px; background: white; padding: 28px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; position: sticky; top: 24px; }
-        .resumo h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color:#0f172a; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .resumo div { margin-bottom: 16px; font-size: 13px; color: #475569; font-weight: 600; }
-        .resumo input { width:100%; padding:10px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:10px; font-size: 14px; color: #0f172a; transition: all 0.2s ease; background: #f8fafc; }
-        .resumo input:focus { outline: none; border-color: #d40000; background: white; box-shadow: 0 0 0 3px rgba(212,0,0,0.08); }
-        .resumo button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:10px; font-weight:700; font-size: 14px; cursor:pointer; transition: all 0.2s ease; }
-        .resumo button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        /* Painel Lateral de Resumo - O Grande Destaque */
+        .resumo { width: 380px; background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; position: sticky; top: 32px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02); }
+        .resumo h2 { font-size: 16px; font-weight: 700; margin-bottom: 24px; color:#0f172a; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+        .resumo div { margin-bottom: 18px; font-size: 13px; color: #475569; font-weight: 600; }
+        .resumo input { width:100%; padding:11px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; font-size: 14px; color: #0f172a; transition: all 0.15s ease; background: #f8fafc; font-weight: 500; }
+        .resumo input:focus { outline: none; border-color: #0f172a; background: white; }
+        
+        /* Destaque Elegante para o Custo de Material no Resumo */
+        .resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
+            background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155;
+        }
+        
+        /* Destaque Ultra Premium para o VALOR TOTAL */
+        .resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
+            background: #0f172a; color: white; padding: 20px; border-radius: 12px; margin-top: 24px; border: none; box-shadow: 0 8px 20px rgba(15,23,42,0.15);
+        }
+        .resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input {
+            background: #1e293b; border: 1px solid #334155; color: white; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; padding: 12px; margin-top: 8px; text-align: center; border-radius: 8px;
+        }
+        .resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus {
+            border-color: #38bdf8;
+        }
+        
+        .resumo button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:700; font-size: 14px; cursor:pointer; transition: all 0.15s ease; }
         
         /* Modais */
-        .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items:center; justify-content:center; z-index:999; animation: fadeIn 0.2s ease; }
-        .modal-content { background:#1e293b; padding:28px; border-radius:16px; width:90%; max-width:420px; color: white; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
-        .modal-content h3 { font-size: 18px; margin-bottom: 12px; font-weight: 700; }
-        .modal-content input, .modal-content select { width:100%; padding:12px; margin:6px 0 16px 0; border:1px solid #334155; border-radius:10px; color: white; background: #0f172a; font-size: 14px; }
-        .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #ffd700; }
-        .modal-content button { width:100%; padding:12px; border:none; border-radius:10px; margin-top:6px; font-weight:700; font-size:14px; cursor:pointer; }
+        .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9, 9, 11, 0.4); backdrop-filter: blur(4px); align-items:center; justify-content:center; z-index:999; }
+        .modal-content { background:#09090b; padding:32px; border-radius:12px; width:90%; max-width:420px; color: white; max-height: 85vh; overflow-y: auto; border: 1px solid #27272a; }
+        .modal-content h3 { font-size: 16px; margin-bottom: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; }
+        .modal-content input, .modal-content select { width:100%; padding:12px; margin:6px 0 16px 0; border:1px solid #27272a; border-radius:8px; color: white; background: #141416; font-size: 14px; }
+        .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #f43f5e; }
+        .modal-content button { width:100%; padding:12px; border:none; border-radius:8px; margin-top:6px; font-weight:600; font-size:14px; cursor:pointer; }
         
-        /* Itens do Histórico e Clientes */
-        .cliente-item { background:white; padding:20px; border-radius:14px; margin-bottom:16px; border:1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); color: #333; }
+        /* Listagem de Clientes e Histórico */
+        .cliente-item { background:white; padding:24px; border-radius:12px; margin-bottom:16px; border: 1px solid #e2e8f0; color: #0f172a; }
         
-        .add-servico-btn { width:100%; padding:14px; border:none; border-radius:12px; font-size:14px; font-weight:700; background: #f0fdf4; color: #16a34a; border: 2px dashed #bbf7d0; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.2s ease; }
-        .add-servico-btn:hover { background: #dcfce7; border-color: #16a34a; }
+        .add-servico-btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:14px; font-weight:600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.15s ease; }
+        .add-servico-btn:hover { background: #dcfce7; }
         
         /* Filtros de Categorias */
-        .categorias-materiais { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
-        .categorias-materiais button { padding:8px 16px; border:none; border-radius:20px; background:#f1f5f9; color:#475569; font-weight:600; font-size:13px; cursor:pointer; transition: all 0.2s ease; border:1px solid #e2e8f0; }
+        .categorias-materiais { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+        .categorias-materiais button { padding:8px 16px; border:none; border-radius:20px; background:#f1f5f9; color:#64748b; font-weight:600; font-size:13px; cursor:pointer; transition: all 0.15s ease; border: 1px solid transparent; }
         .categorias-materiais button:hover { background:#e2e8f0; color:#0f172a; }
-        .categorias-materiais button.active { background:#d40000; color:white; border-color: #d40000; box-shadow:0 4px 10px rgba(212,0,0,0.15); }
+        .categorias-materiais button.active { background:#0f172a; color:white; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* --- AJUSTES COMPLETOS PARA O CELULAR (RESPONSIVO) --- */
+        /* Botão do WhatsApp Customizado */
+        button[onclick*="enviarWhatsApp"] { background: #075e54 !important; color: white !important; font-weight: 700; border-radius: 8px; transition: 0.2s; }
+        button[onclick*="enviarWhatsApp"]:hover { background: #128c7e !important; }
+
+        /* --- DESIGN RESPONSIVO PARA O CELULAR --- */
         @media(max-width:992px){
-            header { height: auto; padding: 14px; flex-direction: column; gap: 10px; align-items: stretch; }
-            .search { width: 100%; padding: 10px 14px; font-size: 14px; }
+            header { height: auto; padding: 16px; flex-direction: column; gap: 12px; align-items: stretch; }
+            .search { width: 100%; padding: 11px 14px; font-size: 14px; }
             .logo-container { justify-content: center; }
             
             .container { flex-direction:column; min-height: auto; }
             
-            /* Sidebar vira menu em linha rolável de App */
-            .sidebar { width:100%; display:flex; flex-direction: row; gap:8px; overflow-x:auto; padding: 10px; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; background: #fafafa; }
+            .sidebar { width:100%; display:flex; flex-direction: row; gap:6px; overflow-x:auto; padding: 12px; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; background: #ffffff; scrollbar-width: none; }
+            .sidebar::-webkit-scrollbar { display: none; }
             .sidebar h2 { display: none; }
-            .sidebar button { min-width:125px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: white; border: 1px solid #e2e8f0; white-space: nowrap; flex-shrink: 0; }
+            .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: #f8fafc; white-space: nowrap; flex-shrink: 0; }
             
-            /* Correção Cirúrgica do Botão Sair no Celular */
+            /* Sair discreto na rolagem lateral do celular */
             .sidebar .btn-logout { 
                 margin-top: 0 !important; 
-                min-width: 85px !important; 
-                background: #fff1f2 !important; 
+                min-width: 80px !important; 
+                background: #fff5f5 !important; 
                 color: #f43f5e !important; 
-                border: 1px solid #fecdd3 !important;
+                border: 1px solid #fee2e2 !important;
                 padding: 10px !important;
                 font-size: 13px !important;
             }
-            .sidebar .btn-logout:hover { background: #ffe4e6 !important; }
             
-            .content { padding: 16px; gap: 16px; }
-            .main-layout { flex-direction: column; gap: 16px; width: 100%; }
+            .content { padding: 16px; gap: 20px; }
+            .main-layout { flex-direction: column; gap: 20px; width: 100%; }
             
-            /* Cards compactos em duas colunas perfeitas no celular */
-            .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .card { padding: 12px; border-radius: 12px; }
-            .card h3 { font-size: 13px; font-weight: 600; }
-            .preco { font-size: 17px; margin: 6px 0; }
-            .controls { padding: 2px; }
-            .controls button { width: 30px; height: 30px; font-size: 16px; }
-            .qtd { font-size: 14px; }
+            .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .card { padding: 16px; border-radius: 12px; min-height: 150px; }
+            .card h3 { font-size: 13px; }
+            .preco { font-size: 16px; margin: 4px 0; }
+            .controls button { width: 28px; height: 28px; font-size: 14px; }
             
-            /* Painel de Resumo ajustado para celular */
-            .resumo { width:100%; margin-top:4px; position: static; padding: 20px; border-radius: 14px; }
-            .resumo h2 { font-size: 16px; margin-bottom: 16px; }
-            .resumo div { margin-bottom: 12px; }
-            .resumo input { padding: 10px; font-size: 14px; }
-            .resumo button { padding: 14px; font-size: 14px; }
+            .resumo { width:100%; margin-top:0; position: static; padding: 24px; border-radius: 14px; }
             
             .top-actions { gap: 8px; }
             .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
