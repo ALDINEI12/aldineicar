@@ -789,7 +789,7 @@
         return;
     }
 
-    console.log("Item selecionado para editar:", item); // Para checar no console se necessário
+    console.log("Item selecionado para editar:", item);
 
     // 1. Preenche os campos de texto do Cliente e Veículo
     document.getElementById('clienteNome').value = item.cliente?.nome || item.nome || '';
@@ -815,10 +815,8 @@
     }
 
     // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
-    // Zeramos tudo primeiro
     materiais.forEach(m => m.qtd = 0);
 
-    // Mapeamento super flexível (testa por ID, nome, descrição ou texto)
     if (item.materiais && Array.isArray(item.materiais)) {
         item.materiais.forEach(matSalvo => {
             const matGeral = materiais.find(m => 
@@ -828,7 +826,6 @@
             );
             
             if (matGeral) {
-                // Tenta puxar a quantidade de 'qtd', 'quantidade' ou 'qnt'
                 matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || matSalvo.qnt || 0);
             }
         });
@@ -838,14 +835,34 @@
         maoObraItens = [...item.mao_obra];
     }
 
-    // 4 e 5. FORCE O ERRO PARAR CASO O NOME ESTEJA LIGEIRAMENTE DIFERENTE
-    // Vamos tentar executar os nomes mais comuns do seu projeto automaticamente:
+    // 4. ATUALIZAÇÃO VISUAL FORÇADA DAS QUANTIDADES NOS CARDS
+    // Executa as suas funções padrões se elas existirem
     try {
         if (typeof renderMateriais === 'function') renderMateriais();
         else if (typeof renderCards === 'function') renderCards();
         else if (typeof exibirMateriais === 'function') exibirMateriais();
-    } catch(e) { console.error("Erro ao renderizar cards:", e); }
+    } catch(e) { console.error("Erro na renderização padrão:", e); }
 
+    // Mecanismo de varredura direta no HTML (Garante que o número mude na tela)
+    try {
+        materiais.forEach(m => {
+            // Procura elementos de texto ou input que usem o ID ou classe baseados no material
+            const elQtd = document.getElementById(`qtd-${m.id}`) || 
+                          document.getElementById(`qtd_${m.id}`) || 
+                          document.getElementById(`qtd-${m.nome}`) ||
+                          document.querySelector(`.qtd[data-id="${m.id}"]`);
+            
+            if (elQtd) {
+                if (elQtd.tagName === 'INPUT') {
+                    elQtd.value = m.qtd;
+                } else {
+                    elQtd.innerText = m.qtd;
+                }
+            }
+        });
+    } catch(e) { console.error("Erro na atualização direta dos elementos:", e); }
+
+    // 5. RECALCULA OS TOTAIS DO RESUMO
     try {
         if (typeof atualizarTotais === 'function') atualizarTotais();
         else if (typeof calcularTotal === 'function') calcularTotal();
@@ -853,7 +870,7 @@
         else if (typeof atualizarResumo === 'function') atualizarResumo();
     } catch(e) { console.error("Erro ao calcular totais:", e); }
 
-    // 6. MUDA DE ABA PARA A TELA DE CRIAÇÃO (Se houver abas)
+    // 6. MUDA DE ABA PARA A TELA DE CRIAÇÃO
     if (typeof mudarAba === 'function') { 
         mudarAba('resumo'); 
     } else if (typeof mudarAba === 'function') {
