@@ -875,262 +875,245 @@
     }
 
     async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
-    async function enviarWhatsApp() {
-        const nome = document.getElementById('clienteNome').value || 'Cliente';
-        const end = document.getElementById('clienteEndereco').value || '';
-        const tel = document.getElementById('clienteTel').value || '';
-        const cid = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
-        const modelo = document.getElementById('veiculoModelo').value || '---';
-        const placa = document.getElementById('veiculoPlaca').value || '---';
-        const ano = document.getElementById('veiculoAno').value || '';
-        const cor = document.getElementById('veiculoCor').value || '';
-        const avaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- 1. Captura o serviço aqui
-        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
+async function enviarWhatsAppHistorico(index) {
+    const item = historico[index];
+    if (!item) return;
 
-        if (!usuarioAtualId) {
-            alert("Você precisa estar logado para realizar esta operação.");
-            return;
-        }
-
-        // Feedback visual no botão
-        const btnWhats = document.querySelector("button[onclick='enviarWhatsApp()']");
-        const textoOriginal = btnWhats.innerText;
-        btnWhats.innerText = "⏳ Gerando PDF Completo...";
-        btnWhats.disabled = true;
-
-        try {
-            // Usando a MESMA biblioteca e lógica do seu PDF padrão completo
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            let y = 15;
-
-            // --- INÍCIO DA MESMA ESTRUTURA DO SEU PDF OFICIAL ---
-            if (dadosOficina.logoBase64) {
-                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
-                    doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
-                }
-            } else {
-                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
-            }
-
-            doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
-            doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
-            
-            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
-            doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
-            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
-            doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
-            doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
-            doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
-            doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
-
-            const dataOrc = new Date().toLocaleDateString('pt-BR');
-            doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
-            doc.text(dataOrc, 175, y + 5);
-            y += 36;
-            doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
-            y += 5;
-
-            doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
-            y += 15;
-
-            doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
-            y += 4;
-            doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
-            doc.text(placa || '---', 25, y).text(modelo || '---', 95, y).text(avaliador || '---', 155, y);
-            
-            y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
-
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
-            y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
-
-            doc.setFont('Helvetica', 'normal').setFontSize(9.5);
-            doc.text(`MODELO: ${modelo || '---'}`, 15, y).text(`NOME: ${nome || '---'}`, 110, y); y += 5.5;
-            doc.text(`PLACA: ${placa || '---'}`, 15, y).text(`ENDEREÇO: ${end || '---'}`, 110, y); y += 5.5;
-            doc.text(`ANO: ${ano || '---'}`, 15, y).text(`TEL: ${tel || '---'}`, 110, y); y += 5.5;
-            doc.text(`COR: ${cor || '---'}`, 15, y).text(`CIDADE: ${cid || '---'}`, 110, y);
-            
-            // --- 2. SEÇÃO DO TIPO DE SERVIÇO ADICIONADA NO PDF DO WHATSAPP ---
-            y += 8;
-            doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
-            y += 4.5;
-            doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
-            // -----------------------------------------------------------------
-
-            y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
-            doc.setLineWidth(0.3).rect(65, y, 80, 16);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
-            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
-            
-            y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
-            
-            y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
-            // --- FIM DA MESMA ESTRUTURA DO SEU PDF OFICIAL ---
-
-            // Convertendo o PDF idêntico em arquivo binário
-            const pdfBlob = doc.output('blob');
-            const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
-
-            // Envia para o Supabase Storage público
-            const { data, error } = await supabaseClient.storage
-                .from('orcamentos')
-                .upload(nomeArquivo, pdfBlob, {
-                    contentType: 'application/pdf',
-                    upsert: true
-                });
-
-            if (error) throw error;
-
-            // Resgata o link direto
-            const { data: urlData } = supabaseClient.storage
-                .from('orcamentos')
-                .getPublicUrl(nomeArquivo);
-
-            const linkPdfPublico = urlData.publicUrl;
-
-            // Monta a mensagem final para o WhatsApp
-            let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
-            textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
-            textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- 3. Adiciona na mensagem de texto também
-            textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
-            textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
-
-            // Abre o WhatsApp com a mensagem e link idêntico
-            window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
-
-        } catch (err) {
-            alert("Erro ao sincronizar PDF completo: " + err.message);
-            console.error(err);
-        } finally {
-            btnWhats.innerText = textoOriginal;
-            btnWhats.disabled = false;
-        }
+    if (!usuarioAtualId) {
+        alert("Você precisa estar logado para realizar esta operação.");
+        return;
     }
 
-    async function enviarWhatsAppHistorico(index) {
-        const item = historico[index];
-        if (!item) return;
+    try {
+        // 1. Puxa os dados direto do histórico salvo
+        const nome = item.cliente.nome;
+        const end = item.cliente.endereco;
+        const tel = item.cliente.tel;
+        const cid = item.cliente.cidade;
+        const modelo = item.veiculo.modelo;
+        const placa = item.veiculo.placa;
+        const ano = item.veiculo.ano;
+        const cor = item.veiculo.cor;
+        const avaliador = item.veiculo.avaliador;
+        const tipoServico = item.veiculo.tipo_servico || '---'; // <-- Puxa do histórico!
+        const valor = item.totalCobrado;
 
-        const cliente = item.cliente || { nome: 'Cliente', endereco: '', tel: '', cidade: '' };
-        const veiculo = item.veiculo || { modelo: '---', placa: '---', ano: '', cor: '', avaliador: '' };
-        const valorFinal = parseFloat(item.totalCobrado) || 0;
-        const dataDoc = item.data ? item.data.split(' ')[0] : new Date().toLocaleDateString('pt-BR');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
 
-        if (!usuarioAtualId) {
-            alert("Você precisa estar logado para realizar esta operação.");
-            return;
-        }
-
-        // Feedback visual mudando o botão específico do histórico selecionado
-        const containerBotoes = document.getElementById(`actions-hist-${index}`);
-        const btnWhats = containerBotoes.querySelector("button[onclick^='enviarWhatsAppHistorico']");
-        const textoOriginal = btnWhats.innerText;
-        btnWhats.innerText = "⏳ Enviando...";
-        btnWhats.disabled = true;
-
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            let y = 15;
-
-            // --- ESTRUTURA DO SEU PDF OFICIAL ---
-            if (dadosOficina.logoBase64) {
-                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
-                    doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
-                }
-            } else {
+        // --- ESTRUTURA DO PDF DO HISTÓRICO ---
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
                 doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
             }
-
-            doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
-            doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
-            
-            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
-            doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
-            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
-            doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
-            doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
-            doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
-            doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
-
-            doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
-            doc.text(dataDoc, 175, y + 5);
-            y += 36;
-            doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
-            y += 5;
-
-            doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
-            y += 15;
-
-            doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
-            y += 4;
-            doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
-            doc.text(veiculo.placa || '---', 25, y).text(veiculo.modelo || '---', 95, y).text(veiculo.avaliador || '---', 155, y);
-            
-            y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
-
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
-            y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
-
-            doc.setFont('Helvetica', 'normal').setFontSize(9.5);
-            doc.text(`MODELO: ${veiculo.modelo || '---'}`, 15, y).text(`NOME: ${cliente.nome || '---'}`, 110, y); y += 5.5;
-            doc.text(`PLACA: ${veiculo.placa || '---'}`, 15, y).text(`ENDEREÇO: ${cliente.endereco || '---'}`, 110, y); y += 5.5;
-            doc.text(`ANO: ${veiculo.ano || '---'}`, 15, y).text(`TEL: ${cliente.tel || '---'}`, 110, y); y += 5.5;
-            doc.text(`COR: ${veiculo.cor || '---'}`, 15, y).text(`CIDADE: ${cliente.cidade || '---'}`, 110, y);
-            
-            y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
-            doc.setLineWidth(0.3).rect(65, y, 80, 16);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
-            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valorFinal.toFixed(2)}`, 91, y + 12);
-            
-            y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
-            
-            y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
-
-            // Geração de arquivo binário e upload para o Supabase
-            const pdfBlob = doc.output('blob');
-            const nomeArquivo = `${usuarioAtualId}/orc_hist_${Date.now()}.pdf`;
-
-            const { error } = await supabaseClient.storage
-                .from('orcamentos')
-                .upload(nomeArquivo, pdfBlob, {
-                    contentType: 'application/pdf',
-                    upsert: true
-                });
-
-            if (error) throw error;
-
-            const { data: urlData } = supabaseClient.storage
-                .from('orcamentos')
-                .getPublicUrl(nomeArquivo);
-
-            const linkPdfPublico = urlData.publicUrl;
-
-            // Monta texto e dispara para o link do WhatsApp
-            let textoWhats = `Olá *${cliente.nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}* retirado do nosso histórico:\n\n`;
-            textoWhats += `🚗 *Veículo:* ${veiculo.modelo} (${veiculo.placa})\n`;
-            textoWhats += `💰 *Valor Total:* R$ ${valorFinal.toFixed(2)}\n\n`;
-            textoWhats += `👉 *Clique no link abaixo para abrir o seu PDF detalhado:* \n${linkPdfPublico}`;
-
-            window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
-
-        } catch (err) {
-            alert("Erro ao enviar orçamento do histórico: " + err.message);
-            console.error(err);
-        } finally {
-            btnWhats.innerText = textoOriginal;
-            btnWhats.disabled = false;
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
         }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        const dataOrc = item.data.split(' ')[0];
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placa || '---', 25, y).text(modelo || '---', 95, y).text(avaliador || '---', 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modelo || '---'}`, 15, y).text(`NOME: ${nome || '---'}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placa || '---'}`, 15, y).text(`ENDEREÇO: ${end || '---'}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${ano || '---'}`, 15, y).text(`TEL: ${tel || '---'}`, 110, y); y += 5.5;
+        doc.text(`COR: ${cor || '---'}`, 15, y).text(`CIDADE: ${cid || '---'}`, 110, y);
+        
+        // --- SEÇÃO DO TIPO DE SERVIÇO ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('orcamentos')
+            .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
+        const linkPdfPublico = urlData.publicUrl;
+
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- Adicionado na mensagem do histórico
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+    } catch (err) {
+        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
     }
+}
+
+   async function enviarWhatsAppHistorico(index) {
+    const item = historico[index];
+    if (!item) {
+        alert("Orçamento não encontrado no histórico.");
+        return;
+    }
+
+    if (!usuarioAtualId) {
+        alert("Você precisa estar logado para realizar esta operação.");
+        return;
+    }
+
+    try {
+        // Puxa os dados direto do histórico salvo no banco/memória
+        const nome = item.cliente.nome;
+        const end = item.cliente.endereco || '';
+        const tel = item.cliente.tel || '';
+        const cid = item.cliente.cidade || 'Sátrio Dias/BA';
+        const modelo = item.veiculo.modelo || '---';
+        const placa = item.veiculo.placa || '---';
+        const ano = item.veiculo.ano || '';
+        const cor = item.veiculo.cor || '';
+        const avaliador = item.veiculo.avaliador || '';
+        const tipoServico = item.veiculo.tipo_servico || '---'; // <-- 1. RESGATA O SERVIÇO SALVO
+        const valor = item.totalCobrado || 0;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
+
+        // --- ESTRUTURA DO PDF DO HISTÓRICO ---
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+            }
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+        }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        const dataOrc = item.data ? item.data.split(' ')[0] : new Date().toLocaleDateString('pt-BR');
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placa, 25, y).text(modelo, 95, y).text(avaliador, 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modelo}`, 15, y).text(`NOME: ${nome}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placa}`, 15, y).text(`ENDEREÇO: ${end}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${ano}`, 15, y).text(`TEL: ${tel}`, 110, y); y += 5.5;
+        doc.text(`COR: ${cor}`, 15, y).text(`CIDADE: ${cid}`, 110, y);
+        
+        // --- 2. ADICIONA O SERVIÇO NO LAYOUT DO PDF DO WHATSAPP ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        // Gera o arquivo e envia para o Storage do Supabase
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('orcamentos')
+            .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
+        const linkPdfPublico = urlData.publicUrl;
+
+        // Texto que vai aparecer diretamente no chat do WhatsApp
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- 3. ADICIONA NO TEXTO DA MENSAGEM
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
+
+        // Abre o WhatsApp Web ou App com a mensagem preenchida
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+    } catch (err) {
+        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
+    }
+}
 
     function abrirConfirmacao(texto, callback){
         document.getElementById('modalConfirmar').style.display='flex';
