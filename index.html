@@ -809,68 +809,79 @@
         }
     }
 
-    // 2. Preenche o valor total cobrado
+    // 2. Preenche o valor total cobrado do cliente
     if (document.getElementById('valorCliente')) {
         document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
     }
 
     // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
-    materiais.forEach(m => m.qtd = 0);
+    // Zeramos todas as quantidades antes de carregar as antigas
+    if (typeof materiais !== 'undefined' && Array.isArray(materiais)) {
+        materiais.forEach(m => m.qtd = 0);
 
-    if (item.materiais && Array.isArray(item.materiais)) {
-        item.materiais.forEach(matSalvo => {
-            const matGeral = materiais.find(m => 
-                (m.id && matSalvo.id && m.id == matSalvo.id) || 
-                (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase()) ||
-                (m.descricao && matSalvo.descricao && m.descricao.toLowerCase() === matSalvo.descricao.toLowerCase())
-            );
-            
-            if (matGeral) {
-                matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || matSalvo.qnt || 0);
-            }
-        });
+        if (item.materiais && Array.isArray(item.materiais)) {
+            item.materiais.forEach(matSalvo => {
+                // Procura o material correspondente por ID ou Nome
+                const matGeral = materiais.find(m => 
+                    (m.id && matSalvo.id && m.id == matSalvo.id) || 
+                    (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase())
+                );
+                
+                if (matGeral) {
+                    matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || 0);
+                }
+            });
+        }
     }
 
     if (item.mao_obra && typeof maoObraItens !== 'undefined') {
         maoObraItens = [...item.mao_obra];
     }
 
-    // 4. ATUALIZAÇÃO VISUAL FORÇADA DAS QUANTIDADES NOS CARDS
-    // Executa as suas funções padrões se elas existirem
-    try {
-        if (typeof renderMateriais === 'function') renderMateriais();
-        else if (typeof renderCards === 'function') renderCards();
-        else if (typeof exibirMateriais === 'function') exibirMateriais();
-    } catch(e) { console.error("Erro na renderização padrão:", e); }
+    // 4. FORÇAR A ATUALIZAÇÃO VISUAL NA TELA
+    // Tentativa automática usando as funções mais prováveis do seu código:
+    let renderizou = false;
+    const funcoesRender = ['renderMateriais', 'renderCards', 'exibirMateriais', 'mostrarMateriais', 'carregarMateriais', 'atualizarInterface'];
+    
+    funcoesRender.forEach(nomeFuncao => {
+        if (typeof window[nomeFuncao] === 'function') {
+            window[nomeFuncao]();
+            renderizou = true;
+        }
+    });
 
-    // Mecanismo de varredura direta no HTML (Garante que o número mude na tela)
-    try {
-        materiais.forEach(m => {
-            // Procura elementos de texto ou input que usem o ID ou classe baseados no material
-            const elQtd = document.getElementById(`qtd-${m.id}`) || 
-                          document.getElementById(`qtd_${m.id}`) || 
-                          document.getElementById(`qtd-${m.nome}`) ||
-                          document.querySelector(`.qtd[data-id="${m.id}"]`);
-            
-            if (elQtd) {
-                if (elQtd.tagName === 'INPUT') {
-                    elQtd.value = m.qtd;
-                } else {
-                    elQtd.innerText = m.qtd;
+    // Se as funções automáticas falharem, fazemos uma varredura cirúrgica direto nas caixinhas de texto da tela
+    if (!renderizou) {
+        try {
+            materiais.forEach(m => {
+                // Procura na tela por IDs comuns que guardam a quantidade do material
+                const elementoQtd = document.getElementById(`qtd-${m.id}`) || 
+                                    document.getElementById(`qtd_${m.id}`) || 
+                                    document.getElementById(`qtd-${m.nome.replace(/\s+/g, '')}`) ||
+                                    document.querySelector(`[data-id="${m.id}"] .qtd`);
+                
+                if (elementoQtd) {
+                    if (elementoQtd.tagName === 'INPUT') {
+                        elementoQtd.value = m.qtd;
+                    } else {
+                        elementoQtd.innerText = m.qtd;
+                    }
                 }
-            }
-        });
-    } catch(e) { console.error("Erro na atualização direta dos elementos:", e); }
+            });
+        } catch (e) {
+            console.log("Aviso: Varredura direta falhou, criando os cards manualmente.", e);
+        }
+    }
 
     // 5. RECALCULA OS TOTAIS DO RESUMO
-    try {
-        if (typeof atualizarTotais === 'function') atualizarTotais();
-        else if (typeof calcularTotal === 'function') calcularTotal();
-        else if (typeof calcular === 'function') calcular();
-        else if (typeof atualizarResumo === 'function') atualizarResumo();
-    } catch(e) { console.error("Erro ao calcular totais:", e); }
+    const funcoesCalculo = ['atualizarTotais', 'calcularTotal', 'calcular', 'atualizarResumo', 'calcTotal'];
+    funcoesCalculo.forEach(nomeFuncao => {
+        if (typeof window[nomeFuncao] === 'function') {
+            window[nomeFuncao]();
+        }
+    });
 
-    // 6. MUDA DE ABA PARA A TELA DE CRIAÇÃO
+    // 6. MOVE A TELA DO USUÁRIO PARA A ABA DE ORÇAMENTO (Evita que ele tenha que rolar para cima ou mudar de aba na mão)
     if (typeof mudarAba === 'function') { 
         mudarAba('resumo'); 
     } else if (typeof mudarAba === 'function') {
