@@ -730,7 +730,7 @@
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
     }
 
-    function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, valorFinal, dataOrc) {
+    function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         let y = 15;
@@ -780,6 +780,13 @@
         doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
         doc.text(`COR: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
         
+        // --- SEÇÃO DO TIPO DE SERVIÇO ADICIONADA AQUI ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+        // ------------------------------------------------
+
         y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
         doc.setLineWidth(0.3).rect(65, y, 80, 16);
         doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
@@ -805,16 +812,20 @@
         const ano = document.getElementById('veiculoAno').value || '';
         const cor = document.getElementById('veiculoCor').value || '';
         const avaliador = document.getElementById('nomeAvaliador').value || '';
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- Nova linha aqui
         const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
-        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, valor, new Date().toLocaleDateString('pt-BR'));
+        
+        // Adicionamos 'tipoServico' antes do 'valor' na chamada abaixo:
+        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
     }
-
+    
     function gerarPDFHistorico(index) {
         const item = historico[index];
         if(!item) return;
         construirDocumentoPDF(
             item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
             item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
+            item.veiculo.tipo_servico || '---', // Caso salve no histórico futuramente
             item.totalCobrado, item.data.split(' ')[0]
         );
     }
@@ -822,7 +833,7 @@
     function gerarPDFClienteCompleto(index) {
         const cli = clientes[index];
         if(!cli) return;
-        construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
+        construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
     }
 
     function abrirModal(){ document.getElementById('modal').style.display='flex'; }
