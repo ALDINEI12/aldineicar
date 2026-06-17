@@ -783,32 +783,63 @@
     }
 
     function carregarParaEditar(index) {
-        const item = historico[index];
-        if(!item) return;
+    const item = historico[index];
+    if (!item) {
+        alert("Orçamento não encontrado.");
+        return;
+    }
 
-        document.getElementById('clienteNome').value = item.cliente.nome;
-        document.getElementById('clienteEndereco').value = item.cliente.endereco || '';
-        document.getElementById('clienteTel').value = item.cliente.tel || '';
-        document.getElementById('clienteCidade').value = item.cliente.cidade || '';
-        document.getElementById('veiculoModelo').value = item.veiculo.modelo;
-        document.getElementById('veiculoPlaca').value = item.veiculo.placa;
+    // 1. Preenche os campos de texto do Cliente e Veículo
+    document.getElementById('clienteNome').value = item.cliente.nome || '';
+    document.getElementById('clienteEndereco').value = item.cliente.endereco || item.cliente.end || '';
+    document.getElementById('clienteTel').value = item.cliente.tel || '';
+    document.getElementById('clienteCidade').value = item.cliente.cidade || item.cliente.city || 'Sátrio Dias/BA';
+
+    if (item.veiculo) {
+        document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
+        document.getElementById('veiculoPlaca').value = item.veiculo.placa || '';
         document.getElementById('veiculoAno').value = item.veiculo.ano || '';
         document.getElementById('veiculoCor').value = item.veiculo.cor || '';
         document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
-        document.getElementById('valorCliente').value = item.totalCobrado;
-
-        if (item.listaMateriais && item.listaMateriais.length > 0) {
-            materiais.forEach(m => {
-                const salvo = item.listaMateriais.find(s => s.nome === m.nome);
-                m.qtd = salvo ? salvo.qtd : 0;
-            });
+        
+        if (document.getElementById('tipoServico')) {
+            document.getElementById('tipoServico').value = item.veiculo.tipo_servico || '';
         }
-        maoObraItens = item.listaMaoObra ? item.listaMaoObra.map(m => ({ ...m })) : [];
-
-        render(); renderMaoObra(); atualizarResumo();
-        mostrarAba('materiais');
-        alert(`Orçamento de ${item.cliente.nome} carregado para edição!`);
     }
+
+    // 2. Preenche o valor total que foi cobrado do cliente
+    if (document.getElementById('valorCliente')) {
+        document.getElementById('valorCliente').value = item.totalCobrado || 0;
+    }
+
+    // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
+    materiais.forEach(m => m.qtd = 0);
+
+    if (item.materiais && Array.isArray(item.materiais)) {
+        item.materiais.forEach(matSalvo => {
+            const matGeral = materiais.find(m => m.id === matSalvo.id || m.nome.toLowerCase() === matSalvo.nome.toLowerCase());
+            if (matGeral) {
+                matGeral.qtd = parseInt(matSalvo.qtd) || 0;
+            }
+        });
+    }
+
+    if (item.mao_obra && typeof maoObraItens !== 'undefined') {
+        maoObraItens = [...item.mao_obra];
+    }
+
+    // 4. ATUALIZA A TELA (Troque pelo nome correto da sua função de desenhar os materiais)
+    renderMateriais(); 
+
+    // 5. RECALCULA OS TOTAIS (Troque pelo nome correto da sua função que soma tudo no resumo)
+    atualizarTotais();
+
+    // 6. MUDA DE ABA (Caso seu sistema use abas e precise ir para a tela de criar orçamentos)
+    // Se a sua função de mudar de aba se chamar diferente (ex: mudarTela), ajuste aqui:
+    if (typeof mudarAba === 'function') { mudarAba('resumo'); }
+
+    alert("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
+}
 
     function carregarDadosClienteNoResumo(index) {
         const cli = clientes[index];
