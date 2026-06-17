@@ -61,19 +61,21 @@
         .btn-plus:hover { background: #1e293b; }
         .btn-minus { background: white; color:#64748b; border: 1px solid #cbd5e1 !important; }
         .btn-minus:hover { background: #f1f5f9; color: #0f172a; }
-        .qtd font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
+        .qtd { font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
         
-        /* Painel Lateral de Resumo */
+        /* Painel Lateral de Resumo - O Grande Destaque */
         .resumo { width: 380px; background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; position: sticky; top: 32px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02); }
         .resumo h2 { font-size: 16px; font-weight: 700; margin-bottom: 24px; color:#0f172a; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
         .resumo div { margin-bottom: 18px; font-size: 13px; color: #475569; font-weight: 600; }
         .resumo input { width:100%; padding:11px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; font-size: 14px; color: #0f172a; transition: all 0.15s ease; background: #f8fafc; font-weight: 500; }
         .resumo input:focus { outline: none; border-color: #0f172a; background: white; }
         
+        /* Destaque Elegante para o Custo de Material no Resumo */
         .resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
             background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155;
         }
         
+        /* Destaque Ultra Premium para o VALOR TOTAL */
         .resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
             background: #0f172a; color: white; padding: 20px; border-radius: 12px; margin-top: 24px; border: none; box-shadow: 0 8px 20px rgba(15,23,42,0.15);
         }
@@ -94,22 +96,9 @@
         .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #f43f5e; }
         .modal-content button { width:100%; padding:12px; border:none; border-radius:8px; margin-top:6px; font-weight:600; font-size:14px; cursor:pointer; }
         
-        /* Estilos dos Cards de Planos Comerciais */
-        .pricing-container { display: flex; gap: 16px; justify-content: center; padding: 10px 0; flex-wrap: wrap; background: transparent; }
-        .pricing-card { background: #2a2a2a; border: 1px solid #444; border-radius: 12px; padding: 20px; width: 100%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease; position: relative; color: white; }
-        .pricing-card:hover { border-color: #ffd700; transform: translateY(-2px); }
-        .pricing-card.featured { border-color: #ffd700; background: #333; }
-        .pricing-card .badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #ffd700; color: #111; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .plan-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: #fff; }
-        .plan-price { font-size: 26px; font-weight: 800; color: #ffd700; margin: 8px 0; }
-        .plan-price span { font-size: 12px; font-weight: normal; color: #bbb; }
-        .plan-features { list-style: none; margin: 12px 0; text-align: left; font-size: 12px; color: #ccc; }
-        .plan-features li { margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .btn-plan { width: 100%; padding: 10px; border: none; background: #ffd700; color: #111; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; }
-        .btn-plan:hover { background: #ffea6c; }
-
         /* Listagem de Clientes e Histórico */
         .cliente-item { background:white; padding:24px; border-radius:12px; margin-bottom:16px; border: 1px solid #e2e8f0; color: #0f172a; }
+        
         .add-servico-btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:14px; font-weight:600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.15s ease; }
         .add-servico-btn:hover { background: #dcfce7; }
         
@@ -119,6 +108,7 @@
         .categorias-materiais button:hover { background:#e2e8f0; color:#0f172a; }
         .categorias-materiais button.active { background:#0f172a; color:white; }
         
+        /* Botão do WhatsApp Customizado */
         button[onclick*="enviarWhatsApp"] { background: #075e54 !important; color: white !important; font-weight: 700; border-radius: 8px; transition: 0.2s; }
         button[onclick*="enviarWhatsApp"]:hover { background: #128c7e !important; }
 
@@ -135,6 +125,7 @@
             .sidebar h2 { display: none; }
             .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: #f8fafc; white-space: nowrap; flex-shrink: 0; }
             
+            /* Sair discreto na rolagem lateral do celular */
             .sidebar .btn-logout { 
                 margin-top: 0 !important; 
                 min-width: 80px !important; 
@@ -164,7 +155,7 @@
 <body>
 
     <div id="loginOverlay" style="display:flex; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; z-index:9999;">
-        <div style="background:#1e1e1e; padding:35px; border-radius:16px; width:90%; max-width:440px; text-align:center; max-height: 95vh; overflow-y: auto;">
+        <div style="background:#1e1e1e; padding:35px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
             <h1 style="color:#ffd700; margin-bottom:8px;">ALDINEICAR</h1>
             <p style="color:#888; margin-bottom:25px;">Sistema Profissional</p>
 
@@ -180,32 +171,10 @@
             </div>
 
             <div id="signupForm" style="display:none;">
-                <p style="color: #ffd700; font-size: 13px; font-weight: bold; margin-bottom: 12px; text-align: left;">1. Escolha um Plano de Assinatura:</p>
-                
-                <div class="pricing-container">
-                    <div class="pricing-card" id="card-mensal" style="border-color: #ffd700;" onclick="selecionarPlanoNaGrade('mensal')">
-                        <div class="plan-name">Mensal</div>
-                        <div class="plan-price">R$ 20<span>/mês</span></div>
-                        <button class="btn-plan" style="background:#ffd700; font-size:11px; padding:6px;" type="button">Selecionado</button>
-                    </div>
-                    <div class="pricing-card" id="card-trimensal" onclick="selecionarPlanoNaGrade('trimensal')">
-                        <div class="badge">Popular</div>
-                        <div class="plan-name">Trimensal</div>
-                        <div class="plan-price">R$ 50<span>/3m</span></div>
-                        <button class="btn-plan" style="background:#555; color:white; font-size:11px; padding:6px;" type="button">Escolher</button>
-                    </div>
-                    <div class="pricing-card" id="card-anual" onclick="selecionarPlanoNaGrade('anual')">
-                        <div class="plan-name">Anual</div>
-                        <div class="plan-price">R$ 150<span>/ano</span></div>
-                        <button class="btn-plan" style="background:#555; color:white; font-size:11px; padding:6px;" type="button">Escolher</button>
-                    </div>
-                </div>
-
-                <p style="color: #ffd700; font-size: 13px; font-weight: bold; margin: 16px 0 8px 0; text-align: left;">2. Preencha seus dados de Acesso:</p>
-                <input type="text" id="signupName" placeholder="Nome completo" style="width:100%; padding:13px; margin:6px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
-                <input type="email" id="signupEmail" placeholder="Email" style="width:100%; padding:13px; margin:6px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
-                <input type="password" id="signupPassword" placeholder="Senha (mín. 6 caracteres)" style="width:100%; padding:13px; margin:6px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
-                <button onclick="handleSignup()" style="width:100%; padding:14px; background:#00a651; color:white; border:none; border-radius:10px; margin-top:15px; font-weight:bold;">Criar Conta e Prosseguir</button>
+                <input type="text" id="signupName" placeholder="Nome completo" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="email" id="signupEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="password" id="signupPassword" placeholder="Senha (mín. 6 caracteres)" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <button onclick="handleSignup()" style="width:100%; padding:14px; background:#00a651; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Criar Conta</button>
             </div>
         </div>
     </div>
@@ -363,38 +332,6 @@
         </div>
     </div>
 
-    <div id="modalBloqueio" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.96); z-index: 99999; justify-content: center; align-items: center; color: white; padding: 20px; box-sizing: border-box;">
-        <div style="background: #1e293b; border: 1px solid #334155; padding: 35px; border-radius: 16px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); max-height: 95vh; overflow-y: auto;">
-            <div style="font-size: 44px; margin-bottom: 15px;">⚠️</div>
-            <h2 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 800; color: #fff;">Sua assinatura expirou!</h2>
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">O acesso ao seu painel de orçamentos terminou em <strong id="txtVencimento" style="color: #f43f5e;">--/--/----</strong>. Escolha um período abaixo para renovar imediatamente.</p>
-            
-            <div style="background: #0f172a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155; text-align: left;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 13px; color: #cbd5e1;">Período de Renovação:</label>
-                <select id="selectRenovar" style="width: 100%; padding: 11px; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 8px; font-weight: bold; font-size: 14px; outline: none; cursor: pointer;">
-                    <option value="20.00">Plano Mensal - R$ 20,00</option>
-                    <option value="50.00">Plano Trimensal - R$ 50,00</option>
-                    <option value="150.00">Plano Anual - R$ 150,00</option>
-                </select>
-            </div>
-
-            <button onclick="gerarPixPagamento()" style="width: 100%; background: #10b981; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.2s;">
-                ⚡ Gerar PIX para Renovação
-            </button>
-            
-            <div id="areaPix" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #334155;">
-                <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 12px;">Escaneie o QR Code ou use o código Copia e Cola no banco:</p>
-                
-                <div style="background: white; padding: 10px; display: inline-block; border-radius: 8px; margin-bottom: 12px;">
-                    <div style="width: 160px; height: 160px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #334155; font-weight: bold; font-size: 11px; border: 2px dashed #cbd5e1;">QR CODE AUTOMÁTICO</div>
-                </div>
-
-                <input type="text" id="pixCopiaCola" value="00020101021226870014br.gov.bcb.pix0114+5575999999999520400005303986540520.005802BR5910ALDINEICAR6009SSA0102016207050303017" readonly style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: #38bdf8; border-radius: 6px; font-size: 11px; text-align: center; outline: none; margin-bottom: 10px;">
-                <button onclick="copiarPix()" style="background: transparent; border: 1px solid #38bdf8; color: #38bdf8; padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: bold; width: 100%;">📋 Copiar Código PIX</button>
-            </div>
-        </div>
-    </div>
-
     <script>
     const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
@@ -408,7 +345,6 @@
     let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
-    let planoSelecionado = 'mensal'; // Guarda o plano ativo no formulário
 
     const materiaisPadrao = [
         {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
@@ -556,71 +492,6 @@
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
         document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
-        
-        document.getElementById('tabLogin').style.background = tab === 'login' ? '#ffd700' : 'transparent';
-        document.getElementById('tabLogin').style.color = tab === 'login' ? '#111' : 'white';
-        document.getElementById('tabSignup').style.background = tab === 'signup' ? '#00a651' : 'transparent';
-        document.getElementById('tabSignup').style.color = tab === 'signup' ? 'white' : 'white';
-    }
-
-    function selecionarPlanoNaGrade(plano) {
-        planoSelecionado = plano;
-        const planos = ['mensal', 'trimensal', 'anual'];
-        
-        planos.forEach(p => {
-            const card = document.getElementById(`card-${p}`);
-            const btn = card.querySelector('button');
-            if (p === plano) {
-                card.style.borderColor = '#ffd700';
-                btn.innerText = 'Selecionado';
-                btn.style.background = '#ffd700';
-                btn.style.color = '#111';
-            } else {
-                card.style.borderColor = '#444';
-                btn.innerText = 'Escolher';
-                btn.style.background = '#555';
-                btn.style.color = 'white';
-            }
-        });
-    }
-
-    // Gerencia e verifica se a conta expirou com base na data do Supabase
-    function verificarStatusAssinatura(userMetadata) {
-        if (!userMetadata || !userMetadata.data_expiracao) return true;
-
-        const dataHoje = new Date();
-        const dataVencimento = new Date(userMetadata.data_expiracao + "T23:59:59"); // Evita fuso horário adiantado
-
-        if (dataHoje > dataVencimento) {
-            bloquearSistemaParaRenovacao(userMetadata.data_expiracao);
-            return false;
-        }
-        return true;
-    }
-
-    function bloquearSistemaParaRenovacao(dataVencida) {
-        document.getElementById('appContainer').style.display = 'none';
-        document.getElementById('loginOverlay').style.display = 'none';
-        
-        const partesData = dataVencida.split('-');
-        const dataFormatada = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
-        
-        document.getElementById('txtVencimento').innerText = dataFormatada;
-        document.getElementById('modalBloqueio').style.display = 'flex';
-    }
-
-    function gerarPixPagamento() {
-        const valor = document.getElementById('selectRenovar').value;
-        alert(`Gerando código copia e cola para renovação de R$ ${valor}...`);
-        document.getElementById('areaPix').style.display = 'block';
-    }
-
-    function copiarPix() {
-        const inputPix = document.getElementById('pixCopiaCola');
-        inputPix.select();
-        inputPix.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(inputPix.value);
-        alert("Código PIX copiado com sucesso! Abra o app do seu banco e pague na opção Copia e Cola.");
     }
 
     async function handleLogin() {
@@ -648,13 +519,9 @@
             }
 
             if (data && data.user) {
-                // Roda a checagem comercial prioritária
-                const liberado = verificarStatusAssinatura(data.user.user_metadata);
-                if (liberado) {
-                    await carregarDadosDoUsuario(data.user.id);
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    mostrarAba('materiais');
-                }
+                await carregarDadosDoUsuario(data.user.id);
+                document.getElementById('loginOverlay').style.display = 'none';
+                mostrarAba('materiais');
             }
         } catch (err) {
             alert("Erro de conexão ou no servidor: " + err.message);
@@ -670,7 +537,7 @@
         const password = document.getElementById('signupPassword').value;
         const btnCadastrar = document.querySelector('#signupForm button');
 
-        if (!nome || !email || !password || password.length < 6) {
+        if (!email || !password || password.length < 6) {
             alert("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
             return;
         }
@@ -679,28 +546,9 @@
         btnCadastrar.innerText = "Cadastrando...";
         btnCadastrar.disabled = true;
 
-        // Calcula a data futura de expiração do plano comercial
-        const dataExpiracao = new Date();
-        if (planoSelecionado === 'trimensal') {
-            dataExpiracao.setMonth(dataExpiracao.getMonth() + 3);
-        } else if (planoSelecionado === 'anual') {
-            dataExpiracao.setFullYear(dataExpiracao.getFullYear() + 1);
-        } else {
-            dataExpiracao.setMonth(dataExpiracao.getMonth() + 1); // Padrão Mensal (+30 dias)
-        }
-
-        const dataFormatada = dataExpiracao.toISOString().split('T')[0];
-
         try {
             const { data, error } = await supabaseClient.auth.signUp({
-                email, password, options: { 
-                    data: { 
-                        nome,
-                        plano: planoSelecionado,
-                        data_expiracao: dataFormatada,
-                        plano_ativo: true
-                    } 
-                }
+                email, password, options: { data: { nome } }
             });
 
             if (error) {
@@ -708,7 +556,7 @@
                 return;
             }
 
-            alert(`Cadastro realizado com sucesso no plano ${planoSelecionado.toUpperCase()}! Acesse sua conta agora.`);
+            alert("Cadastro realizado com sucesso! Agora faça login.");
             toggleTab('login');
         } catch (err) {
             alert("Erro no processo de cadastro: " + err.message);
@@ -721,325 +569,765 @@
     async function handleLogout() {
         await supabaseClient.auth.signOut();
         usuarioAtualId = null;
-        document.getElementById('loginOverlay').style.display = 'flex';
+        materiais = []; historico = []; clientes = []; maoObraItens = [];
+        dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
+        localStorage.clear();
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
+        document.getElementById('loginOverlay').style.display = 'flex';
         toggleTab('login');
     }
 
-    // ─── ABAIXO FICAM AS SUAS FUNÇÕES COMPLEMENTARES DE RENDER/CALCULOS ───
-    function mostrarAba(aba) {
-        const abas = ['materiais', 'maoobra', 'clientes', 'historico'];
-        abas.forEach(a => {
-            const el = document.getElementById(`aba-${a}`);
-            if(el) el.style.display = a === aba ? 'block' : 'none';
-        });
-        
-        const botoes = document.querySelectorAll('.sidebar button');
-        botoes.forEach(b => b.classList.remove('active'));
-        
-        const botaoAtivo = Array.from(botoes).find(b => b.innerText.toLowerCase().includes(aba));
-        if (botaoAtivo) botaoAtivo.classList.add('active');
-    }
-
-    function render() {
+    function render(){
         const lista = document.getElementById('lista');
-        if (!lista) return;
-        lista.innerHTML = '';
-        
-        const filtrados = materiais.filter(m => {
-            if (categoriaAtual === 'Todos') return true;
-            return m.cat === categoriaAtual;
-        });
-
-        filtrados.forEach((m, index) => {
-            const itemIndex = materiais.indexOf(m);
+        if(!lista) return;
+        lista.innerHTML='';
+        materiais.forEach((item,index)=>{
+            if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual) return;
             lista.innerHTML += `
                 <div class="card">
-                    <h3>${m.nome}</h3>
-                    <div class="preco">R$ ${m.valor.toFixed(2)}</div>
-                    <div class="controls">
-                        <button class="btn-minus" onclick="alterarQtd(${itemIndex}, -1)">-</button>
-                        <span class="qtd" id="qtd-${itemIndex}">${m.qtd || 0}</span>
-                        <button class="btn-plus" onclick="alterarQtd(${itemIndex}, 1)">+</button>
+                    <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
+                        <div>
+                            <h3>${item.nome}</h3>
+                            <div style="color: #777; font-size:13px; margin-top:2px;">${item.cat}</div>
+                            <div class="preco">R$ ${item.valor.toFixed(2)}</div>
+                        </div>
+                        <div style="display:flex;gap:6px;">
+                            <button onclick="editarMaterial(${index})" style="background:#f4b400;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">✏️</button>
+                            <button onclick="deletarMaterial(${index})" style="background:#d40000;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">🗑️</button>
+                        </div>
                     </div>
-                    <button style="background:transparent; border:none; color:#ef4444; font-size:11px; font-weight:bold; cursor:pointer; margin-top:8px; text-align:right;" onclick="confirmarExclusaoMaterial(${itemIndex})">Remover ×</button>
+                    <div class="controls">
+                        <button class="btn-minus" onclick="menos(${index})">-</button>
+                        <div class="qtd">${item.qtd}</div>
+                        <button class="btn-plus" onclick="mais(${index})">+</button>
+                    </div>
+                </div>
+            `;
+        });
+        atualizarResumo();
+    }
+
+    async function mais(i){ materiais[i].qtd++; render(); await salvarNoBanco(); }
+    async function menos(i){ if(materiais[i].qtd>0){ materiais[i].qtd--; render(); await salvarNoBanco(); } }
+
+    function atualizarResumo(){
+        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+        let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
+        let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        let lucroReal = valorCobrado - totalMateriais;
+
+        const tm = document.getElementById('totalMateriais');
+        const tmo = document.getElementById('totalMaoObra');
+        const l = document.getElementById('lucro');
+
+        if(tm) tm.innerText = totalMateriais.toFixed(2);
+        if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
+        if(l) l.innerText = lucroReal.toFixed(2);
+    }
+
+    async function salvarMaterial(){
+        const nome = document.getElementById('nomeMaterial').value;
+        const valor = parseFloat(document.getElementById('valorMaterial').value);
+        const cat = document.getElementById('categoriaMaterial').value;
+        if(!nome || isNaN(valor)) return;
+        materiais.push({nome,valor,qtd:0,cat});
+        render(); fecharModal();
+        document.getElementById('nomeMaterial').value = '';
+        document.getElementById('valorMaterial').value = '';
+        await salvarNoBanco();
+    }
+
+    async function deletarMaterial(index){
+        abrirConfirmacao('Deseja remover este material?', async function(){
+            materiais.splice(index,1); render(); await salvarNoBanco();
+        });
+    }
+
+    async function editarMaterial(index){
+        const material = materiais[index];
+        const novoNome = prompt('Editar nome:', material.nome);
+        if(!novoNome) return;
+        const novoValor = parseFloat(prompt('Editar valor:', material.valor));
+        if(isNaN(novoValor)) return;
+        material.nome = novoNome; material.valor = novoValor;
+        render(); await salvarNoBanco();
+    }
+
+    function buscar(texto){
+        texto = texto.toLowerCase();
+        document.querySelectorAll('#lista .card').forEach(card=>{
+            card.style.display = card.innerText.toLowerCase().includes(texto) ? 'block' : 'none';
+        });
+    }
+
+   async function salvarOrcamento(){
+        const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
+        const clienteEndereco = document.getElementById('clienteEndereco').value || '';
+        const clienteTel = document.getElementById('clienteTel').value || '';
+        const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
+        
+        const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
+        const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
+        const veiculoAno = document.getElementById('veiculoAno').value || '';
+        const veiculoCor = document.getElementById('veiculoCor').value || '';
+        const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
+        const tipoServico = document.getElementById('tipoServico').value || '---';
+        
+        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        
+        let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+        let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+        
+        const novoOrcamento = {
+            data: new Date().toLocaleString('pt-BR'),
+            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
+            veiculo: { 
+                modelo: veiculoModelo, 
+                placa: veiculoPlaca, 
+                ano: veiculoAno, 
+                cor: veiculoCor, 
+                avaliador: nomeAvaliador,
+                tipo_servico: tipoServico 
+            },
+            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
+            mao_obra: [...maoObraItens],
+            
+            // Salvando com os dois nomes para garantir compatibilidade total:
+            totalMateriais: totalMateriais,
+            totalMateriaisCalculado: totalMateriais,
+            totalMaoObraCalculado: totalMaoObra,
+            
+            totalCobrado: valorCobrado,
+            lucro: valorCobrado - totalMateriais
+        };
+        
+        historico.unshift(novoOrcamento);
+        
+        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
+        if(!clienteExiste && clienteNome !== 'Sem nome') {
+            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+            renderClientes();
+        }
+        
+        renderHistorico();
+        alert("Orçamento saved com sucesso no histórico!");
+        await salvarNoBanco();
+    }
+
+    function renderHistorico(){
+        const h = document.getElementById('historicoLista');
+        if(!h) return; h.innerHTML='';
+        historico.forEach((item, index)=>{
+            const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
+            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
+
+            // Pega o valor dos materiais (tenta uma propriedade ou a outra para não dar erro)
+            let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
+            
+            // Pega ou calcula a mão de obra se houver a lista de itens
+            let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
+            if (custoMaoObra === 0 && item.mao_obra) {
+                custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+            }
+
+            // Calcula o lucro real: Valor Cobrado - Custo do Material
+            let valorCobrado = parseFloat(item.totalCobrado) || 0;
+            let lucroReal = valorCobrado - custoMat;
+
+            h.innerHTML += `
+                <div class="cliente-item">
+                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                        <div>
+                            <strong>👤 Cliente: ${cliente.nome}</strong><br>
+                            🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br>
+                            🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
+                            💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
+                            📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
+                            🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
+                            📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
+                            🕒 ${item.data || '---'}
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px;" id="actions-hist-${index}">
+                            <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
+                            <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                            <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
+                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                        </div>
+                    </div>
                 </div>
             `;
         });
     }
 
-    function alterarQtd(index, valor) {
-        if (!materiais[index]) return;
-        let atual = materiais[index].qtd || 0;
-        atual += valor;
-        if (atual < 0) atual = 0;
-        materiais[index].qtd = atual;
-        
-        const txt = document.getElementById(`qtd-${index}`);
-        if(txt) txt.innerText = atual;
-        
-        atualizarResumo();
-    }
-
-    function adicionarMaoObra() {
-        const nome = document.getElementById('nomeServico').value.trim();
-        const valor = parseFloat(document.getElementById('valorServico').value);
-        if(!nome || isNaN(valor)) return alert("Preencha o nome e valor do serviço.");
-        
-        maoObraItens.push({ nome, valor });
-        document.getElementById('nomeServico').value = '';
-        document.getElementById('valorServico').value = '';
-        
-        renderMaoObra();
-        atualizarResumo();
-    }
-
-    function removerMaoObra(index) {
-        maoObraItens.splice(index, 1);
-        renderMaoObra();
-        atualizarResumo();
-    }
-
-    function renderMaoObra() {
-        const c = document.getElementById('listaMaoObra');
-        if(!c) return;
-        c.innerHTML = '';
-        maoObraItens.forEach((item, idx) => {
+    function renderClientes(){
+        const c = document.getElementById('listaClientes');
+        if(!c) return; c.innerHTML='';
+        clientes.forEach((cli, index)=>{
             c.innerHTML += `
-                <div class="card" style="min-height:auto; flex-direction:row; justify-content:space-between; align-items:center; margin-bottom:8px; padding:16px;">
-                    <div><strong>${item.nome}</strong> - R$ ${item.valor.toFixed(2)}</div>
-                    <button onclick="removerMaoObra(${idx})" style="background:none; border:none; color:#f43f5e; font-weight:bold; cursor:pointer;">Excluir</button>
-                </div>`;
+                <div class="cliente-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>
+                            <strong>👤 ${cli.nome}</strong><br>
+                            <span style="font-size:13px; color:#555;">📍 ${cli.endereco || 'Sem endereço'} | 📱 ${cli.tel || 'Sem fone'}</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="carregarDadosClienteNoResumo(${index})" style="background:#ffd700; color:#111; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Novo Orç.</button>
+                            <button onclick="gerarPDFClienteCompleto(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                            <button onclick="deletarCliente(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-    }
-
-    function filtrarCategoria(cat) {
-        categoriaAtual = cat;
-        const botoes = document.querySelectorAll('.categorias-materiais button');
-        botoes.forEach(b => {
-            if(b.innerText === cat || (cat === 'Todos' && b.innerText === 'Todos')) b.classList.add('active');
-            else b.classList.remove('active');
-        });
-        render();
-    }
-
-    function buscar(termo) {
-        const t = termo.toLowerCase();
-        const cards = document.querySelectorAll('#lista .card');
-        cards.forEach(c => {
-            const nome = c.querySelector('h3').innerText.toLowerCase();
-            c.style.display = nome.includes(t) ? 'flex' : 'none';
-        });
-    }
-
-    function abrirModal() { document.getElementById('modal').style.display='flex'; }
-    function fecharModal() { document.getElementById('modal').style.display='none'; }
-
-    async function salvarMaterial() {
-        const nome = document.getElementById('nomeMaterial').value.trim();
-        const valor = parseFloat(document.getElementById('valorMaterial').value);
-        const cat = document.getElementById('categoriaMaterial').value;
-        if(!nome || isNaN(valor)) return alert("Dados inválidos.");
-        
-        materiais.push({nome, valor, qtd:0, cat});
-        fecharModal();
-        render();
-        await salvarNoBanco();
-    }
-
-    function confirmarExclusaoMaterial(idx) {
-        document.getElementById('textoConfirmacao').innerText = `Deseja remover "${materiais[idx].nome}" do catálogo?`;
-        document.getElementById('modalConfirmar').style.display = 'flex';
-        document.getElementById('btnConfirmarAcao').onclick = async function() {
-            materiais.splice(idx, 1);
-            fecharConfirmacao();
-            render();
-            atualizarResumo();
-            await salvarNoBanco();
-        };
-    }
-    function fecharConfirmacao() { document.getElementById('modalConfirmar').style.display='none'; }
-
-    function atualizarResumo() {
-        let totalMat = 0;
-        materiais.forEach(m => totalMat += (m.valor * (m.qtd || 0)));
-        
-        let totalMao = 0;
-        maoObraItens.forEach(i => totalMao += i.valor);
-        
-        document.getElementById('totalMateriais').innerText = totalMat.toFixed(2);
-        document.getElementById('totalMaoObra').innerText = totalMao.toFixed(2);
-        
-        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-        const lucroReal = valorCobrado - totalMat;
-        
-        document.getElementById('lucro').innerText = lucroReal.toFixed(2);
-    }
-
-    function limparResumo() {
-        materiais.forEach(m => m.qtd = 0);
-        maoObraItens = [];
-        document.getElementById('clienteNome').value = '';
-        document.getElementById('clienteEndereco').value = '';
-        document.getElementById('clienteTel').value = '';
-        document.getElementById('veiculoModelo').value = '';
-        document.getElementById('veiculoPlaca').value = '';
-        document.getElementById('veiculoAno').value = '';
-        document.getElementById('veiculoCor').value = '';
-        document.getElementById('nomeAvaliador').value = '';
-        document.getElementById('tipoServico').value = '';
-        document.getElementById('valorCliente').value = '';
-        
-        render();
-        renderMaoObra();
-        atualizarResumo();
-    }
-
-    async function salvarOrcamento() {
-        const nomeCliente = document.getElementById('clienteNome').value.trim();
-        if (!nomeCliente) return alert("Digite o nome do cliente antes de salvar.");
-        
-        const matSalvos = materiais.filter(m => m.qtd > 0).map(m => ({nome: m.nome, qtd: m.qtd, valor: m.valor}));
-        
-        const novo = {
-            id: Date.now(),
-            data: new Date().toLocaleDateString('pt-BR'),
-            cliente: {
-                nome: nomeCliente,
-                endereco: document.getElementById('clienteEndereco').value,
-                tel: document.getElementById('clienteTel').value,
-                cidade: document.getElementById('clienteCidade').value
-            },
-            veiculo: {
-                modelo: document.getElementById('veiculoModelo').value,
-                placa: document.getElementById('veiculoPlaca').value,
-                ano: document.getElementById('veiculoAno').value,
-                cor: document.getElementById('veiculoCor').value,
-                avaliador: document.getElementById('nomeAvaliador').value,
-                tipo_servico: document.getElementById('tipoServico').value
-            },
-            materiais: matSalvos,
-            mao_obra: [...maoObraItens],
-            totalMateriais: parseFloat(document.getElementById('totalMateriais').innerText),
-            totalMaoObra: parseFloat(document.getElementById('totalMaoObra').innerText),
-            totalCobrado: parseFloat(document.getElementById('valorCliente').value) || 0
-        };
-
-        historico.push(novo);
-        if(!clientes.some(c => c.nome.toLowerCase() === nomeCliente.toLowerCase())){
-            clientes.push(novo.cliente);
-        }
-
-        renderHistorico();
-        renderClientes();
-        alert("Orçamento salvo com sucesso!");
-        await salvarNoBanco();
     }
 
     function carregarParaEditar(index) {
-        const item = historico[index];
-        if (!item) return alert("Erro ao carregar.");
+    const item = historico[index];
+    if (!item) {
+        alert("Orçamento não encontrado.");
+        return;
+    }
 
-        document.getElementById('clienteNome').value = item.cliente?.nome || '';
-        document.getElementById('clienteEndereco').value = item.cliente?.endereco || '';
-        document.getElementById('clienteTel').value = item.cliente?.tel || '';
-        document.getElementById('clienteCidade').value = item.cliente?.cidade || 'Sátrio Dias/BA';
+    console.log("Item selecionado para editar:", item);
 
-        if(item.veiculo){
-            document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
-            document.getElementById('veiculoPlaca').value = item.veiculo.placa || '';
-            document.getElementById('veiculoAno').value = item.veiculo.ano || '';
-            document.getElementById('veiculoCor').value = item.veiculo.cor || '';
-            document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
+    // 1. Preenche os campos de texto do Cliente e Veículo
+    document.getElementById('clienteNome').value = item.cliente?.nome || item.nome || '';
+    document.getElementById('clienteEndereco').value = item.cliente?.endereco || item.cliente?.end || '';
+    document.getElementById('clienteTel').value = item.cliente?.tel || '';
+    document.getElementById('clienteCidade').value = item.cliente?.cidade || item.cliente?.city || 'Sátrio Dias/BA';
+
+    if (item.veiculo) {
+        document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
+        document.getElementById('veiculoPlaca').value = item.veiculo.placa || '';
+        document.getElementById('veiculoAno').value = item.veiculo.ano || '';
+        document.getElementById('veiculoCor').value = item.veiculo.cor || '';
+        document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
+        
+        if (document.getElementById('tipoServico')) {
             document.getElementById('tipoServico').value = item.veiculo.tipo_servico || '';
         }
+    }
 
-        document.getElementById('valorCliente').value = item.totalCobrado || 0;
+    // 2. Preenche o valor total cobrado do cliente
+    if (document.getElementById('valorCliente')) {
+        document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
+    }
 
+    // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
+    // Zeramos todas as quantidades antes de carregar as antigas
+    if (typeof materiais !== 'undefined' && Array.isArray(materiais)) {
         materiais.forEach(m => m.qtd = 0);
-        if(item.materiais){
-            item.materiais.forEach(ms => {
-                const encontrou = materiais.find(m => m.nome.toLowerCase() === ms.nome.toLowerCase());
-                if(encontrou) encontrou.qtd = ms.qtd;
+
+        if (item.materiais && Array.isArray(item.materiais)) {
+            item.materiais.forEach(matSalvo => {
+                // Procura o material correspondente por ID ou Nome
+                const matGeral = materiais.find(m => 
+                    (m.id && matSalvo.id && m.id == matSalvo.id) || 
+                    (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase())
+                );
+                
+                if (matGeral) {
+                    matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || 0);
+                }
             });
         }
-
-        maoObraItens = item.mao_obra ? [...item.mao_obra] : [];
-        
-        mostrarAba('materiais');
-        render();
-        renderMaoObra();
-        atualizarResumo();
-        
-        setTimeout(() => { filtrarCategoria('Todos'); }, 50);
-        alert("Carregado para a tela de edição!");
     }
 
-    function renderHistorico() {
-        const container = document.getElementById('historicoLista');
-        if(!container) return;
-        container.innerHTML = '';
-        if(historico.length === 0) { container.innerHTML = '<p style="color:#64748b; font-size:14px;">Nenhum orçamento salvo.</p>'; return; }
-
-        historico.forEach((h, idx) => {
-            container.innerHTML += `
-                <div class="cliente-item">
-                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;">
-                        <strong>📋 ${h.cliente?.nome} (${h.veiculo?.modelo || 'Sem Carro'})</strong>
-                        <span style="color:#64748b; font-size:13px;">Data: ${h.data}</span>
-                    </div>
-                    <div style="font-size:13px; color:#475569; margin-bottom:12px;">Total Cobrado: R$ ${(h.totalCobrado || 0).toFixed(2)} | Custo Material: R$ ${(h.totalMateriais || 0).toFixed(2)}</div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-green" style="padding:6px 12px; font-size:12px; border-radius:6px;" onclick="carregarParaEditar(${idx})">✏️ Editar</button>
-                        <button class="btn-primary" style="padding:6px 12px; font-size:12px; border-radius:6px;" onclick="removerHistorico(${idx})">🗑️ Apagar</button>
-                    </div>
-                </div>`;
-        });
+    if (item.mao_obra && typeof maoObraItens !== 'undefined') {
+        maoObraItens = [...item.mao_obra];
     }
 
-    async function removerHistorico(idx) {
-        if(confirm("Deseja apagar este orçamento do histórico?")){
-            historico.splice(idx, 1);
-            renderHistorico();
-            await salvarNoBanco();
+    // 4. FORÇAR A ATUALIZAÇÃO VISUAL NA TELA
+    // Tentativa automática usando as funções mais prováveis do seu código:
+    let renderizou = false;
+    const funcoesRender = ['renderMateriais', 'renderCards', 'exibirMateriais', 'mostrarMateriais', 'carregarMateriais', 'atualizarInterface'];
+    
+    funcoesRender.forEach(nomeFuncao => {
+        if (typeof window[nomeFuncao] === 'function') {
+            window[nomeFuncao]();
+            renderizou = true;
+        }
+    });
+
+    // Se as funções automáticas falharem, fazemos uma varredura cirúrgica direto nas caixinhas de texto da tela
+    if (!renderizou) {
+        try {
+            materiais.forEach(m => {
+                // Procura na tela por IDs comuns que guardam a quantidade do material
+                const elementoQtd = document.getElementById(`qtd-${m.id}`) || 
+                                    document.getElementById(`qtd_${m.id}`) || 
+                                    document.getElementById(`qtd-${m.nome.replace(/\s+/g, '')}`) ||
+                                    document.querySelector(`[data-id="${m.id}"] .qtd`);
+                
+                if (elementoQtd) {
+                    if (elementoQtd.tagName === 'INPUT') {
+                        elementoQtd.value = m.qtd;
+                    } else {
+                        elementoQtd.innerText = m.qtd;
+                    }
+                }
+            });
+        } catch (e) {
+            console.log("Aviso: Varredura direta falhou, criando os cards manualmente.", e);
         }
     }
 
-    function renderClientes() {
-        const container = document.getElementById('listaClientes');
-        if(!container) return;
-        container.innerHTML = '';
-        if(clientes.length === 0) { container.innerHTML = '<p style="color:#64748b; font-size:14px;">Nenhum cliente catalogado.</p>'; return; }
+    // 5. RECALCULA OS TOTAIS DO RESUMO
+    const funcoesCalculo = ['atualizarTotais', 'calcularTotal', 'calcular', 'atualizarResumo', 'calcTotal'];
+    funcoesCalculo.forEach(nomeFuncao => {
+        if (typeof window[nomeFuncao] === 'function') {
+            window[nomeFuncao]();
+        }
+    });
 
-        clientes.forEach(c => {
-            container.innerHTML += `
+    // 6. MOVE A TELA DO USUÁRIO PARA A ABA DE ORÇAMENTO (Evita que ele tenha que rolar para cima ou mudar de aba na mão)
+    if (typeof mudarAba === 'function') { 
+        mudarAba('resumo'); 
+    } else if (typeof mudarAba === 'function') {
+        mudarAba('orcamento');
+    }
+
+    alert("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
+}
+
+    function carregarDadosClienteNoResumo(index) {
+        const cli = clientes[index];
+        if(!cli) return;
+        document.getElementById('clienteNome').value = cli.nome;
+        document.getElementById('clienteEndereco').value = cli.endereco || '';
+        document.getElementById('clienteTel').value = cli.tel || '';
+        document.getElementById('clienteCidade').value = cli.cidade || 'Sátrio Dias/BA';
+        mostrarAba('materiais');
+    }
+
+    function mostrarAba(nome){
+        document.getElementById('aba-materiais').style.display='none';
+        document.getElementById('aba-clientes').style.display='none';
+        document.getElementById('aba-historico').style.display='none';
+        document.getElementById('aba-maoobra').style.display='none';
+
+        if(nome==='materiais') document.getElementById('aba-materiais').style.display='block';
+        if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
+        if(nome==='historico') document.getElementById('aba-historico').style.display='block';
+        if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
+    }
+
+    function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
+
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+            }
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+        }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placVeic || '---', 25, y).text(modVeic || '---', 95, y).text(avaliador || '---', 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`COR: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
+        
+        // --- SEÇÃO DO TIPO DE SERVIÇO ADICIONADA AQUI ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+        // ------------------------------------------------
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${parseFloat(valorFinal).toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        doc.save(`orcamento_${nomeCli.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    function gerarPDFdoResumo(){
+        const nome = document.getElementById('clienteNome').value || 'Cliente';
+        const end = document.getElementById('clienteEndereco').value || '';
+        const tel = document.getElementById('clienteTel').value || '';
+        const cid = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
+        const modelo = document.getElementById('veiculoModelo').value || '---';
+        const placa = document.getElementById('veiculoPlaca').value || '---';
+        const ano = document.getElementById('veiculoAno').value || '';
+        const cor = document.getElementById('veiculoCor').value || '';
+        const avaliador = document.getElementById('nomeAvaliador').value || '';
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- Nova linha aqui
+        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
+        
+        // Adicionamos 'tipoServico' antes do 'valor' na chamada abaixo:
+        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
+    }
+
+    function gerarPDFHistorico(index) {
+        const item = historico[index];
+        if(!item) return;
+        construirDocumentoPDF(
+            item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
+            item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
+            item.veiculo.tipo_servico || '---', // Caso salve no histórico futuramente
+            item.totalCobrado, item.data.split(' ')[0]
+        );
+    }
+
+    function gerarPDFClienteCompleto(index) {
+        const cli = clientes[index];
+        if(!cli) return;
+        construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
+    }
+
+    function abrirModal(){ document.getElementById('modal').style.display='flex'; }
+    function fecharModal(){ document.getElementById('modal').style.display='none'; }
+
+    async function adicionarMaoObra(){
+        const nome = document.getElementById('nomeServico').value;
+        const valor = parseFloat(document.getElementById('valorServico').value);
+        if(!nome || isNaN(valor)) return;
+        maoObraItens.push({nome,valor});
+        renderMaoObra(); atualizarResumo();
+        document.getElementById('nomeServico').value='';
+        document.getElementById('valorServico').value='';
+        await salvarNoBanco();
+    }
+
+    function renderMaoObra(){
+        const lista = document.getElementById('listaMaoObra');
+        if(!lista) return; lista.innerHTML='';
+        maoObraItens.forEach((item,index)=>{
+            lista.innerHTML += `
                 <div class="cliente-item">
-                    <strong>👤 ${c.nome}</strong>
-                    <div style="font-size:13px; color:#475569; margin-top:4px;">📞 Tel: ${c.tel || 'Não Informado'} | 📍 Endereço: ${c.endereco || 'Não Informado'} - ${c.cidade || ''}</div>
-                </div>`;
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><strong>${item.nome}</strong><br><span style="color:#00a651; font-weight:bold;">R$ ${item.valor.toFixed(2)}</span></div>
+                        <button onclick="removerMaoObra(${index})" class="btn-primary" style="padding:8px 12px;border:none;border-radius:8px;cursor:pointer; font-size:12px;">Remover</button>
+                    </div>
+                </div>
+            `;
         });
     }
 
-    function enviarWhatsApp() {
-        const nome = document.getElementById('clienteNome').value;
-        const total = document.getElementById('valorCliente').value;
-        if(!nome || !total) return alert("Defina o cliente e valor total.");
-        const msg = encodeURIComponent(`Olá ${nome}, o orçamento do seu veículo ficou em R$ ${parseFloat(total).toFixed(2)}. Feito na oficina ${dadosOficina.nome}.`);
-        window.open(`https://api.whatsapp.com/send?text=${msg}`);
+    async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
+async function enviarWhatsAppHistorico(index) {
+    const item = historico[index];
+    if (!item) return;
+
+    if (!usuarioAtualId) {
+        alert("Você precisa estar logado para realizar esta operação.");
+        return;
     }
 
-    function gerarPDFdoResumo() {
+    try {
+        // 1. Puxa os dados direto do histórico salvo
+        const nome = item.cliente.nome;
+        const end = item.cliente.endereco;
+        const tel = item.cliente.tel;
+        const cid = item.cliente.cidade;
+        const modelo = item.veiculo.modelo;
+        const placa = item.veiculo.placa;
+        const ano = item.veiculo.ano;
+        const cor = item.veiculo.cor;
+        const avaliador = item.veiculo.avaliador;
+        const tipoServico = item.veiculo.tipo_servico || '---'; // <-- Puxa do histórico!
+        const valor = item.totalCobrado;
+
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFont("Helvetica", "bold");
-        doc.text(`ORÇAMENTO - ${dadosOficina.nome}`, 20, 20);
-        doc.setFont("Helvetica", "normal");
-        doc.text(`Cliente: ${document.getElementById('clienteNome').value}`, 20, 35);
-        doc.text(`Carro: ${document.getElementById('veiculoModelo').value}`, 20, 45);
-        doc.text(`Total: R$ ${parseFloat(document.getElementById('valorCliente').value || 0).toFixed(2)}`, 20, 55);
-        doc.save(`orcamento_${document.getElementById('clienteNome').value || 'cliente'}.pdf`);
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
+
+        // --- ESTRUTURA DO PDF DO HISTÓRICO ---
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+            }
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+        }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        const dataOrc = item.data.split(' ')[0];
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placa || '---', 25, y).text(modelo || '---', 95, y).text(avaliador || '---', 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modelo || '---'}`, 15, y).text(`NOME: ${nome || '---'}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placa || '---'}`, 15, y).text(`ENDEREÇO: ${end || '---'}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${ano || '---'}`, 15, y).text(`TEL: ${tel || '---'}`, 110, y); y += 5.5;
+        doc.text(`COR: ${cor || '---'}`, 15, y).text(`CIDADE: ${cid || '---'}`, 110, y);
+        
+        // --- SEÇÃO DO TIPO DE SERVIÇO ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('orcamentos')
+            .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
+        const linkPdfPublico = urlData.publicUrl;
+
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- Adicionado na mensagem do histórico
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+    } catch (err) {
+        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
     }
-    </script>
+}
+
+   async function enviarWhatsAppHistorico(index) {
+    const item = historico[index];
+    if (!item) {
+        alert("Orçamento não encontrado no histórico.");
+        return;
+    }
+
+    if (!usuarioAtualId) {
+        alert("Você precisa estar logado para realizar esta operação.");
+        return;
+    }
+
+    try {
+        // Puxa os dados direto do histórico salvo no banco/memória
+        const nome = item.cliente.nome;
+        const end = item.cliente.endereco || '';
+        const tel = item.cliente.tel || '';
+        const cid = item.cliente.cidade || 'Sátrio Dias/BA';
+        const modelo = item.veiculo.modelo || '---';
+        const placa = item.veiculo.placa || '---';
+        const ano = item.veiculo.ano || '';
+        const cor = item.veiculo.cor || '';
+        const avaliador = item.veiculo.avaliador || '';
+        const tipoServico = item.veiculo.tipo_servico || '---'; // <-- 1. RESGATA O SERVIÇO SALVO
+        const valor = item.totalCobrado || 0;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
+
+        // --- ESTRUTURA DO PDF DO HISTÓRICO ---
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
+                doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+            }
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
+        }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        const dataOrc = item.data ? item.data.split(' ')[0] : new Date().toLocaleDateString('pt-BR');
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placa, 25, y).text(modelo, 95, y).text(avaliador, 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modelo}`, 15, y).text(`NOME: ${nome}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placa}`, 15, y).text(`ENDEREÇO: ${end}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${ano}`, 15, y).text(`TEL: ${tel}`, 110, y); y += 5.5;
+        doc.text(`COR: ${cor}`, 15, y).text(`CIDADE: ${cid}`, 110, y);
+        
+        // --- 2. ADICIONA O SERVIÇO NO LAYOUT DO PDF DO WHATSAPP ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        // Gera o arquivo e envia para o Storage do Supabase
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('orcamentos')
+            .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
+        const linkPdfPublico = urlData.publicUrl;
+
+        // Texto que vai aparecer diretamente no chat do WhatsApp
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- 3. ADICIONA NO TEXTO DA MENSAGEM
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
+
+        // Abre o WhatsApp Web ou App com a mensagem preenchida
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+    } catch (err) {
+        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
+    }
+}
+
+    function abrirConfirmacao(texto, callback){
+        document.getElementById('modalConfirmar').style.display='flex';
+        document.getElementById('textoConfirmacao').innerText = texto;
+        acaoConfirmada = callback;
+    }
+    function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
+    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){ if(acaoConfirmada) acaoConfirmada(); fecharConfirmacao(); });
+
+    async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
+    async function deletarCliente(index){ abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){ clientes.splice(index,1); renderClientes(); await salvarNoBanco(); }); }
+    async function limparResumo(){
+        abrirConfirmacao('Deseja limpar todo o resumo?', async function(){
+            materiais.forEach(item=>{ item.qtd = 0; }); maoObraItens = [];
+            document.getElementById('clienteNome').value = ''; document.getElementById('clienteEndereco').value = '';
+            document.getElementById('clienteTel').value = ''; document.getElementById('veiculoModelo').value = '';
+            document.getElementById('veiculoPlaca').value = ''; document.getElementById('veiculoAno').value = '';
+            document.getElementById('veiculoCor').value = ''; document.getElementById('nomeAvaliador').value = '';
+            document.getElementById('valorCliente').value = '';
+            render(); renderMaoObra(); atualizarResumo(); await salvarNoBanco();
+        });
+    }
+
+    function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleTab('login');
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (session && session.user) {
+                await carregarDadosDoUsuario(session.user.id);
+                document.getElementById('loginOverlay').style.display = 'none';
+                const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
+                const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
+                if (!algumaAtiva) mostrarAba('materiais');
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                toggleTab('login');
+            }
+        });
+    });
+</script>
 </body>
 </html>
