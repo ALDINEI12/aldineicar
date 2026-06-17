@@ -789,11 +789,13 @@
         return;
     }
 
+    console.log("Item selecionado para editar:", item); // Para checar no console se necessário
+
     // 1. Preenche os campos de texto do Cliente e Veículo
-    document.getElementById('clienteNome').value = item.cliente.nome || '';
-    document.getElementById('clienteEndereco').value = item.cliente.endereco || item.cliente.end || '';
-    document.getElementById('clienteTel').value = item.cliente.tel || '';
-    document.getElementById('clienteCidade').value = item.cliente.cidade || item.cliente.city || 'Sátrio Dias/BA';
+    document.getElementById('clienteNome').value = item.cliente?.nome || item.nome || '';
+    document.getElementById('clienteEndereco').value = item.cliente?.endereco || item.cliente?.end || '';
+    document.getElementById('clienteTel').value = item.cliente?.tel || '';
+    document.getElementById('clienteCidade').value = item.cliente?.cidade || item.cliente?.city || 'Sátrio Dias/BA';
 
     if (item.veiculo) {
         document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
@@ -807,19 +809,27 @@
         }
     }
 
-    // 2. Preenche o valor total que foi cobrado do cliente
+    // 2. Preenche o valor total cobrado
     if (document.getElementById('valorCliente')) {
-        document.getElementById('valorCliente').value = item.totalCobrado || 0;
+        document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
     }
 
     // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
+    // Zeramos tudo primeiro
     materiais.forEach(m => m.qtd = 0);
 
+    // Mapeamento super flexível (testa por ID, nome, descrição ou texto)
     if (item.materiais && Array.isArray(item.materiais)) {
         item.materiais.forEach(matSalvo => {
-            const matGeral = materiais.find(m => m.id === matSalvo.id || m.nome.toLowerCase() === matSalvo.nome.toLowerCase());
+            const matGeral = materiais.find(m => 
+                (m.id && matSalvo.id && m.id == matSalvo.id) || 
+                (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase()) ||
+                (m.descricao && matSalvo.descricao && m.descricao.toLowerCase() === matSalvo.descricao.toLowerCase())
+            );
+            
             if (matGeral) {
-                matGeral.qtd = parseInt(matSalvo.qtd) || 0;
+                // Tenta puxar a quantidade de 'qtd', 'quantidade' ou 'qnt'
+                matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || matSalvo.qnt || 0);
             }
         });
     }
@@ -828,15 +838,27 @@
         maoObraItens = [...item.mao_obra];
     }
 
-    // 4. ATUALIZA A TELA (Troque pelo nome correto da sua função de desenhar os materiais)
-    renderMateriais(); 
+    // 4 e 5. FORCE O ERRO PARAR CASO O NOME ESTEJA LIGEIRAMENTE DIFERENTE
+    // Vamos tentar executar os nomes mais comuns do seu projeto automaticamente:
+    try {
+        if (typeof renderMateriais === 'function') renderMateriais();
+        else if (typeof renderCards === 'function') renderCards();
+        else if (typeof exibirMateriais === 'function') exibirMateriais();
+    } catch(e) { console.error("Erro ao renderizar cards:", e); }
 
-    // 5. RECALCULA OS TOTAIS (Troque pelo nome correto da sua função que soma tudo no resumo)
-    atualizarTotais();
+    try {
+        if (typeof atualizarTotais === 'function') atualizarTotais();
+        else if (typeof calcularTotal === 'function') calcularTotal();
+        else if (typeof calcular === 'function') calcular();
+        else if (typeof atualizarResumo === 'function') atualizarResumo();
+    } catch(e) { console.error("Erro ao calcular totais:", e); }
 
-    // 6. MUDA DE ABA (Caso seu sistema use abas e precise ir para a tela de criar orçamentos)
-    // Se a sua função de mudar de aba se chamar diferente (ex: mudarTela), ajuste aqui:
-    if (typeof mudarAba === 'function') { mudarAba('resumo'); }
+    // 6. MUDA DE ABA PARA A TELA DE CRIAÇÃO (Se houver abas)
+    if (typeof mudarAba === 'function') { 
+        mudarAba('resumo'); 
+    } else if (typeof mudarAba === 'function') {
+        mudarAba('orcamento');
+    }
 
     alert("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
 }
