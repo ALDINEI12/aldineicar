@@ -588,42 +588,51 @@
         });
     }
 
-    async function salvarOrcamento(){
+   async function salvarOrcamento(){
         const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
         const clienteEndereco = document.getElementById('clienteEndereco').value || '';
         const clienteTel = document.getElementById('clienteTel').value || '';
         const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
-
-        const veiculoModelo = document.getElementById('veiculoModelo').value || 'Não informado';
+        
+        const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
         const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
         const veiculoAno = document.getElementById('veiculoAno').value || '';
         const veiculoCor = document.getElementById('veiculoCor').value || '';
         const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-        const valorCobrado = document.getElementById('valorCliente').value || '0.00';
-
-        const snapshotMateriais = materiais.map(m => ({ ...m }));
-        const snapshotMaoObra = maoObraItens.map(m => ({ ...m }));
-
-        const dadosOrcamento = {
-            id: 'orc_' + Date.now(),
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- Captura o serviço
+        
+        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+        
+        // Criando o objeto do novo orçamento para o histórico
+        const novoOrcamento = {
+            data: new Date().toLocaleString('pt-BR'),
             cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade },
-            veiculo: { modelo: veiculoModelo, placa: veiculoPlaca, ano: veiculoAno, cor: veiculoCor, avaliador: nomeAvaliador },
-            totalCobrado: parseFloat(valorCobrado).toFixed(2),
-            totalMateriaisCalculado: document.getElementById('totalMateriais').innerText,
-            totalMaoObraCalculado: document.getElementById('totalMaoObra').innerText,
-            lucro: document.getElementById('lucro').innerText,
-            listaMateriais: snapshotMateriais,
-            listaMaoObra: snapshotMaoObra,
-            data: new Date().toLocaleString()
+            veiculo: { 
+                modelo: veiculoModelo, 
+                placa: veiculoPlaca, 
+                ano: veiculoAno, 
+                cor: veiculoCor, 
+                avaliador: nomeAvaliador,
+                tipo_servico: tipoServico // <-- Salva o serviço aqui dentro
+            },
+            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ nome: m.nome, qtd: m.qtd, valor: m.valor })),
+            mao_obra: [...maoObraItens],
+            totalMateriais: totalMateriais,
+            totalCobrado: valorCobrado
         };
-
-        historico.unshift(dadosOrcamento);
-        const clienteExiste = clientes.find(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
-        if (!clienteExiste && clienteNome !== 'Sem nome') {
-            clientes.unshift({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+        
+        historico.unshift(novoOrcamento); // Adiciona no início do histórico
+        
+        // Se o cliente ainda não existir na lista, adiciona
+        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
+        if(!clienteExiste && clienteNome !== 'Sem nome') {
+            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+            renderClientes();
         }
-        renderHistorico(); renderClientes();
-        alert('Orçamento salvo com sucesso!');
+        
+        renderHistorico();
+        alert("Orçamento salvo com sucesso no histórico!");
         await salvarNoBanco();
     }
 
@@ -818,7 +827,7 @@
         // Adicionamos 'tipoServico' antes do 'valor' na chamada abaixo:
         construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
     }
-    
+
     function gerarPDFHistorico(index) {
         const item = historico[index];
         if(!item) return;
@@ -876,6 +885,7 @@
         const ano = document.getElementById('veiculoAno').value || '';
         const cor = document.getElementById('veiculoCor').value || '';
         const avaliador = document.getElementById('nomeAvaliador').value || '';
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- 1. Captura o serviço aqui
         const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
 
         if (!usuarioAtualId) {
@@ -890,7 +900,7 @@
         btnWhats.disabled = true;
 
         try {
-            // 1. Usando a MESMA biblioteca e lógica do seu PDF padrão completo
+            // Usando a MESMA biblioteca e lógica do seu PDF padrão completo
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             let y = 15;
@@ -942,6 +952,13 @@
             doc.text(`ANO: ${ano || '---'}`, 15, y).text(`TEL: ${tel || '---'}`, 110, y); y += 5.5;
             doc.text(`COR: ${cor || '---'}`, 15, y).text(`CIDADE: ${cid || '---'}`, 110, y);
             
+            // --- 2. SEÇÃO DO TIPO DE SERVIÇO ADICIONADA NO PDF DO WHATSAPP ---
+            y += 8;
+            doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+            y += 4.5;
+            doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+            // -----------------------------------------------------------------
+
             y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
             doc.setLineWidth(0.3).rect(65, y, 80, 16);
             doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
@@ -979,6 +996,7 @@
             // Monta a mensagem final para o WhatsApp
             let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
             textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+            textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- 3. Adiciona na mensagem de texto também
             textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
             textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
 
