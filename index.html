@@ -663,59 +663,253 @@
         });
     }
 
-   async function salvarOrcamento(){
-        const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
-        const clienteEndereco = document.getElementById('clienteEndereco').value || '';
-        const clienteTel = document.getElementById('clienteTel').value || '';
-        const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
-        
-        const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
-        const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
-        const veiculoAno = document.getElementById('veiculoAno').value || '';
-        const veiculoCor = document.getElementById('veiculoCor').value || '';
-        const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---';
-        
-        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-        
-        let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
-        let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
-        
-        const novoOrcamento = {
-            data: new Date().toLocaleString('pt-BR'),
-            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
-            veiculo: { 
-                modelo: veiculoModelo, 
-                placa: veiculoPlaca, 
-                ano: veiculoAno, 
-                cor: veiculoCor, 
-                avaliador: nomeAvaliador,
-                tipo_servico: tipoServico 
-            },
-            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
-            mao_obra: [...maoObraItens],
-            
-            // Salvando com os dois nomes para garantir compatibilidade total:
-            totalMateriais: totalMateriais,
-            totalMateriaisCalculado: totalMateriais,
-            totalMaoObraCalculado: totalMaoObra,
-            
-            totalCobrado: valorCobrado,
-            lucro: valorCobrado - totalMateriais
-        };
-        
-        historico.unshift(novoOrcamento);
-        
-        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
-        if(!clienteExiste && clienteNome !== 'Sem nome') {
-            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
-            renderClientes();
+   async function salvarOrcamento() {
+    try {
+        // 1. Verificar se o usuário está autenticado para respeitar as regras do RLS
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            alert("Erro: Você precisa estar logado para salvar um orçamento.");
+            return;
         }
+
+        // Captura os dados dos inputs do formulário do seu HTML
+        const clienteNome = document.getElementById('clienteNome').value.trim();
+        const clienteTel = document.getElementById('clienteTel').value.trim();
+        const clienteEnd = document.getElementById('clienteEnd').value.trim();
+        const clienteCid = document.getElementById('clienteCid').value.trim() || 'Sátrio Dias/BA';
+
+        const veiculoModelo = document.getElementById('veiculoModelo').value.trim();
+        const veiculoPlaca = document.getElementById('veiculoPlaca').value.trim();
+        const veiculoAno = document.getElementById('veiculoAno').value.trim();
+        const veiculoCor = document.getElementById('veiculoCor').value.trim();
+
+        const tipoServico = document.getElementById('tipoServico').value.trim();
+        const avaliador = document.getElementById('avaliador').value.trim();
+
+        if (!clienteNome || !veiculoModelo) {
+            alert("Por favor, preencha pelo menos o Nome do Cliente e o Modelo do Veículo.");
+            return;
+        }
+
+        // Mostra um indicador de carregamento (se você tiver no HTML) ou console
+        console.log("Iniciando salvamento relacional no Supabase...");
+
+        // ==========================================
+        // PASSO 1: SALVAR OU ATUALIZAR O CLIENTE
+        // ==========================================
+        // Buscamos se já existe um cliente com esse mesmo nome e telefone para este usuário
+        let clienteId = null;
+        const { data: clienteExistente } = await supabase
+            .from('clientes')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('nome', clienteNome)
+            .maybeSingle();
+
+        if (clienteExistente) {
+            clienteId = clienteExistente.id;
+            // Opcional: Atualiza os dados de endereço/telefone caso tenham mudado
+            await supabase
+                .from('clientes')
+                .update({ telefone: clienteTel, endereco: clienteEnd, cidade: clienteCid })
+                .eq('id', clienteId);
+        } else {
+            // Se não existe, cria um novo
+            const { data: novoCliente, error: erroCliente } = await supabase
+                .from('clientes')
+                .insert([{
+                    user_id: user.id,
+                    nome: clienteNome,
+                    telefone: clienteTel,
+                    endereco: clienteEnd,
+                    cidade: clienteCid
+                }])
+                .select()
+                .single();
+
+            if (erroCliente) throw erroCliente;
+            clienteId = novoCliente.id;
+        }
+
+        // ==========================================
+        // PASSO 2: SALVAR OU ATUALIZAR O VEÍCULO
+        // ==========================================
+        let veiculoId = null;
+        // Buscamos se este cliente já tem um carro cadastrado com essa mesma placa
+        const { data: veiculoExistente } = await supabase
+            .from('veiculos')
+            .select('id')
+            .eq('cliente_id', clienteId)
+            .eq('placa', veiculoPlaca)
+            .maybeSingle();
+
+        if (veiculoExistente && veiculoPlaca !== "") {
+            veiculoId = veiculoExistente.id;
+            // Atualiza dados básicos do carro se necessário
+            await supabase
+                .from('veiculos')
+                .update({ modelo: veiculoModelo, ano: veiculoAno, cor: veiculoCor })
+                .eq('id', veiculoId);
+        } else {
+            // Se não existe ou está sem placa, cria um novo registro de veículo
+            const { data: novoVeiculo, error: erroVeiculo } = await supabase
+                .from('veiculos')
+                .insert([{
+                    cliente_id: clienteId,
+                    modelo: veiculoModelo,
+                    placa: veiculoPlaca,
+                    ano: veiculoAno,
+                    cor: veiculoCor
+                }])
+                .select()
+                .single();
+
+            if (erroVeiculo) throw erroVeiculo;
+            veiculoId = novoVeiculo.id;
+        }
+
+        // ==========================================
+        // PASSO 3: CALCULAR VALORES E SALVAR ORÇAMENTO
+        // ==========================================
+        // Resgata os valores calculados na sua tela usando as variáveis globais que seu código já possui
+        const custoMateriais = totalMateriais || 0; 
+        const maoObra = totalMaoObra || 0; 
+        const valorCobrado = totalGeral || 0; 
+        const lucroReal = valorCobrado - custoMateriais;
+
+        // Monta a lista de materiais salvando apenas o essencial em JSON (Nome, Qtd, Preço)
+        // Isso preserva os dados dinâmicos da tabela de materiais que você criou
+        const materiaisJSON = listaMateriais.map(m => ({
+            nome: m.nome,
+            quantidade: m.quantidade,
+            preco: m.preco,
+            total: m.total
+        }));
+
+        const { data: novoOrcamento, error: erroOrcamento } = await supabase
+            .from('orcamentos')
+            .insert([{
+                veiculo_id: veiculoId,
+                tipo_servico: tipoServico,
+                avaliador: avaliador,
+                materiais_usados: materiaisJSON,
+                custo_materials: custoMateriais,
+                mao_obra_total: maoObra,
+                valor_cobrado: valorCobrado,
+                lucro_real: lucroReal
+            }])
+            .select()
+            .single();
+
+        if (erroOrcamento) throw erroOrcamento;
+
+        alert("Orçamento salvo com sucesso e totalmente organizado na nuvem!");
         
-        renderHistorico();
-        alert("Orçamento saved com sucesso no histórico!");
-        await salvarNoBanco();
+        // Se suas funções antigas de limpar e atualizar tiverem outros nomes, ajuste aqui:
+        if (typeof limparFormulario === "function") limparFormulario();
+        
+        // Esta é a chamada que vai atualizar a tela. Se sua função antiga de listar tiver outro nome, 
+        // nós vamos criá-la ou adaptá-la logo abaixo.
+        if (typeof carregarHistorico === "function") {
+            carregarHistorico();
+        } else if (typeof atualizarTabelaHistorico === "function") {
+            atualizarTabelaHistorico();
+        } else if (typeof renderizarHistorico === "function") {
+            renderizarHistorico();
+        }
+
+    } catch (error) {
+        console.error("Erro completo ao salvar:", error);
+        alert("Erro técnico ao salvar orçamento: " + (error.message || error));
     }
+}
+
+async function carregarHistorico() {
+    try {
+        // 1. Verificar se o usuário está autenticado
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            console.log("Usuário não autenticado. Histórico não carregado.");
+            return;
+        }
+
+        // 2. Buscar orçamentos trazendo os dados do veículo e do cliente de forma relacional
+        // O Supabase resolve o relacionamento através da estrutura que montamos com as chaves estrangeiras
+        const { data: orcamentosValores, error } = await supabase
+            .from('orcamentos')
+            .select(`
+                id,
+                tipo_servico,
+                avaliador,
+                materiais_usados,
+                custo_materials,
+                mao_obra_total,
+                valor_cobrado,
+                lucro_real,
+                created_at,
+                veiculos (
+                    modelo,
+                    placa,
+                    ano,
+                    cor,
+                    clientes (
+                        nome,
+                        telefone,
+                        endereco,
+                        cidade
+                    )
+                )
+            `)
+            .order('created_at', { ascending: false }); // Traz os mais recentes primeiro
+
+        if (error) throw error;
+
+        // Captura o corpo da tabela de histórico no seu HTML
+        // Certifique-se de que o ID bate com o que está no seu elemento <tbody> do histórico
+        const tabelaCorpo = document.getElementById('historicoCorpo') || document.getElementById('tabelaHistorico');
+        if (!tabelaCorpo) return;
+
+        tabelaCorpo.innerHTML = '';
+
+        if (!orcamentosValores || orcamentosValores.length === 0) {
+            tabelaCorpo.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum orçamento encontrado.</td></tr>';
+            return;
+        }
+
+        // Armazena globalmente os orçamentos caso suas outras funções (como gerar PDF ou WhatsApp) precisem ler da tela
+        window.historicoOrcamentos = orcamentosValores;
+
+        // 3. Renderizar as linhas na tabela do seu HTML
+        orcamentosValores.forEach((orc, index) => {
+            const veiculo = orc.veiculos || {};
+            const cliente = veiculo.clientes || {};
+            
+            const dataFormatada = new Date(orc.created_at).toLocaleDateString('pt-BR');
+            const valorTotal = Number(orc.valor_cobrado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${dataFormatada}</td>
+                <td>${cliente.nome || 'Não informado'}</td>
+                <td>${veiculo.modelo || 'Não informado'} (${veiculo.placa || 'Sem placa'})</td>
+                <td>${orc.tipo_servico || 'Pintura'}</td>
+                <td>${valorTotal}</td>
+                <td>
+                    <div style="display: flex; gap: 5px; justify-content: center;">
+                        <button class="btn-acao btn-editar" onclick="editarOrcamentoRelacional('${orc.id}')" title="Editar">✏️</button>
+                        <button class="btn-acao btn-whatsapp" onclick="enviarWhatsRelacional('${orc.id}')" title="WhatsApp">📱</button>
+                        <button class="btn-acao btn-pdf" onclick="gerarPdfRelacional('${orc.id}')" title="PDF">📄</button>
+                        <button class="btn-acao btn-deletar" onclick="deletarOrcamentoRelacional('${orc.id}')" title="Excluir">❌</button>
+                    </div>
+                </td>
+            `;
+            tabelaCorpo.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar histórico:", error);
+    }
+}
 
     function renderHistorico(){
         const h = document.getElementById('historicoLista');
