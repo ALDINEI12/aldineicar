@@ -666,7 +666,7 @@
    async function salvarOrcamento() {
     try {
         // 1. Verificar se o usuário está autenticado para respeitar as regras do RLS
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
         if (userError || !user) {
             alert("Erro: Você precisa estar logado para salvar um orçamento.");
             return;
@@ -675,8 +675,8 @@
         // Captura os dados dos inputs do formulário do seu HTML
         const clienteNome = document.getElementById('clienteNome').value.trim();
         const clienteTel = document.getElementById('clienteTel').value.trim();
-        const clienteEnd = document.getElementById('clienteEnd').value.trim();
-        const clienteCid = document.getElementById('clienteCid').value.trim() || 'Sátrio Dias/BA';
+        const clienteEnd = document.getElementById('clienteEndereco').value.trim();
+        const clienteCid = document.getElementById('clienteCidade').value.trim() || 'Sátrio Dias/BA';
 
         const veiculoModelo = document.getElementById('veiculoModelo').value.trim();
         const veiculoPlaca = document.getElementById('veiculoPlaca').value.trim();
@@ -684,22 +684,20 @@
         const veiculoCor = document.getElementById('veiculoCor').value.trim();
 
         const tipoServico = document.getElementById('tipoServico').value.trim();
-        const avaliador = document.getElementById('avaliador').value.trim();
+        const avaliador = document.getElementById('nomeAvaliador').value.trim();
 
         if (!clienteNome || !veiculoModelo) {
             alert("Por favor, preencha pelo menos o Nome do Cliente e o Modelo do Veículo.");
             return;
         }
 
-        // Mostra um indicador de carregamento (se você tiver no HTML) ou console
         console.log("Iniciando salvamento relacional no Supabase...");
 
         // ==========================================
         // PASSO 1: SALVAR OU ATUALIZAR O CLIENTE
         // ==========================================
-        // Buscamos se já existe um cliente com esse mesmo nome e telefone para este usuário
         let clienteId = null;
-        const { data: clienteExistente } = await supabase
+        const { data: clienteExistente } = await supabaseClient
             .from('clientes')
             .select('id')
             .eq('user_id', user.id)
@@ -708,14 +706,12 @@
 
         if (clienteExistente) {
             clienteId = clienteExistente.id;
-            // Opcional: Atualiza os dados de endereço/telefone caso tenham mudado
-            await supabase
+            await supabaseClient
                 .from('clientes')
                 .update({ telefone: clienteTel, endereco: clienteEnd, cidade: clienteCid })
                 .eq('id', clienteId);
         } else {
-            // Se não existe, cria um novo
-            const { data: novoCliente, error: erroCliente } = await supabase
+            const { data: novoCliente, error: erroCliente } = await supabaseClient
                 .from('clientes')
                 .insert([{
                     user_id: user.id,
@@ -735,24 +731,21 @@
         // PASSO 2: SALVAR OU ATUALIZAR O VEÍCULO
         // ==========================================
         let veiculoId = null;
-        // Buscamos se este cliente já tem um carro cadastrado com essa mesma placa
-        const { data: veiculoExistente } = await supabase
+        const { data: veiculoExistente } = await supabaseClient
             .from('veiculos')
             .select('id')
             .eq('cliente_id', clienteId)
             .eq('placa', veiculoPlaca)
             .maybeSingle();
 
-        if (veiculoExistente && veiculoPlaca !== "") {
+        if (veiculoExistente && veiculoPlaca !== "" && veiculoPlaca !== "---") {
             veiculoId = veiculoExistente.id;
-            // Atualiza dados básicos do carro se necessário
-            await supabase
+            await supabaseClient
                 .from('veiculos')
                 .update({ modelo: veiculoModelo, ano: veiculoAno, cor: veiculoCor })
                 .eq('id', veiculoId);
         } else {
-            // Se não existe ou está sem placa, cria um novo registro de veículo
-            const { data: novoVeiculo, error: erroVeiculo } = await supabase
+            const { data: novoVeiculo, error: erroVeiculo } = await supabaseClient
                 .from('veiculos')
                 .insert([{
                     cliente_id: clienteId,
@@ -771,22 +764,22 @@
         // ==========================================
         // PASSO 3: CALCULAR VALORES E SALVAR ORÇAMENTO
         // ==========================================
-        // Resgata os valores calculados na sua tela usando as variáveis globais que seu código já possui
-        const custoMateriais = totalMateriais || 0; 
-        const maoObra = totalMaoObra || 0; 
-        const valorCobrado = totalGeral || 0; 
+        // Calcula os totais com base nas variáveis estruturadas da sua página
+        let custoMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+        let maoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
         const lucroReal = valorCobrado - custoMateriais;
 
-        // Monta a lista de materiais salvando apenas o essencial em JSON (Nome, Qtd, Preço)
-        // Isso preserva os dados dinâmicos da tabela de materiais que você criou
-        const materiaisJSON = listaMateriais.map(m => ({
+        // Filtra e organiza os materiais selecionados
+        const materiaisJSON = materiais.filter(m => m.qtd > 0).map(m => ({
             nome: m.nome,
-            quantidade: m.quantidade,
-            preco: m.preco,
-            total: m.total
+            quantidade: m.qtd,
+            preco: m.valor,
+            total: m.valor * m.qtd
         }));
 
-        const { data: novoOrcamento, error: erroOrcamento } = await supabase
+        // Registra o orçamento associando ao veículo configurado
+        const { error: erroOrcamento } = await supabaseClient
             .from('orcamentos')
             .insert([{
                 veiculo_id: veiculoId,
@@ -797,25 +790,18 @@
                 mao_obra_total: maoObra,
                 valor_cobrado: valorCobrado,
                 lucro_real: lucroReal
-            }])
-            .select()
-            .single();
+            }]);
 
         if (erroOrcamento) throw erroOrcamento;
 
         alert("Orçamento salvo com sucesso e totalmente organizado na nuvem!");
         
-        // Se suas funções antigas de limpar e atualizar tiverem outros nomes, ajuste aqui:
-        if (typeof limparFormulario === "function") limparFormulario();
-        
-        // Esta é a chamada que vai atualizar a tela. Se sua função antiga de listar tiver outro nome, 
-        // nós vamos criá-la ou adaptá-la logo abaixo.
+        // Limpa o resumo se a função existir
+        if (typeof limparResumo === "function") limparResumo();
+
+        // Atualiza a listagem se a nova função de histórico existir
         if (typeof carregarHistorico === "function") {
             carregarHistorico();
-        } else if (typeof atualizarTabelaHistorico === "function") {
-            atualizarTabelaHistorico();
-        } else if (typeof renderizarHistorico === "function") {
-            renderizarHistorico();
         }
 
     } catch (error) {
