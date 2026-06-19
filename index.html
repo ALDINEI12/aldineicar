@@ -1077,7 +1077,11 @@ async function carregarHistorico() {
         if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
         if(nome==='historico') document.getElementById('aba-historico').style.display='block';
         if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
+        if (abaId === 'historico') {
+        renderHistorico();
     }
+}
+    
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
         const { jsPDF } = window.jspdf;
@@ -1480,20 +1484,22 @@ async function enviarWhatsAppHistorico(index) {
     function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
 
     document.addEventListener('DOMContentLoaded', () => {
-        toggleTab('login');
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (session && session.user) {
-                await carregarDadosDoUsuario(session.user.id);
-                document.getElementById('loginOverlay').style.display = 'none';
-                const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
-                const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
-                if (!algumaAtiva) mostrarAba('materiais');
-            } else {
-                document.getElementById('loginOverlay').style.display = 'flex';
-                toggleTab('login');
-            }
-        });
+    toggleTab('login');
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+            // Garante que o histórico relacional é carregado assim que o utilizador faz login
+            await renderHistorico(); 
+            
+            document.getElementById('loginOverlay').style.display = 'none';
+            const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
+            const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
+            if (!algumaAtiva) mostrarAba('materiais');
+        } else {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            toggleTab('login');
+        }
     });
+});
 </script>
 </body>
 </html>
