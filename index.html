@@ -151,7 +151,35 @@
             .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
         }
 
-        
+        /* Estilos para o Ciclo de Vida da OS */
+.badge-status { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: inline-block; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
+.status-orcamento { background: #e2e8f0; color: #475569; }
+.status-execucao { background: #dbeafe; color: #1e40af; }
+.status-pronto { background: #dcfce7; color: #15803d; }
+.status-pago { background: #fef08a; color: #854d0e; }
+
+.select-status-inline { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid #cbd5e1; 
+    font-size: 13px; 
+    background: white; 
+    font-weight: 600; 
+    cursor: pointer;
+    color: #0f172a;
+    outline: none;
+}
+.select-status-inline:focus { border-color: #0f172a; }
+
     </style>
 </head>
 <body>
@@ -683,6 +711,7 @@
         
         const novoOrcamento = {
             data: new Date().toLocaleString('pt-BR'),
+            status: 'Orçamento',
             cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
             veiculo: { 
                 modelo: veiculoModelo, 
@@ -718,49 +747,65 @@
     }
 
     function renderHistorico(){
-        const h = document.getElementById('historicoLista');
-        if(!h) return; h.innerHTML='';
-        historico.forEach((item, index)=>{
-            const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
-            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
+    const h = document.getElementById('historicoLista');
+    if(!h) return; h.innerHTML='';
+    historico.forEach((item, index)=>{
+        const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
+        const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
-            // Pega o valor dos materiais (tenta uma propriedade ou a outra para não dar erro)
-            let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
-            
-            // Pega ou calcula a mão de obra se houver a lista de itens
-            let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
-            if (custoMaoObra === 0 && item.mao_obra) {
-                custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
-            }
+        let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
+        let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
+        if (custoMaoObra === 0 && item.mao_obra) {
+            custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+        }
 
-            // Calcula o lucro real: Valor Cobrado - Custo do Material
-            let valorCobrado = parseFloat(item.totalCobrado) || 0;
-            let lucroReal = valorCobrado - custoMat;
+        let valorCobrado = parseFloat(item.totalCobrado) || 0;
+        let lucroReal = valorCobrado - custoMat;
 
-            h.innerHTML += `
-                <div class="cliente-item">
-                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
-                        <div>
-                            <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                            🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br>
-                            🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
-                            💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
-                            📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
-                            🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
-                            📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
-                            🕒 ${item.data || '---'}
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;" id="actions-hist-${index}">
-                            <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
-                            <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
-                            <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
-                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
-                        </div>
+        // Identifica o status atual e define a classe CSS correta
+        const statusAtual = item.status || 'Orçamento';
+        let classeStatus = 'status-orcamento';
+        if(statusAtual === 'Em Execução') classeStatus = 'status-execucao';
+        if(statusAtual === 'Pronto') classeStatus = 'status-pronto';
+        if(statusAtual === 'Pago') classeStatus = 'status-pago';
+
+        h.innerHTML += `
+            <div class="cliente-item">
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
+                    <div>
+                        <!-- Badge do Status -->
+                        <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
+                        
+                        <strong>👤 Cliente: ${cliente.nome}</strong><br>
+                        🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br>
+                        🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
+                        💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
+                        📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
+                        🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
+                        📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
+                        🕒 ${item.data || '---'}
+                    </div>
+                    
+                    <!-- Menu de Alteração de Status e Ações -->
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
+                        <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
+                        <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
+                            <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
+                            <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
+                            <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
+                            <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
+                        </select>
+                        <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
+                        <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
+                        <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                        <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
+                        <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
                     </div>
                 </div>
-            `;
-        });
-    }
+            </div>
+        `;
+    });
+}
 
     function renderClientes(){
         const c = document.getElementById('listaClientes');
@@ -1314,6 +1359,16 @@ async function enviarWhatsAppHistorico(index) {
             }
         });
     });
+
+
+    async function alterarStatus(index, novoStatus) {
+    if (historico[index]) {
+        historico[index].status = novoStatus;
+        renderHistorico(); // Atualiza o visual e as cores imediatamente
+        await salvarNoBanco(); // Sincroniza com o Supabase
+    }
+}
+
 </script>
 </body>
 </html>
