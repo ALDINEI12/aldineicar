@@ -430,31 +430,42 @@
     ];
 
     async function carregarDadosDoUsuario(userId) {
-        if (!userId) return;
-        usuarioAtualId = userId;
-        
-        const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
-        if(fallback){
-            const parsed = JSON.parse(fallback);
-            materiais = parsed.materiais || [...materiaisPadrao];
-            historico = parsed.historico || [];
-            clientes = parsed.clientes || [];
-            maoObraItens = parsed.maoObraItens || [];
-            dadosOficina = parsed.dadosOficina || dadosOficina;
-        } else {
-            materiais = [...materiaisPadrao];
-        }
+    if (!userId) return;
+    usuarioAtualId = userId;
+    
+    let localTimestamp = 0;
+    const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
+    if(fallback){
+        const parsed = JSON.parse(fallback);
+        materiais = parsed.materiais || [...materiaisPadrao];
+        historico = parsed.historico || [];
+        clientes = parsed.clientes || [];
+        maoObraItens = parsed.maoObraItens || [];
+        dadosOficina = parsed.dadosOficina || dadosOficina;
+        localTimestamp = parsed.local_updated_at || 0; // <-- Recupera o tempo local
+    } else {
+        materiais = [...materiaisPadrao];
+    }
 
-        try {
-            const { data, error } = await supabaseClient
-                .from('user_data')
-                .select('*')
-                .eq('user_id', userId);
+    try {
+        const { data, error } = await supabaseClient
+            .from('user_data')
+            .select('*')
+            .eq('user_id', userId);
 
-            if (error) {
-                await salvarNoBanco(true); 
-            } else if (data && data.length > 0) {
-                const registro = data[0];
+        if (error) {
+            await salvarNoBanco(true); 
+        } else if (data && data.length > 0) {
+            const registro = data[0];
+            // Converte o timestamp da nuvem para milissegundos
+            const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
+            
+            // SE O DADO LOCAL FOR MAIS RECENTE QUE O DA NUVEM:
+            if (localTimestamp > cloudTimestamp) {
+                console.log("Alterações offline detectadas pós-reinício. Sincronizando com a nuvem...");
+                await salvarNoBanco(true); // Envia o dado local mais recente para o banco
+            } else {
+                // CASO CONTRÁRIO: A nuvem é mais recente ou igual, pode aplicar os dados dela
                 materiais = registro.materiais || [...materiaisPadrao];
                 historico = registro.historico || [];
                 clientes = registro.clientes || [];
@@ -463,27 +474,34 @@
                 
                 clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
                 salvarFallbackLocal();
-            } else {
-                await salvarNoBanco(true);
             }
-        } catch (err) {
-            console.error("Erro na comunicação com a nuvem:", err);
+        } else {
+            await salvarNoBanco(true);
         }
+    } catch (err) {
+        console.error("Erro na comunicação com a nuvem (App operando offline):", err);
+        // Em caso de erro de rede, o app mantém intacto o que leu do localStorage no início da função
+    }
 
-        atualizarInputsOficina();
-        atualizarLogoHeader();
-        render();
-        renderMaoObra();
-        renderHistorico();
-        renderClientes();
-    }
-    
+    atualizarInputsOficina();
+    atualizarLogoHeader();
+    render();
+    renderMaoObra();
+    renderHistorico();
+    renderClientes();
+}
+
     function salvarFallbackLocal() {
-        if (!usuarioAtualId) return;
-        localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
-            materiais, historico, clientes, maoObraItens, dadosOficina
-        }));
-    }
+    if (!usuarioAtualId) return;
+    localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
+        materiais, 
+        historico, 
+        clientes, 
+        maoObraItens, 
+        dadosOficina,
+        local_updated_at: new Date().getTime() // <-- Guarda o momento exato da alteração local
+    }));
+}
 
    function atualizarStatusRedeVisual(online) {
     const badge = document.getElementById('statusRedeBadge');
@@ -1500,6 +1518,14 @@ window.addEventListener('offline', () => {
 // Define o estado inicial da rede assim que a página termina de carregar completamente
 window.addEventListener('load', () => {
     atualizarStatusRedeVisual(navigator.onLine);
+});
+
+// Detecta automaticamente o retorno da internet e sincroniza os dados pendentes
+window.addEventListener('online', async () => {
+    if (usuarioAtualId) {
+        console.log("Conexão restabelecida! Verificando sincronização pendente...");
+        await carregarDadosDoUsuario(usuarioAtualId);
+    }
 });
 
 </script>
