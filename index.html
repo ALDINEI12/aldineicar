@@ -252,11 +252,13 @@
 
     <div id="appContainer">
         <header>
-            <div class="logo-container" id="headerLogoContainer">
-                <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
-            </div>
-            <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
-        </header>
+    <div class="logo-container" id="headerLogoContainer">
+        <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
+    </div>
+    <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+    
+    <div id="status-rede" style="font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background: #16a34a; color: white; display: flex; align-items: center; gap: 6px;">🟢 Online</div>
+</header>
 
         <div class="container">
             <div class="sidebar">
@@ -480,44 +482,7 @@
         }));
     }
 
-    async function salvarNoBanco(silencioso = false) {
-        if (!usuarioAtualId) return;
-        salvarFallbackLocal();
-        try {
-            const { error } = await supabaseClient
-                .from('user_data')
-                .upsert({
-                    user_id: usuarioAtualId,
-                    materiais: materiais,
-                    historico: historico,
-                    clientes: clientes,
-                    mao_obra: maoObraItens,
-                    dados_oficina: dadosOficina,
-                    updated_at: new Date()
-                }, { onConflict: 'user_id' });
-        } catch(e) {
-            console.error("Falha de rede ao tentar sincronizar:", e);
-        }
-    }
-
-    function abrirModalOficina() { 
-        atualizarInputsOficina();
-        document.getElementById('modalOficina').style.display='flex'; 
-    }
-    
-    function fecharModalOficina() { document.getElementById('modalOficina').style.display='none'; }
-    
-    function processarNovaLogo(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            dadosOficina.logoBase64 = e.target.result;
-            const preview = document.getElementById('previewLogoModal');
-            if(preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
-        };
-        reader.readAsDataURL(file);
-    }
+            if (!usuarioAtualId) return;
 
     function atualizarLogoHeader() {
         const container = document.getElementById('headerLogoContainer');
@@ -1447,6 +1412,38 @@ function mostrarToast(mensagem, tipo = 'sucesso') {
         }, 300);
     }, 3500);
 }
+
+// Função para atualizar o botão visual do Header de forma dinâmica
+function atualizarStatusRedeVisual(online) {
+    const indicador = document.getElementById('status-rede');
+    if (!indicador) return;
+    
+    if (online) {
+        indicador.innerHTML = "🟢 Online";
+        indicador.style.background = "#16a34a"; // Verde
+    } else {
+        indicador.innerHTML = "🔴 Offline";
+        indicador.style.background = "#dc2626"; // Vermelho
+    }
+}
+
+// Escutas de eventos nativos do navegador para detetar perda/retorno de sinal
+window.addEventListener('online', async () => {
+    atualizarStatusRedeVisual(true);
+    mostrarToast("Ligação restabelecida! A sincronizar dados...", "sucesso");
+    // Tenta enviar o que foi feito offline de volta para o Supabase
+    await salvarNoBanco(true);
+});
+
+window.addEventListener('offline', () => {
+    atualizarStatusRedeVisual(false);
+    mostrarToast("Ficou sem internet. O modo offline está ativo!", "aviso");
+});
+
+// Executa uma verificação inicial logo ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    atualizarStatusRedeVisual(navigator.onLine);
+});
 
 </script>
 </body>
