@@ -180,6 +180,47 @@
 }
 .select-status-inline:focus { border-color: #0f172a; }
 
+/* Estilos para as Notificações Toast */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Não bloqueia cliques no fundo */
+}
+
+.toast {
+    pointer-events: auto; /* Permite interação se necessário */
+    min-width: 280px;
+    max-width: 380px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Classe que ativa a animação de entrada */
+.toast.toast-ativo {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Variações de cores baseadas no tipo */
+.toast-sucesso { background-color: #10b981; border-left: 5px solid #059669; }
+.toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
+.toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
+
     </style>
 </head>
 <body>
@@ -515,7 +556,7 @@
         dadosOficina.pix = document.getElementById('oficinaPix').value;
         atualizarLogoHeader();
         fecharModalOficina();
-        alert("Informações da oficina salvas!");
+        mostrarToast("Informações da oficina salvas!");
         await salvarNoBanco();
     }
 
@@ -530,7 +571,7 @@
         const btnEntrar = document.querySelector('#loginForm button');
 
         if (!email || !password) {
-            alert("Por favor, preencha o e-mail e a senha.");
+            mostrarToast("Por favor, preencha o e-mail e a senha.");
             return;
         }
 
@@ -542,7 +583,7 @@
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
             if (error) {
-                alert("Erro ao entrar: " + error.message);
+                mostrarToast("Erro ao entrar: " + error.message, "erro");
                 btnEntrar.innerText = textoOriginal;
                 btnEntrar.disabled = false;
                 return;
@@ -554,7 +595,7 @@
                 mostrarAba('materiais');
             }
         } catch (err) {
-            alert("Erro de conexão ou no servidor: " + err.message);
+            mostrarToast("Erro de conexão ou no servidor: " + error.message, "erro");
         } finally {
             btnEntrar.innerText = textoOriginal;
             btnEntrar.disabled = false;
@@ -568,7 +609,7 @@
         const btnCadastrar = document.querySelector('#signupForm button');
 
         if (!email || !password || password.length < 6) {
-            alert("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
+            mostrarToast("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
             return;
         }
 
@@ -582,14 +623,14 @@
             });
 
             if (error) {
-                alert("Erro ao cadastrar: " + error.message);
+                mostrarToast("Erro ao cadastrar: " + error.message, " erro ");
                 return;
             }
 
-            alert("Cadastro realizado com sucesso! Agora faça login.");
+            mostrarToast("Cadastro realizado com sucesso! Agora faça login.");
             toggleTab('login');
         } catch (err) {
-            alert("Erro no processo de cadastro: " + err.message);
+            mostrarToast("Erro no processo de cadastro: " + error.message, " erro ");
         } finally {
             btnCadastrar.innerText = textoOriginal;
             btnCadastrar.disabled = false;
@@ -742,7 +783,7 @@
         }
         
         renderHistorico();
-        alert("Orçamento saved com sucesso no histórico!");
+        mostrarToast("Orçamento saved com sucesso no histórico!");
         await salvarNoBanco();
     }
 
@@ -832,7 +873,7 @@
     function carregarParaEditar(index) {
     const item = historico[index];
     if (!item) {
-        alert("Orçamento não encontrado.");
+        mostrarToast("Orçamento não encontrado.");
         return;
     }
 
@@ -919,7 +960,7 @@
         mudarAba('orcamento');
     }
 
-    alert("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
+    mostrarToast("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
 }
 
     function carregarDadosClienteNoResumo(index) {
@@ -1085,7 +1126,7 @@ async function enviarWhatsAppHistorico(index) {
     if (!item) return;
 
     if (!usuarioAtualId) {
-        alert("Você precisa estar logado para realizar esta operação.");
+        mostrarToast("Você precisa estar logado para realizar esta operação.");
         return;
     }
 
@@ -1193,19 +1234,19 @@ async function enviarWhatsAppHistorico(index) {
         window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
 
     } catch (err) {
-        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
+        mostrarToast("Erro ao enviar WhatsApp do histórico: " + error.message, " erro ");
     }
 }
 
    async function enviarWhatsAppHistorico(index) {
     const item = historico[index];
     if (!item) {
-        alert("Orçamento não encontrado no histórico.");
+        mostrarToast("Orçamento não encontrado no histórico.");
         return;
     }
 
     if (!usuarioAtualId) {
-        alert("Você precisa estar logado para realizar esta operação.");
+        mostrarToast("Você precisa estar logado para realizar esta operação.");
         return;
     }
 
@@ -1316,7 +1357,7 @@ async function enviarWhatsAppHistorico(index) {
         window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
 
     } catch (err) {
-        alert("Erro ao enviar WhatsApp do histórico: " + err.message);
+        mostrarToast("Erro ao enviar WhatsApp do histórico: " + error.message, " erro ");
     }
 }
 
@@ -1367,6 +1408,44 @@ async function enviarWhatsAppHistorico(index) {
         renderHistorico(); // Atualiza o visual e as cores imediatamente
         await salvarNoBanco(); // Sincroniza com o Supabase
     }
+}
+
+function mostrarToast(mensagem, tipo = 'sucesso') {
+    // 1. Verifica se o container já existe no body, se não, cria-o
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    // 2. Cria o elemento do Toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    
+    // 3. Define o emoji correto para cada situação
+    let icone = '✅';
+    if (tipo === 'erro') icone = '❌';
+    if (tipo === 'aviso') icone = '⚠️';
+
+    toast.innerHTML = `<span>${icone}</span> <span>${mensagem}</span>`;
+    
+    // 4. Adiciona ao ecrã
+    container.appendChild(toast);
+
+    // 5. Pequeno delay para ativar a animação do CSS
+    setTimeout(() => {
+        toast.classList.add('toast-ativo');
+    }, 10);
+
+    // 6. Remove o toast após 3.5 segundos (com efeito de fecho)
+    setTimeout(() => {
+        toast.classList.remove('toast-ativo');
+        // Espera a animação de fade-out terminar para apagar do HTML
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3500);
 }
 
 </script>
