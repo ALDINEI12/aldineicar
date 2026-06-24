@@ -475,6 +475,49 @@
         renderClientes();
     }
     
+async function salvarNoBanco(silencioso = false) {
+    if (!usuarioAtualId) return;
+    
+    // Guarda sempre primeiro na memória local (Segurança máxima)
+    salvarFallbackLocal();
+    
+    // Se estiver explicitamente offline, nem tenta a nuvem e avisa se não for silencioso
+    if (!navigator.onLine) {
+        atualizarStatusRedeVisual(false);
+        if (!silencioso) {
+            mostrarToast("Modo Offline: Dados guardados no dispositivo!", "aviso");
+        }
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('user_data')
+            .upsert({
+                user_id: usuarioAtualId,
+                materiais: materiais,
+                historico: historico,
+                clientes: clientes,
+                mao_obra: maoObraItens,
+                dados_oficina: dadosOficina,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' });
+
+        if (error) throw error;
+        
+        atualizarStatusRedeVisual(true);
+        // Opcional: Descomente a linha abaixo se quiser um aviso de sucesso ao salvar
+        // if (!silencioso) mostrarToast("Sincronizado com a nuvem!", "sucesso");
+
+    } catch(e) {
+        console.error("Falha de rede ao tentar sincronizar:", e);
+        atualizarStatusRedeVisual(false);
+        if (!silencioso) {
+            mostrarToast("Sem ligação. Alterações salvas localmente!", "aviso");
+        }
+    }
+}
+
     function salvarFallbackLocal() {
         if (!usuarioAtualId) return;
         localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
@@ -483,6 +526,9 @@
     }
 
             if (!usuarioAtualId) return;
+
+
+
 
     function atualizarLogoHeader() {
         const container = document.getElementById('headerLogoContainer');
