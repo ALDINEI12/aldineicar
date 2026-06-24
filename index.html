@@ -1350,7 +1350,43 @@ async function enviarWhatsAppHistorico(index) {
 
     function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
 
+    // =================================================================
+    // PASSO 3: FUNÇÕES DE MONITORIZAÇÃO DA REDE (PWA)
+    // =================================================================
+    function atualizarStatusRedeVisual(online) {
+        const indicador = document.getElementById('status-rede');
+        if (!indicador) return;
+        
+        if (online) {
+            indicador.innerHTML = "🟢 Online";
+            indicador.style.background = "#16a34a"; // Verde
+        } else {
+            indicador.innerHTML = "🔴 Offline";
+            indicador.style.background = "#dc2626"; // Vermelho
+        }
+    }
+
+    window.addEventListener('online', async () => {
+        atualizarStatusRedeVisual(true);
+        mostrarToast("Ligação restabelecida! A sincronizar dados...", "sucesso");
+        if (typeof salvarNoBanco === "function") {
+            await salvarNoBanco(true);
+        }
+    });
+
+    window.addEventListener('offline', () => {
+        atualizarStatusRedeVisual(false);
+        mostrarToast("Ficou sem internet. O modo offline está ativo!", "aviso");
+    });
+
+    // =================================================================
+    // INICIALIZAÇÃO DO SISTEMA (UNIFICADO: SEU LOGIN + STATUS DA REDE)
+    // =================================================================
     document.addEventListener('DOMContentLoaded', () => {
+        // 1. Ativa o indicador visual da internet (Passo 3)
+        atualizarStatusRedeVisual(navigator.onLine);
+
+        // 2. O seu código original que faz o Login funcionar (Preservado)
         toggleTab('login');
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
@@ -1365,85 +1401,10 @@ async function enviarWhatsAppHistorico(index) {
             }
         });
     });
-
-
-    async function alterarStatus(index, novoStatus) {
-    if (historico[index]) {
-        historico[index].status = novoStatus;
-        renderHistorico(); // Atualiza o visual e as cores imediatamente
-        await salvarNoBanco(); // Sincroniza com o Supabase
-    }
-}
-
-function mostrarToast(mensagem, tipo = 'sucesso') {
-    // 1. Verifica se o container já existe no body, se não, cria-o
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    }
-
-    // 2. Cria o elemento do Toast
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${tipo}`;
     
-    // 3. Define o emoji correto para cada situação
-    let icone = '✅';
-    if (tipo === 'erro') icone = '❌';
-    if (tipo === 'aviso') icone = '⚠️';
-
-    toast.innerHTML = `<span>${icone}</span> <span>${mensagem}</span>`;
-    
-    // 4. Adiciona ao ecrã
-    container.appendChild(toast);
-
-    // 5. Pequeno delay para ativar a animação do CSS
-    setTimeout(() => {
-        toast.classList.add('toast-ativo');
-    }, 10);
-
-    // 6. Remove o toast após 3.5 segundos (com efeito de fecho)
-    setTimeout(() => {
-        toast.classList.remove('toast-ativo');
-        // Espera a animação de fade-out terminar para apagar do HTML
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
-    }, 3500);
-}
-
-// Função para atualizar o botão visual do Header de forma dinâmica
-function atualizarStatusRedeVisual(online) {
-    const indicador = document.getElementById('status-rede');
-    if (!indicador) return;
-    
-    if (online) {
-        indicador.innerHTML = "🟢 Online";
-        indicador.style.background = "#16a34a"; // Verde
-    } else {
-        indicador.innerHTML = "🔴 Offline";
-        indicador.style.background = "#dc2626"; // Vermelho
-    }
-}
-
-// Escutas de eventos nativos do navegador para detetar perda/retorno de sinal
-window.addEventListener('online', async () => {
-    atualizarStatusRedeVisual(true);
-    mostrarToast("Ligação restabelecida! A sincronizar dados...", "sucesso");
-    // Tenta enviar o que foi feito offline de volta para o Supabase
-    await salvarNoBanco(true);
-});
-
-window.addEventListener('offline', () => {
-    atualizarStatusRedeVisual(false);
-    mostrarToast("Ficou sem internet. O modo offline está ativo!", "aviso");
-});
-
-// Executa uma verificação inicial logo ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    atualizarStatusRedeVisual(navigator.onLine);
-});
+</script>
+</body>
+</html>
 
 </script>
 </body>
