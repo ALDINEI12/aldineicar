@@ -252,11 +252,16 @@
 
     <div id="appContainer">
         <header>
-            <div class="logo-container" id="headerLogoContainer">
-                <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
-            </div>
-            <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
-        </header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div class="logo-container" id="headerLogoContainer">
+            <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
+        </div>
+        <span id="statusRedeBadge" style="padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #10b981; color: white; transition: all 0.3s ease;">
+            ● Online
+        </span>
+    </div>
+    <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+</header>
 
         <div class="container">
             <div class="sidebar">
@@ -480,25 +485,54 @@
         }));
     }
 
-    async function salvarNoBanco(silencioso = false) {
-        if (!usuarioAtualId) return;
-        salvarFallbackLocal();
-        try {
-            const { error } = await supabaseClient
-                .from('user_data')
-                .upsert({
-                    user_id: usuarioAtualId,
-                    materiais: materiais,
-                    historico: historico,
-                    clientes: clientes,
-                    mao_obra: maoObraItens,
-                    dados_oficina: dadosOficina,
-                    updated_at: new Date()
-                }, { onConflict: 'user_id' });
-        } catch(e) {
-            console.error("Falha de rede ao tentar sincronizar:", e);
-        }
+   function atualizarStatusRedeVisual(online) {
+    const badge = document.getElementById('statusRedeBadge');
+    if (!badge) return;
+    if (online) {
+        badge.style.background = '#10b981'; // Verde esmeralda
+        badge.innerText = '● Online';
+    } else {
+        badge.style.background = '#f59e0b'; // Amarelo/Laranja de alerta
+        badge.innerText = '● Modo Local (Offline)';
     }
+}
+
+async function salvarNoBanco(silencioso = false) {
+    if (!usuarioAtualId) return;
+    
+    // Sempre garante o salvamento de segurança local primeiro
+    salvarFallbackLocal();
+    
+    // VERIFICAÇÃO INTELIGENTE DE INTERNET
+    if (!navigator.onLine) {
+        atualizarStatusRedeVisual(false);
+        if (!silencioso) {
+            console.log("Modo Offline ativo: Alteração armazenada apenas no dispositivo.");
+        }
+        return; // Interrompe o envio para a nuvem temporariamente
+    }
+
+    atualizarStatusRedeVisual(true);
+
+    try {
+        const { error } = await supabaseClient
+            .from('user_data')
+            .upsert({
+                user_id: usuarioAtualId,
+                materiais: materiais,
+                historico: historico,
+                clientes: clientes,
+                mao_obra: maoObraItens,
+                dados_oficina: dadosOficina,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' });
+
+        if (error) throw error;
+    } catch(e) {
+        console.error("Erro ao sincronizar com a nuvem:", e);
+        atualizarStatusRedeVisual(false);
+    }
+}
 
     function abrirModalOficina() { 
         atualizarInputsOficina();
@@ -1447,6 +1481,26 @@ function mostrarToast(mensagem, tipo = 'sucesso') {
         }, 300);
     }, 3500);
 }
+
+// Detecta automaticamente quando o dispositivo recupera a conexão com a internet
+window.addEventListener('online', async () => {
+    atualizarStatusRedeVisual(true);
+    console.log("Conexão restaurada! Sincronizando dados com o banco de dados nuvem...");
+    if (usuarioAtualId) {
+        await salvarNoBanco(true); // Força sincronização em segundo plano
+    }
+});
+
+// Detecta automaticamente quando o dispositivo perde a conexão com a internet
+window.addEventListener('offline', () => {
+    atualizarStatusRedeVisual(false);
+    console.log("A conexão caiu. O sistema entrou em Modo Local automaticamente.");
+});
+
+// Define o estado inicial da rede assim que a página termina de carregar completamente
+window.addEventListener('load', () => {
+    atualizarStatusRedeVisual(navigator.onLine);
+});
 
 </script>
 </body>
