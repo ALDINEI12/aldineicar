@@ -376,8 +376,8 @@
         <div class="modal-content">
             <h2>Dados da Minha Oficina</h2>
             
-            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
-            <input type="file" id="oficinaLogoFile" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
+            <label for="oficinaLogoFile" style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
+            <input type="file" id="oficinaLogoFile" title="Escolha a imagem do logotipo da oficina" aria-label="Logo da Oficina" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
             <div id="previewLogoModal" style="margin-top: 5px; text-align: center;"></div>
             
             <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">NOME COMERCIAL</label>
@@ -1401,7 +1401,7 @@ async function enviarWhatsAppHistorico(index) {
             }
         });
     });
-    
+
 </script>
 </body>
 </html>
