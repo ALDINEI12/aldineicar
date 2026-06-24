@@ -252,13 +252,11 @@
 
     <div id="appContainer">
         <header>
-    <div class="logo-container" id="headerLogoContainer">
-        <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
-    </div>
-    <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
-    
-    <div id="status-rede" style="font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; background: #16a34a; color: white; display: flex; align-items: center; gap: 6px;">🟢 Online</div>
-</header>
+            <div class="logo-container" id="headerLogoContainer">
+                <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
+            </div>
+            <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+        </header>
 
         <div class="container">
             <div class="sidebar">
@@ -376,8 +374,8 @@
         <div class="modal-content">
             <h2>Dados da Minha Oficina</h2>
             
-            <label for="oficinaLogoFile" style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
-            <input type="file" id="oficinaLogoFile" title="Escolha a imagem do logotipo da oficina" aria-label="Logo da Oficina" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
+            <input type="file" id="oficinaLogoFile" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
             <div id="previewLogoModal" style="margin-top: 5px; text-align: center;"></div>
             
             <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">NOME COMERCIAL</label>
@@ -475,49 +473,6 @@
         renderClientes();
     }
     
-async function salvarNoBanco(silencioso = false) {
-    if (!usuarioAtualId) return;
-    
-    // Guarda sempre primeiro na memória local (Segurança máxima)
-    salvarFallbackLocal();
-    
-    // Se estiver explicitamente offline, nem tenta a nuvem e avisa se não for silencioso
-    if (!navigator.onLine) {
-        atualizarStatusRedeVisual(false);
-        if (!silencioso) {
-            mostrarToast("Modo Offline: Dados guardados no dispositivo!", "aviso");
-        }
-        return;
-    }
-
-    try {
-        const { error } = await supabaseClient
-            .from('user_data')
-            .upsert({
-                user_id: usuarioAtualId,
-                materiais: materiais,
-                historico: historico,
-                clientes: clientes,
-                mao_obra: maoObraItens,
-                dados_oficina: dadosOficina,
-                updated_at: new Date()
-            }, { onConflict: 'user_id' });
-
-        if (error) throw error;
-        
-        atualizarStatusRedeVisual(true);
-        // Opcional: Descomente a linha abaixo se quiser um aviso de sucesso ao salvar
-        // if (!silencioso) mostrarToast("Sincronizado com a nuvem!", "sucesso");
-
-    } catch(e) {
-        console.error("Falha de rede ao tentar sincronizar:", e);
-        atualizarStatusRedeVisual(false);
-        if (!silencioso) {
-            mostrarToast("Sem ligação. Alterações salvas localmente!", "aviso");
-        }
-    }
-}
-
     function salvarFallbackLocal() {
         if (!usuarioAtualId) return;
         localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
@@ -525,10 +480,44 @@ async function salvarNoBanco(silencioso = false) {
         }));
     }
 
-            if (!usuarioAtualId) return;
+    async function salvarNoBanco(silencioso = false) {
+        if (!usuarioAtualId) return;
+        salvarFallbackLocal();
+        try {
+            const { error } = await supabaseClient
+                .from('user_data')
+                .upsert({
+                    user_id: usuarioAtualId,
+                    materiais: materiais,
+                    historico: historico,
+                    clientes: clientes,
+                    mao_obra: maoObraItens,
+                    dados_oficina: dadosOficina,
+                    updated_at: new Date()
+                }, { onConflict: 'user_id' });
+        } catch(e) {
+            console.error("Falha de rede ao tentar sincronizar:", e);
+        }
+    }
 
-
-
+    function abrirModalOficina() { 
+        atualizarInputsOficina();
+        document.getElementById('modalOficina').style.display='flex'; 
+    }
+    
+    function fecharModalOficina() { document.getElementById('modalOficina').style.display='none'; }
+    
+    function processarNovaLogo(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            dadosOficina.logoBase64 = e.target.result;
+            const preview = document.getElementById('previewLogoModal');
+            if(preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
 
     function atualizarLogoHeader() {
         const container = document.getElementById('headerLogoContainer');
@@ -634,7 +623,7 @@ async function salvarNoBanco(silencioso = false) {
             });
 
             if (error) {
-                mostrarToast("Erro ao cadastrar: " + error.message, " erro ");
+                mostrarToast("Erro ao cadastrar: " + error.message, "erro");
                 return;
             }
 
@@ -1396,43 +1385,7 @@ async function enviarWhatsAppHistorico(index) {
 
     function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
 
-    // =================================================================
-    // PASSO 3: FUNÇÕES DE MONITORIZAÇÃO DA REDE (PWA)
-    // =================================================================
-    function atualizarStatusRedeVisual(online) {
-        const indicador = document.getElementById('status-rede');
-        if (!indicador) return;
-        
-        if (online) {
-            indicador.innerHTML = "🟢 Online";
-            indicador.style.background = "#16a34a"; // Verde
-        } else {
-            indicador.innerHTML = "🔴 Offline";
-            indicador.style.background = "#dc2626"; // Vermelho
-        }
-    }
-
-    window.addEventListener('online', async () => {
-        atualizarStatusRedeVisual(true);
-        mostrarToast("Ligação restabelecida! A sincronizar dados...", "sucesso");
-        if (typeof salvarNoBanco === "function") {
-            await salvarNoBanco(true);
-        }
-    });
-
-    window.addEventListener('offline', () => {
-        atualizarStatusRedeVisual(false);
-        mostrarToast("Ficou sem internet. O modo offline está ativo!", "aviso");
-    });
-
-    // =================================================================
-    // INICIALIZAÇÃO DO SISTEMA (UNIFICADO: SEU LOGIN + STATUS DA REDE)
-    // =================================================================
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Ativa o indicador visual da internet (Passo 3)
-        atualizarStatusRedeVisual(navigator.onLine);
-
-        // 2. O seu código original que faz o Login funcionar (Preservado)
         toggleTab('login');
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && session.user) {
@@ -1448,9 +1401,52 @@ async function enviarWhatsAppHistorico(index) {
         });
     });
 
-</script>
-</body>
-</html>
+
+    async function alterarStatus(index, novoStatus) {
+    if (historico[index]) {
+        historico[index].status = novoStatus;
+        renderHistorico(); // Atualiza o visual e as cores imediatamente
+        await salvarNoBanco(); // Sincroniza com o Supabase
+    }
+}
+
+function mostrarToast(mensagem, tipo = 'sucesso') {
+    // 1. Verifica se o container já existe no body, se não, cria-o
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    // 2. Cria o elemento do Toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    
+    // 3. Define o emoji correto para cada situação
+    let icone = '✅';
+    if (tipo === 'erro') icone = '❌';
+    if (tipo === 'aviso') icone = '⚠️';
+
+    toast.innerHTML = `<span>${icone}</span> <span>${mensagem}</span>`;
+    
+    // 4. Adiciona ao ecrã
+    container.appendChild(toast);
+
+    // 5. Pequeno delay para ativar a animação do CSS
+    setTimeout(() => {
+        toast.classList.add('toast-ativo');
+    }, 10);
+
+    // 6. Remove o toast após 3.5 segundos (com efeito de fecho)
+    setTimeout(() => {
+        toast.classList.remove('toast-ativo');
+        // Espera a animação de fade-out terminar para apagar do HTML
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3500);
+}
 
 </script>
 </body>
