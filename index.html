@@ -282,21 +282,23 @@
                     <button class="btn-green" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
                     <button class="btn-primary" onclick="gerarPDFdoResumo()">📄 Gerar PDF</button>
                 </div>
-
-                <div class="main-layout">
-                    <div class="aba-container">
-                        <div id="aba-materiais">
-                           <div class="categorias-materiais" id="botoesCategorias"></div>
-                                <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
-                                <button onclick="filtrarCategoria('Primer')">Primer</button>
-                                <button onclick="filtrarCategoria('Tintas')">Tintas</button>
-                                <button onclick="filtrarCategoria('Verniz')">Verniz</button>
-                                <button onclick="filtrarCategoria('Massa')">Massa</button>
-                                <button onclick="filtrarCategoria('Thinner')">Thinner</button>
-                                <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
-                            </div>
-                            <div class="cards" id="lista"></div>
-                        </div>
+<div class="main-layout">
+    <div class="aba-container">
+        
+        <div id="aba-materiais">
+    <div class="categorias-materiais" id="botoesCategorias">
+        <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
+        <button onclick="filtrarCategoria('Primer')">Primer</button>
+        <button onclick="filtrarCategoria('Tintas')">Tintas</button>
+        <button onclick="filtrarCategoria('Verniz')">Verniz</button>
+        <button onclick="filtrarCategoria('Massa')">Massa</button>
+        <button onclick="filtrarCategoria('Thinner')">Thinner</button>
+        <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+    </div>
+    
+        <div class="cards" id="lista"></div>
+           </div>
+        
 
                         <div id="aba-maoobra" style="display:none">
                             <h2>Mão de Obra</h2>
