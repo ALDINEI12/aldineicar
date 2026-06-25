@@ -555,6 +555,7 @@
     atualizarLogoHeader
     if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
     renderCategoriasETelas(); 
+    configurarResumoPorProfissao();
     render();
     renderMaoObra();
     renderHistorico();
@@ -696,6 +697,8 @@ async function salvarNoBanco(silencioso = false) {
     fecharModalOficina();
     renderCategoriasETelas(); // <-- ADICIONE AQUI
     render();
+    configurarResumoPorProfissao(); // <-- ADICIONE ESTAS DUAS LINHAS SE NÃO HOUVER
+    if(typeof renderCategoriasETelas === 'function') renderCategoriasETelas();
     alert("Configurações profissionais salvas com sucesso!");
     await salvarNoBanco();
 }
@@ -1540,6 +1543,57 @@ async function enviarWhatsAppHistorico(index) {
             }
         });
     });
+
+    function configurarResumoPorProfissao() {
+    const prof = dadosOficina.profissao || 'pintor';
+    
+    // Captura os inputs do painel de resumo
+    const inModelo = document.getElementById('veiculoModelo');
+    const inPlaca = document.getElementById('veiculoPlaca');
+    const inAno = document.getElementById('veiculoAno');
+    const inCor = document.getElementById('veiculoCor');
+
+    if (!inModelo || !inPlaca || !inAno || !inCor) return;
+
+    // Captura as etiquetas (labels) que ficam logo acima de cada input
+    const lblModelo = inModelo.previousElementSibling;
+    const lblPlaca = inPlaca.previousElementSibling;
+    const lblAno = inAno.previousElementSibling;
+    const lblCor = inCor.previousElementSibling;
+
+    // Customização de acordo com a área selecionada
+    if (prof === 'mecanico') {
+        if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
+        if(inModelo)  inModelo.placeholder = "Ex: Civic 2.0 EXL";
+        
+        if(lblPlaca)  lblPlaca.innerText = "PLACA";
+        if(inPlaca)   inPlaca.placeholder = "Ex: ABC-1234";
+        
+        if(lblCor)    lblCor.innerText = "QUILOMETRAGEM (KM)";
+        if(inCor)     { inCor.placeholder = "Ex: 85.000 KM"; inCor.type = "text"; }
+
+    } else if (prof === 'eletricista') {
+        if(lblModelo) lblModelo.innerText = "MODELO / EQUIPAMENTO";
+        if(inModelo)  inModelo.placeholder = "Ex: Gol G7 ou Painel Inversor";
+        
+        if(lblPlaca)  lblPlaca.innerText = "PLACA / Nº SÉRIE";
+        if(inPlaca)   inPlaca.placeholder = "Ex: KGO-4J12 ou SN-99281";
+        
+        if(lblCor)    lblCor.innerText = "SINTOMA / OBSERVAÇÃO";
+        if(inCor)     { inCor.placeholder = "Ex: Falha na partida / Pane elétrica"; inCor.type = "text"; }
+
+    } else { 
+        // Padrão para Pintor, Funileiro e Chapista
+        if(lblModelo) lblModelo.innerText = "MODELO DO VEÍCULO";
+        if(inModelo)  inModelo.placeholder = "Ex: Hyundai HB20";
+        
+        if(lblPlaca)  lblPlaca.innerText = "PLACA";
+        if(inPlaca)   inPlaca.placeholder = "Ex: BRA-2S24";
+        
+        if(lblCor)    lblCor.innerText = "COR DO VEÍCULO / CÓDIGO";
+        if(inCor)     { inCor.placeholder = "Ex: Vermelho Porsche / M7Z"; inCor.type = "text"; }
+    }
+}
 
 
     async function alterarStatus(index, novoStatus) {
