@@ -1561,37 +1561,37 @@ async function enviarWhatsAppHistorico(index) {
     const lblAno = inAno.previousElementSibling;
     const lblCor = inCor.previousElementSibling;
 
-    // Customização de acordo com a área selecionada
+    // Customização de acordo com a área selecionada (Apenas a palavra direta)
     if (prof === 'mecanico') {
         if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
-        if(inModelo)  inModelo.placeholder = "Ex: Civic 2.0 EXL";
+        if(inModelo)  inModelo.placeholder = "Modelo / Motorização";
         
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
-        if(inPlaca)   inPlaca.placeholder = "Ex: ABC-1234";
+        if(inPlaca)   inPlaca.placeholder = "Placa";
         
         if(lblCor)    lblCor.innerText = "QUILOMETRAGEM (KM)";
-        if(inCor)     { inCor.placeholder = "Ex: 85.000 KM"; inCor.type = "text"; }
+        if(inCor)     { inCor.placeholder = "Quilometragem (KM)"; inCor.type = "text"; }
 
     } else if (prof === 'eletricista') {
         if(lblModelo) lblModelo.innerText = "EQUIPAMENTO";
-        if(inModelo)  inModelo.placeholder = "Ex: Painel Inversor";
+        if(inModelo)  inModelo.placeholder = "Equipamento";
         
-        if(lblPlaca)  lblPlaca.innerText = " Nº SÉRIE";
-        if(inPlaca)   inPlaca.placeholder = "Ex: SN-99281";
+        if(lblPlaca)  lblPlaca.innerText = "Nº SÉRIE";
+        if(inPlaca)   inPlaca.placeholder = "Nº Série";
         
         if(lblCor)    lblCor.innerText = "OBSERVAÇÃO";
-        if(inCor)     { inCor.placeholder = "Ex: Pane elétrica"; inCor.type = "text"; }
+        if(inCor)     { inCor.placeholder = "Observação"; inCor.type = "text"; }
 
     } else { 
         // Padrão para Pintor, Funileiro e Chapista
         if(lblModelo) lblModelo.innerText = "MODELO DO VEÍCULO";
-        if(inModelo)  inModelo.placeholder = "Ex: Hyundai HB20";
+        if(inModelo)  inModelo.placeholder = "Modelo do Veículo";
         
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
-        if(inPlaca)   inPlaca.placeholder = "Ex: BRA-2S24";
+        if(inPlaca)   inPlaca.placeholder = "Placa";
         
         if(lblCor)    lblCor.innerText = "COR DO VEÍCULO / CÓDIGO";
-        if(inCor)     { inCor.placeholder = "Ex: Vermelho Porsche / M7Z"; inCor.type = "text"; }
+        if(inCor)     { inCor.placeholder = "Cor do Veículo / Código"; inCor.type = "text"; }
     }
 }
 
