@@ -385,7 +385,7 @@
             <select id="oficinaProfissao" style="background:#2d2d2d; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:6px;">
             <option value="pintor">🎨 Pintura Automotiva</option>
             <option value="mecanico">🔧 Mecânica Geral</option>
-            <option value="eletricista">⚡ Elétrica (Auto ou Geral)</option>
+            <option value="eletricista">⚡ Elétrica (Construção)</option>
             <option value="funileiro">🔨 Funilaria / Chapista</option>
             </select>
             
@@ -467,7 +467,7 @@
     },
     eletricista: {
         nome: "Elétrica Profissional",
-        labelSecao: "VEÍCULO / EQUIPAMENTO",
+        labelSecao: "EQUIPAMENTO",
         categorias: ['Todos', 'Fiação', 'Fusíveis/Relés', 'Iluminação', 'Conectores', 'Isolantes'],
         materiais: [
             {nome:'Fita Isolante 20m',valor:12,qtd:0,cat:'Isolantes'},
@@ -1573,14 +1573,14 @@ async function enviarWhatsAppHistorico(index) {
         if(inCor)     { inCor.placeholder = "Ex: 85.000 KM"; inCor.type = "text"; }
 
     } else if (prof === 'eletricista') {
-        if(lblModelo) lblModelo.innerText = "MODELO / EQUIPAMENTO";
-        if(inModelo)  inModelo.placeholder = "Ex: Gol G7 ou Painel Inversor";
+        if(lblModelo) lblModelo.innerText = "EQUIPAMENTO";
+        if(inModelo)  inModelo.placeholder = "Ex: Painel Inversor";
         
-        if(lblPlaca)  lblPlaca.innerText = "PLACA / Nº SÉRIE";
-        if(inPlaca)   inPlaca.placeholder = "Ex: KGO-4J12 ou SN-99281";
+        if(lblPlaca)  lblPlaca.innerText = " Nº SÉRIE";
+        if(inPlaca)   inPlaca.placeholder = "Ex: SN-99281";
         
-        if(lblCor)    lblCor.innerText = "SINTOMA / OBSERVAÇÃO";
-        if(inCor)     { inCor.placeholder = "Ex: Falha na partida / Pane elétrica"; inCor.type = "text"; }
+        if(lblCor)    lblCor.innerText = "OBSERVAÇÃO";
+        if(inCor)     { inCor.placeholder = "Ex: Pane elétrica"; inCor.type = "text"; }
 
     } else { 
         // Padrão para Pintor, Funileiro e Chapista
