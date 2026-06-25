@@ -286,7 +286,7 @@
                 <div class="main-layout">
                     <div class="aba-container">
                         <div id="aba-materiais">
-                            <div class="categorias-materiais">
+                           <div class="categorias-materiais" id="botoesCategorias"></div>
                                 <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
                                 <button onclick="filtrarCategoria('Primer')">Primer</button>
                                 <button onclick="filtrarCategoria('Tintas')">Tintas</button>
@@ -378,6 +378,14 @@
     <div class="modal" id="modalOficina">
         <div class="modal-content">
             <h2>Dados da Minha Oficina</h2>
+
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">RAMO DE ATUAÇÃO / ESPECIALIDADE</label>
+            <select id="oficinaProfissao" style="background:#2d2d2d; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:6px;">
+            <option value="pintor">🎨 Pintura Automotiva</option>
+            <option value="mecanico">🔧 Mecânica Geral</option>
+            <option value="eletricista">⚡ Elétrica (Auto ou Geral)</option>
+            <option value="funileiro">🔨 Funilaria / Chapista</option>
+            </select>
             
             <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
             <input type="file" id="oficinaLogoFile" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
@@ -418,9 +426,67 @@
     let historico = [];
     let clientes = []; 
     let maoObraItens = [];
-    let dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
+    let dadosOficina = { 
+    nome: 'ALDINEICAR', 
+    cnpj: '', 
+    end: '', 
+    cep: '', 
+    fone: '', 
+    email: '', 
+    pix: '', 
+    logoBase64: '',
+    profissao: 'pintor' // Nova chave padrão
+};
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
+
+    const configuracoesProfissoes = {
+    pintor: {
+        nome: "Pintura Automotiva",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Primer', 'Tintas', 'Verniz', 'Massa', 'Thinner', 'Acessórios'],
+        materiais: [
+            {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
+            {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
+            {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
+            {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
+        ]
+    },
+    mecanico: {
+        nome: "Mecânica Geral",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Óleos/Fluidos', 'Filtros', 'Suspensão', 'Freios', 'Motor', 'Peças'],
+        materiais: [
+            {nome:'Óleo Motor 5W30 (Litro)',valor:45,qtd:0,cat:'Óleos/Fluidos'},
+            {nome:'Filtro de Óleo',valor:35,qtd:0,cat:'Filtros'},
+            {nome:'Jogo de Pastilhas de Freio',valor:120,qtd:0,cat:'Freios'},
+            {nome:'Vela de Ignição',valor:25,qtd:0,cat:'Motor'}
+        ]
+    },
+    eletricista: {
+        nome: "Elétrica Profissional",
+        labelSecao: "VEÍCULO / EQUIPAMENTO",
+        categorias: ['Todos', 'Fiação', 'Fusíveis/Relés', 'Iluminação', 'Conectores', 'Isolantes'],
+        materiais: [
+            {nome:'Fita Isolante 20m',valor:12,qtd:0,cat:'Isolantes'},
+            {nome:'Fusível Lâmina 10A',valor:1.50,qtd:0,cat:'Fusíveis/Relés'},
+            {nome:'Relé Auxiliar 4 Pinos',valor:22,qtd:0,cat:'Fusíveis/Relés'},
+            {nome:'Fio Flexível 2.5mm (Metro)',valor:4,qtd:0,cat:'Fiação'},
+            {nome:'Lâmpada H7 Halógena',valor:35,qtd:0,cat:'Iluminação'}
+        ]
+    },
+    funileiro: {
+        nome: "Funilaria e Chaparia",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Chaparia', 'Solda', 'Abrasivos', 'Massas', 'Ferramentas'],
+        materiais: [
+            {nome:'Chapa de Aço Galv.',valor:80,qtd:0,cat:'Chaparia'},
+            {nome:'Arame p/ Solda MIG (Kg)',valor:45,qtd:0,cat:'Solda'},
+            {nome:'Disco de Corte 4.5',valor:7,qtd:0,cat:'Abrasivos'},
+            {nome:'Massa Plástica',valor:18,qtd:0,cat:'Massas'}
+        ]
+    }
+};
 
     const materiaisPadrao = [
         {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
@@ -484,7 +550,9 @@
     }
 
     atualizarInputsOficina();
-    atualizarLogoHeader();
+    atualizarLogoHeader
+    if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
+    renderCategoriasETelas(); 
     render();
     renderMaoObra();
     renderHistorico();
@@ -589,6 +657,8 @@ async function salvarNoBanco(silencioso = false) {
         document.getElementById('oficinaFone').value = dadosOficina.fone || '';
         document.getElementById('oficinaEmail').value = dadosOficina.email || '';
         document.getElementById('oficinaPix').value = dadosOficina.pix || '';
+        document.getElementById('oficinaNome').value = dadosOficina.nome || 'ALDINEICAR';
+        document.getElementById('oficinaProfissao').value = dadosOficina.profissao || 'pintor'; // <-- ADICIONE AQUI
         
         const preview = document.getElementById('previewLogoModal');
         if (dadosOficina.logoBase64 && preview) {
@@ -599,18 +669,34 @@ async function salvarNoBanco(silencioso = false) {
     }
 
     async function salvarDadosOficina() {
-        dadosOficina.nome = document.getElementById('oficinaNome').value;
-        dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
-        dadosOficina.end = document.getElementById('oficinaEnd').value;
-        dadosOficina.cep = document.getElementById('oficinaCep').value;
-        dadosOficina.fone = document.getElementById('oficinaFone').value;
-        dadosOficina.email = document.getElementById('oficinaEmail').value;
-        dadosOficina.pix = document.getElementById('oficinaPix').value;
-        atualizarLogoHeader();
-        fecharModalOficina();
-        mostrarToast("Informações da oficina salvas!");
-        await salvarNoBanco();
+    const profissaoAnterior = dadosOficina.profissao || 'pintor';
+    const novaProfissao = document.getElementById('oficinaProfissao').value;
+
+    dadosOficina.nome = document.getElementById('oficinaNome').value;
+    dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
+    dadosOficina.end = document.getElementById('oficinaEnd').value;
+    dadosOficina.cep = document.getElementById('oficinaCep').value;
+    dadosOficina.fone = document.getElementById('oficinaFone').value;
+    dadosOficina.email = document.getElementById('oficinaEmail').value;
+    dadosOficina.pix = document.getElementById('oficinaPix').value;
+    dadosOficina.profissao = novaProfissao; // <-- ADICIONE AQUI
+
+    // Se mudou de profissão, oferece os novos materiais padrões
+    if (profissaoAnterior !== novaProfissao) {
+        if (confirm("Você alterou o Ramo de Atuação! Deseja carregar a lista de materiais padrão recomendada para esta nova área? (Seus clientes e histórico guardados não serão perdidos)")) {
+            const config = configuracoesProfissoes[novaProfissao];
+            materiais = JSON.parse(JSON.stringify(config.materiais));
+            categoriaAtual = 'Todos';
+        }
     }
+
+    atualizarLogoHeader();
+    fecharModalOficina();
+    renderCategoriasETelas(); // <-- ADICIONE AQUI
+    render();
+    alert("Configurações profissionais salvas com sucesso!");
+    await salvarNoBanco();
+}
 
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
@@ -1527,6 +1613,41 @@ window.addEventListener('online', async () => {
         await carregarDadosDoUsuario(usuarioAtualId);
     }
 });
+
+function renderCategoriasETelas() {
+    const profAtual = dadosOficina.profissao || 'pintor';
+    const config = configuracoesProfissoes[profAtual] || configuracoesProfissoes.pintor;
+    
+    // 1. Atualizar a Label da Seção do Veículo/Equipamento no Resumo Lateral
+    const labels = document.querySelectorAll('label');
+    labels.forEach(lbl => {
+        if(lbl.innerText.includes("VEÍCULO")) {
+            lbl.innerText = config.labelSecao;
+        }
+    });
+
+    // 2. Renderizar botões de filtro de categoria
+    const containerBotoes = document.getElementById('botoesCategorias');
+    if (containerBotoes) {
+        containerBotoes.innerHTML = '';
+        config.categorias.forEach(cat => {
+            const isActive = cat === categoriaAtual;
+            const btnClass = cat === 'Todos' ? 'btn-green' : (isActive ? 'active' : '');
+            containerBotoes.innerHTML += `<button onclick="filtrarCategoria('${cat}')" class="${btnClass}">${cat}</button>`;
+        });
+    }
+
+    // 3. Atualizar as opções do Modal de Criar Material Novo de forma condicional
+    const selectModalCat = document.getElementById('categoriaMaterial');
+    if (selectModalCat) {
+        selectModalCat.innerHTML = '';
+        config.categorias.forEach(cat => {
+            if (cat !== 'Todos') {
+                selectModalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+            }
+        });
+    }
+}
 
 </script>
 </body>
