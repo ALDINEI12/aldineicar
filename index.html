@@ -221,6 +221,61 @@
 .toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
 .toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
 
+
+/* Botão de alternar a logística */
+.btn-logistica-toggle {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-logistica-toggle:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+/* Estado quando a aba estiver aberta */
+.btn-logistica-toggle.ativo {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+/* Alinhamento dos 3 inputs na mesma linha */
+.row-inputs-logistica {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.row-inputs-logistica .form-group {
+    flex: 1;
+}
+
+/* Linha de resultado */
+.linha-custo {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.valor-vermelho {
+    color: #ef4444;
+    font-weight: bold;
+}
+
     </style>
 </head>
 <body>
@@ -362,41 +417,46 @@
     <div>
     <label style="font-size:11px; font-weight:bold; color:#64748b; display:block; margin-bottom:4px;">COR DO VEÍCULO / CÓDIGO</label>
     <input type="text" id="veiculoCor" placeholder="Ex: Preto Phanton" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px;">
+<!-- 1. O campo EQUIPAMENTO foi removido daqui conforme solicitado -->
+
+<!-- Botão Moderno para Abrir/Fechar a Logística -->
+<div style="margin: 15px 0;">
+    <button type="button" id="btn-toggle-logistica" class="btn-logistica-toggle" onclick="toggleLogistica()">
+        🚗 Adicionar Logística de Transporte
+    </button>
 </div>
-<div id="grupo-deslocamento" style="display: none; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-    <label style="font-weight: bold; font-size: 12px; color: #334155; display: block; margin-bottom: 8px;">
-        ⛽ LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)
-    </label>
+
+<!-- Container da Logística (Inicia escondido) -->
+<div id="container-logistica" class="grupo-deslocamento" style="display: none;">
     
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 80px;">
-            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Dias de Trabalho</label>
-            <input type="number" id="deslocamentoDias" value="1" min="1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+    <h4 style="margin-top: 0; color: #1e293b;">📋 LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)</h4>
+    
+    <div class="row-inputs-logistica">
+        <div class="form-group">
+            <label>Dias de Trabalho</label>
+            <input type="number" id="dias-trabalho" value="15">
         </div>
         
-        <div style="flex: 1; min-width: 100px;">
-            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Preço Gasolina (R$)</label>
-            <input type="number" id="precoGasolina" step="0.01" value="6.00" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+        <div class="form-group">
+            <label>Preço Gasolina (R$)</label>
+            <input type="text" id="preco-gasolina" value="6,00">
         </div>
         
-        <div style="flex: 1; min-width: 90px;">
-            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Consumo (km/L)</label>
-            <input type="number" id="consumoCarro" value="10" min="1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+        <div class="form-group">
+            <label>Consumo (km/L)</label>
+            <input type="number" id="consumo-carro" value="10">
         </div>
     </div>
 
-    <input type="hidden" id="custoDeslocamento" value="0">
-    
-    <div style="margin-top: 12px; font-size: 12px; font-weight: bold; color: #0f172a; display: flex; flex-direction: column; gap: 4px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-        <div style="display: flex; justify-content: space-between;">
-            <span>Custo Estimado da Gasolina:</span>
-            <span id="txtCustoDeslocamento" style="color: #ef4444;">R$ 0,00</span>
+    <!-- Resumo de Custos (Apenas com o Custo Estimado da Gasolina) -->
+    <div class="resumo-valores-logistica">
+        <div class="linha-custo">
+            <strong>Custo Estimado da Gasolina:</strong>
+            <span class="valor-vermelho" id="custo-gasolina-txt">R$ 360,00</span>
         </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; margin-top: 4px; padding-top: 4px; font-size: 13px;">
-            <span>Sugestão de Preço (Mat+Mão de Obra+Transp):</span>
-            <span id="txtTotalSugeridoComDeslocamento" style="color: #22c55e;">R$ 0,00</span>
-        </div>
+        <!-- 2. O campo "Sugestão de Preço" foi removido daqui -->
     </div>
+    
 </div>
 
 
@@ -1850,6 +1910,27 @@ function renderCategoriasETelas() {
                 selectModalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
             }
         });
+    }
+}
+
+function toggleLogistica() {
+    const container = document.getElementById('container-logistica');
+    const botao = document.getElementById('btn-toggle-logistica');
+    
+    if (container.style.display === 'none') {
+        // Mostra o painel
+        container.style.display = 'block';
+        botao.innerHTML = '❌ Remover/Ocultar Logística';
+        botao.classList.add('ativo');
+    } else {
+        // Esconde o painel
+        container.style.display = 'none';
+        botao.innerHTML = '🚗 Adicionar Logística de Transporte';
+        botao.classList.remove('ativo');
+        
+        // Opcional: Se quiser zerar os valores ao fechar para não impactar o cálculo global
+        // document.getElementById('dias-trabalho').value = 0; 
+        // calcularTudo(); 
     }
 }
 
