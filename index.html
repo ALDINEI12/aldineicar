@@ -1150,8 +1150,8 @@ async function salvarNoBanco(silencioso = false) {
         } else if (profPDF === 'eletricista') {
             txtSecao = 'DADOS DA OBRA';
             txtPlaca = 'IDENTIFICAÇÃO';
-            txtModelo = 'LOCAL / TIPO DE OBRA';
-            txtAno = 'ANO';
+            txtModelo = 'EDIFÍCIO';  // Alterado conforme solicitado
+            txtAno = 'ÁREA m²';      // Alterado conforme solicitado
             txtCor = 'TIPO DE INSTALAÇÃO';
         }
         // ----------------------------------------------
@@ -1193,11 +1193,11 @@ async function salvarNoBanco(silencioso = false) {
         
         y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
 
-        // Seção principal adaptada (Ex: VEÍCULO ou DADOS DA OBRA)
+        // Seção principal adaptada
         doc.setFont('Helvetica', 'bold').setFontSize(11).text(txtSecao, 15, y).text('CLIENTE', 110, y);
         y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
 
-        // Linhas de detalhes com as etiquetas dinâmicas e sem exemplos
+        // Linhas de detalhes com as novas etiquetas
         doc.setFont('Helvetica', 'normal').setFontSize(9.5);
         doc.text(`${txtModelo}: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
         doc.text(`${txtPlaca}: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
@@ -1571,7 +1571,7 @@ async function enviarWhatsAppHistorico(index) {
 
     function configurarResumoPorProfissao() {
     const prof = dadosOficina.profissao || 'pintor';
-
+    
     const inModelo = document.getElementById('veiculoModelo');
     const inPlaca = document.getElementById('veiculoPlaca');
     const inAno = document.getElementById('veiculoAno');
@@ -1579,35 +1579,34 @@ async function enviarWhatsAppHistorico(index) {
 
     if (!inModelo || !inPlaca || !inAno || !inCor) return;
 
-
     const lblModelo = inModelo.previousElementSibling;
     const lblPlaca = inPlaca.previousElementSibling;
     const lblAno = inAno.previousElementSibling;
     const lblCor = inCor.previousElementSibling;
-    
 
     if (prof === 'mecanico') {
         if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
         if(inModelo)  inModelo.placeholder = "Modelo / Motorização";
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
         if(inPlaca)   inPlaca.placeholder = "Placa";
+        if(lblAno)    lblAno.innerText = "ANO";
+        if(inAno)     inAno.placeholder = "Ano";
         if(lblCor)    lblCor.innerText = "QUILOMETRAGEM (KM)";
         if(inCor)     { inCor.placeholder = "Quilometragem (KM)"; inCor.type = "text"; }
     } else if (prof === 'eletricista') {
-        // TERMOS DIRETOS PARA ELETRICISTA DE CONSTRUÇÃO / PREDIAL
-        if(lblModelo) lblModelo.innerText = "LOCAL / TIPO DE OBRA";
-        if(inModelo)  inModelo.placeholder = "Local / Tipo de Obra";
+        // AJUSTADO COM EDIFÍCIO E ÁREA M²
+        if(lblModelo) lblModelo.innerText = "EDIFÍCIO";
+        if(inModelo)  inModelo.placeholder = "Edifício";
         
         if(lblPlaca)  lblPlaca.innerText = "IDENTIFICAÇÃO / NÚMERO";
         if(inPlaca)   inPlaca.placeholder = "Identificação / Número";
         
-        if(lblAno)    lblAno.innerText = "ANO";
-        if(inAno)     inAno.placeholder = "Ano";
+        if(lblAno)    lblAno.innerText = "ÁREA m²";
+        if(inAno)     inAno.placeholder = "Área m²";
         
         if(lblCor)    lblCor.innerText = "TIPO DE INSTALAÇÃO";
         if(inCor)     { inCor.placeholder = "Tipo de Instalação"; inCor.type = "text"; }
     } else { 
-        // Padrão para Pintor, Funileiro e Chapista
         if(lblModelo) lblModelo.innerText = "MODELO DO VEÍCULO";
         if(inModelo)  inModelo.placeholder = "Modelo do Veículo";
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
@@ -1618,7 +1617,6 @@ async function enviarWhatsAppHistorico(index) {
         if(inCor)     { inCor.placeholder = "Cor do Veículo / Código"; inCor.type = "text"; }
     }
 }
-
 
 
     async function alterarStatus(index, novoStatus) {
