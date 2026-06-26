@@ -359,6 +359,46 @@
         </div> 
     </div>
 
+    <div>
+    <label style="font-size:11px; font-weight:bold; color:#64748b; display:block; margin-bottom:4px;">COR DO VEÍCULO / CÓDIGO</label>
+    <input type="text" id="veiculoCor" placeholder="Ex: Preto Phanton" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px;">
+</div>
+<div id="grupo-deslocamento" style="display: none; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+    <label style="font-weight: bold; font-size: 12px; color: #334155; display: block; margin-bottom: 8px;">
+        ⛽ LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)
+    </label>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 80px;">
+            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Dias de Trabalho</label>
+            <input type="number" id="deslocamentoDias" value="1" min="1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+        </div>
+        
+        <div style="flex: 1; min-width: 100px;">
+            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Preço Gasolina (R$)</label>
+            <input type="number" id="precoGasolina" step="0.01" value="6.00" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+        </div>
+        
+        <div style="flex: 1; min-width: 90px;">
+            <label style="font-size: 10px; font-weight: bold; color: #64748b; display: block; margin-bottom: 4px;">Consumo (km/L)</label>
+            <input type="number" id="consumoCarro" value="10" min="1" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" oninput="calcularDeslocamentoAutomatico()">
+        </div>
+    </div>
+
+    <input type="hidden" id="custoDeslocamento" value="0">
+    
+    <div style="margin-top: 12px; font-size: 12px; font-weight: bold; color: #0f172a; display: flex; flex-direction: column; gap: 4px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Custo Estimado da Gasolina:</span>
+            <span id="txtCustoDeslocamento" style="color: #ef4444;">R$ 0,00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; margin-top: 4px; padding-top: 4px; font-size: 13px;">
+            <span>Sugestão de Preço (Mat+Mão de Obra+Transp):</span>
+            <span id="txtTotalSugeridoComDeslocamento" style="color: #22c55e;">R$ 0,00</span>
+        </div>
+    </div>
+</div>
+
 
     <div id="grupo-deslocamento" style="display: none; margin-bottom: 15px;">
     <label style="font-weight: bold; font-size: 13px; color: #475569; display: block; margin-bottom: 5px;">
@@ -883,7 +923,42 @@ async function salvarNoBanco(silencioso = false) {
         });
     }
 
-   async function salvarOrcamento(){
+
+    function calcularDeslocamentoAutomatico() {
+    const dias = parseFloat(document.getElementById('deslocamentoDias').value) || 0;
+    const precoLitro = parseFloat(document.getElementById('precoGasolina').value) || 0;
+    const consumo = parseFloat(document.getElementById('consumoCarro').value) || 10;
+    
+    const kmPorDia = 40; // 20km de ida + 20km de volta fixos
+    
+    // Regra: (Dias * 40km) / consumo do veículo * preço do litro da gasolina
+    const litrosNecessarios = (dias * kmPorDia) / consumo;
+    const custoTotalTransporte = litrosNecessarios * precoLitro;
+    
+    // Atualiza o valor oculto que a função de salvar vai ler
+    const inputOculto = document.getElementById('custoDeslocamento');
+    if (inputOculto) inputOculto.value = custoTotalTransporte.toFixed(2);
+    
+    // Atualiza os textos informativos na tela
+    const txtVisual = document.getElementById('txtCustoDeslocamento');
+    if (txtVisual) txtVisual.innerText = `R$ ${custoTotalTransporte.toFixed(2)}`;
+    
+    // Coleta o que já está lançado de material e mão de obra na tela para sugerir o preço correto
+    let matTotal = 0;
+    let moTotal = 0;
+    if (typeof materiais !== 'undefined') {
+        matTotal = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+    }
+    if (typeof maoObraItens !== 'undefined') {
+        moTotal = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+    }
+    
+    const totalSugerido = matTotal + moTotal + custoTotalTransporte;
+    const txtSugerido = document.getElementById('txtTotalSugeridoComDeslocamento');
+    if (txtSugerido) txtSugerido.innerText = `R$ ${totalSugerido.toFixed(2)}`;
+}
+
+  async function salvarOrcamento(){
         const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
         const clienteEndereco = document.getElementById('clienteEndereco').value || '';
         const clienteTel = document.getElementById('clienteTel').value || '';
@@ -901,15 +976,13 @@ async function salvarNoBanco(silencioso = false) {
         let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
         let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         
-        // --- NOVO: PEGA O CUSTO DE DESLOCAMENTO SE FOR ELETRICISTA ---
+        // --- COLETANDO O CUSTO DO TRANSPORTE AUTOMÁTICO ---
         let custoDesloc = 0;
         const inputDesloc = document.getElementById('custoDeslocamento');
         const profAtual = dadosOficina.profissao || 'pintor';
-        
         if (inputDesloc && profAtual === 'eletricista') {
             custoDesloc = parseFloat(inputDesloc.value) || 0;
         }
-        // ------------------------------------------------------------
         
         const novoOrcamento = {
             data: new Date().toLocaleString('pt-BR'),
@@ -926,16 +999,15 @@ async function salvarNoBanco(silencioso = false) {
             materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
             mao_obra: [...maoObraItens],
             
-            // Salvando com os dois nomes para garantir compatibilidade total:
             totalMateriais: totalMateriais,
             totalMateriaisCalculado: totalMateriais,
             totalMaoObraCalculado: totalMaoObra,
             
-            // --- NOVO: SALVA O DESLOCAMENTO DENTRO DO ORÇAMENTO ---
+            // Atributo adicionado para guardar o valor gasto de combustível
             deslocamento: custoDesloc,
             
             totalCobrado: valorCobrado,
-            // O lucro agora abate o material E o custo de gasolina/deslocamento:
+            // O lucro real agora desconta o material E o custo estimado com transporte
             lucro: valorCobrado - totalMateriais - custoDesloc
         };
         
@@ -943,12 +1015,12 @@ async function salvarNoBanco(silencioso = false) {
         
         const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
         if(!clienteExiste && clienteNome !== 'Sem nome') {
-            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade, cidade: clienteCidade });
             renderClientes();
         }
         
         renderHistorico();
-        mostrarToast("Orçamento saved com sucesso no histórico!");
+        mostrarToast("Orçamento salvo com sucesso no histórico!");
         await salvarNoBanco();
 }
 
@@ -965,15 +1037,13 @@ async function salvarNoBanco(silencioso = false) {
             custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         }
 
-        // --- ADICIONADO: CAPTURA O CUSTO DE DESLOCAMENTO SALVO NO HISTÓRICO ---
+        // Recupera o valor de transporte guardado no histórico
         let custoDesloc = parseFloat(item.deslocamento) || 0;
-
         let valorCobrado = parseFloat(item.totalCobrado) || 0;
         
-        // O lucro real agora desconta o material E a gasolina gasta no deslocamento
+        // Lucro real readequado descontando a gasolina
         let lucroReal = valorCobrado - custoMat - custoDesloc;
 
-        // Identifica o status atual e define a classe CSS correta
         const statusAtual = item.status || 'Orçamento';
         let classeStatus = 'status-orcamento';
         if(statusAtual === 'Em Execução') classeStatus = 'status-execucao';
@@ -982,14 +1052,10 @@ async function salvarNoBanco(silencioso = false) {
 
         const profHist = dadosOficina.profissao || 'pintor';
         let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-        
-        // Linha extra que só vai aparecer na tela do histórico se houver valor de transporte
         let linhaDeslocamentoHTML = '';
 
         if (profHist === 'eletricista') {
-            // Alinha o histórico com os termos de construção: Edifício e Identificação
             detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-            
             if (custoDesloc > 0) {
                 linhaDeslocamentoHTML = `⛽ Deslocamento: R$ ${custoDesloc.toFixed(2)}<br>`;
             }
@@ -1000,7 +1066,6 @@ async function salvarNoBanco(silencioso = false) {
                 <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
                     <div>
                         <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
-                        
                         <strong>👤 Cliente: ${cliente.nome}</strong><br>
                         ${detalheObraOuVeiculo}<br>
                         🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
@@ -1009,7 +1074,7 @@ async function salvarNoBanco(silencioso = false) {
                         📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
                         🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
                         ${linhaDeslocamentoHTML}
-                        📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
+                        📈 Lucro Real: R$ ${lucroReal.toFixed(2)}<br><br>
                         
                         🕒 ${item.data || '---'}
                     </div>
@@ -1750,6 +1815,13 @@ function renderCategoriasETelas() {
     const profAtual = dadosOficina.profissao || 'pintor';
     const config = configuracoesProfissoes[profAtual] || configuracoesProfissoes.pintor;
     
+    // >>> LINHAS ADICIONADAS PARA CONTROLAR O PAINEL DE TRANSPORTE <<<
+    const divDeslocamento = document.getElementById('grupo-deslocamento');
+    if (divDeslocamento) {
+        divDeslocamento.style.display = (profAtual === 'eletricista') ? 'block' : 'none';
+    }
+    // -----------------------------------------------------------------
+
     // 1. Atualizar a Label da Seção do Veículo/Equipamento no Resumo Lateral
     const labels = document.querySelectorAll('label');
     labels.forEach(lbl => {
