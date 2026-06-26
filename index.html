@@ -359,6 +359,14 @@
         </div> 
     </div>
 
+
+    <div id="grupo-deslocamento" style="display: none; margin-bottom: 15px;">
+    <label style="font-weight: bold; font-size: 13px; color: #475569; display: block; margin-bottom: 5px;">
+        ⛽ CUSTO DE DESLOCAMENTO / GASOLINA (R$)
+    </label>
+    <input type="number" id="custoDeslocamento" placeholder="Ex: 150.00" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" oninput="calcularTotal">
+</div>
+
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2>Novo Material</h2>
@@ -893,6 +901,16 @@ async function salvarNoBanco(silencioso = false) {
         let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
         let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         
+        // --- NOVO: PEGA O CUSTO DE DESLOCAMENTO SE FOR ELETRICISTA ---
+        let custoDesloc = 0;
+        const inputDesloc = document.getElementById('custoDeslocamento');
+        const profAtual = dadosOficina.profissao || 'pintor';
+        
+        if (inputDesloc && profAtual === 'eletricista') {
+            custoDesloc = parseFloat(inputDesloc.value) || 0;
+        }
+        // ------------------------------------------------------------
+        
         const novoOrcamento = {
             data: new Date().toLocaleString('pt-BR'),
             status: 'Orçamento',
@@ -913,8 +931,12 @@ async function salvarNoBanco(silencioso = false) {
             totalMateriaisCalculado: totalMateriais,
             totalMaoObraCalculado: totalMaoObra,
             
+            // --- NOVO: SALVA O DESLOCAMENTO DENTRO DO ORÇAMENTO ---
+            deslocamento: custoDesloc,
+            
             totalCobrado: valorCobrado,
-            lucro: valorCobrado - totalMateriais
+            // O lucro agora abate o material E o custo de gasolina/deslocamento:
+            lucro: valorCobrado - totalMateriais - custoDesloc
         };
         
         historico.unshift(novoOrcamento);
@@ -928,7 +950,7 @@ async function salvarNoBanco(silencioso = false) {
         renderHistorico();
         mostrarToast("Orçamento saved com sucesso no histórico!");
         await salvarNoBanco();
-    }
+}
 
     function renderHistorico(){
     const h = document.getElementById('historicoLista');
@@ -943,8 +965,13 @@ async function salvarNoBanco(silencioso = false) {
             custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         }
 
+        // --- ADICIONADO: CAPTURA O CUSTO DE DESLOCAMENTO SALVO NO HISTÓRICO ---
+        let custoDesloc = parseFloat(item.deslocamento) || 0;
+
         let valorCobrado = parseFloat(item.totalCobrado) || 0;
-        let lucroReal = valorCobrado - custoMat;
+        
+        // O lucro real agora desconta o material E a gasolina gasta no deslocamento
+        let lucroReal = valorCobrado - custoMat - custoDesloc;
 
         // Identifica o status atual e define a classe CSS correta
         const statusAtual = item.status || 'Orçamento';
@@ -953,53 +980,56 @@ async function salvarNoBanco(silencioso = false) {
         if(statusAtual === 'Pronto') classeStatus = 'status-pronto';
         if(statusAtual === 'Pago') classeStatus = 'status-pago';
 
-
-
-
+        const profHist = dadosOficina.profissao || 'pintor';
+        let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
         
-      const profHist = dadosOficina.profissao || 'pintor';
-let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
+        // Linha extra que só vai aparecer na tela do histórico se houver valor de transporte
+        let linhaDeslocamentoHTML = '';
 
-if (profHist === 'eletricista') {
-    // Alinha o histórico com os termos de construção: Edifício e Identificação
-    detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-}
-// ---------------------------------------------------------------
-
-h.innerHTML += `
-    <div class="cliente-item">
-        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
-            <div>
-                <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
-                
-                <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                ${detalheObraOuVeiculo}<br>
-                🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
-                
-                💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
-                📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
-                🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
-                📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
-                
-                🕒 ${item.data || '---'}
-            </div>
+        if (profHist === 'eletricista') {
+            // Alinha o histórico com os termos de construção: Edifício e Identificação
+            detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
             
-            <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
-                <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
-                <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
-                    <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
-                    <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
-                    <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
-                    <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
-                </select>
-                <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
-                <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
-                <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
-                <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
-                <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+            if (custoDesloc > 0) {
+                linhaDeslocamentoHTML = `⛽ Deslocamento: R$ ${custoDesloc.toFixed(2)}<br>`;
+            }
+        }
+
+        h.innerHTML += `
+            <div class="cliente-item">
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
+                    <div>
+                        <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
+                        
+                        <strong>👤 Cliente: ${cliente.nome}</strong><br>
+                        ${detalheObraOuVeiculo}<br>
+                        🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
+                        
+                        💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
+                        📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
+                        🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
+                        ${linhaDeslocamentoHTML}
+                        📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
+                        
+                        🕒 ${item.data || '---'}
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
+                        <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
+                        <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
+                            <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
+                            <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
+                            <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
+                            <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
+                        </select>
+                        <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
+                        <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
+                        <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                        <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
+                        <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
         `;
     });
 }
@@ -1582,13 +1612,23 @@ async function enviarWhatsAppHistorico(index) {
         });
     });
 
-    function configurarResumoPorProfissao() {
+   function configurarResumoPorProfissao() {
     const prof = dadosOficina.profissao || 'pintor';
+    const divDeslocamento = document.getElementById('grupo-deslocamento');
     
     const inModelo = document.getElementById('veiculoModelo');
     const inPlaca = document.getElementById('veiculoPlaca');
     const inAno = document.getElementById('veiculoAno');
     const inCor = document.getElementById('veiculoCor');
+
+    if (prof === 'eletricista') {
+        if(divDeslocamento) divDeslocamento.style.display = 'block'; // Mostra pro eletricista
+        // ... termos do eletricista
+    } else {
+        if(divDeslocamento) divDeslocamento.style.display = 'none';  // Esconde para os outros
+        // ... termos padrão
+    }
+
 
     if (!inModelo || !inPlaca || !inAno || !inCor) return;
 
