@@ -1133,6 +1133,29 @@ async function salvarNoBanco(silencioso = false) {
         const doc = new jsPDF('p', 'mm', 'a4');
         let y = 15;
 
+        // --- AJUSTE DINÂMICO DE TERMOS POR PROFISSÃO ---
+        const profPDF = dadosOficina.profissao || 'pintor';
+        let txtSecao = 'VEÍCULO';
+        let txtPlaca = 'PLACA';
+        let txtModelo = 'MODELO';
+        let txtAno = 'ANO';
+        let txtCor = 'COR';
+
+        if (profPDF === 'mecanico') {
+            txtSecao = 'VEÍCULO';
+            txtPlaca = 'PLACA';
+            txtModelo = 'MODELO / MOTORIZAÇÃO';
+            txtAno = 'ANO';
+            txtCor = 'QUILOMETRAGEM';
+        } else if (profPDF === 'eletricista') {
+            txtSecao = 'DADOS DA OBRA';
+            txtPlaca = 'IDENTIFICAÇÃO';
+            txtModelo = 'LOCAL / TIPO DE OBRA';
+            txtAno = 'ANO';
+            txtCor = 'TIPO DE INSTALAÇÃO';
+        }
+        // ----------------------------------------------
+
         if (dadosOficina.logoBase64) {
             try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
                 doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
@@ -1162,28 +1185,30 @@ async function salvarNoBanco(silencioso = false) {
         doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
         y += 15;
 
-        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        // Cabeçalho da tabela do topo adaptado
+        doc.setFontSize(9).setTextColor(100,100,100).text(txtPlaca, 25, y).text(txtModelo, 95, y).text('AVALIADOR', 155, y);
         y += 4;
         doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
         doc.text(placVeic || '---', 25, y).text(modVeic || '---', 95, y).text(avaliador || '---', 155, y);
         
         y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
 
-        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        // Seção principal adaptada (Ex: VEÍCULO ou DADOS DA OBRA)
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text(txtSecao, 15, y).text('CLIENTE', 110, y);
         y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
 
+        // Linhas de detalhes com as etiquetas dinâmicas e sem exemplos
         doc.setFont('Helvetica', 'normal').setFontSize(9.5);
-        doc.text(`MODELO: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
-        doc.text(`PLACA: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
-        doc.text(`ANO: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
-        doc.text(`COR: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
+        doc.text(`${txtModelo}: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`${txtPlaca}: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`${txtAno}: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
+        doc.text(`${txtCor}: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
         
-        // --- SEÇÃO DO TIPO DE SERVIÇO ADICIONADA AQUI ---
+        // --- SEÇÃO DO TIPO DE SERVIÇO ---
         y += 8;
         doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
         y += 4.5;
         doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
-        // ------------------------------------------------
 
         y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
         doc.setLineWidth(0.3).rect(65, y, 80, 16);
@@ -1198,7 +1223,7 @@ async function salvarNoBanco(silencioso = false) {
         doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
 
         doc.save(`orcamento_${nomeCli.replace(/\s+/g, '_')}.pdf`);
-    }
+}
 
     function gerarPDFdoResumo(){
         const nome = document.getElementById('clienteNome').value || 'Cliente';
@@ -1546,8 +1571,7 @@ async function enviarWhatsAppHistorico(index) {
 
     function configurarResumoPorProfissao() {
     const prof = dadosOficina.profissao || 'pintor';
-    
-    // Captura os inputs do painel de resumo
+
     const inModelo = document.getElementById('veiculoModelo');
     const inPlaca = document.getElementById('veiculoPlaca');
     const inAno = document.getElementById('veiculoAno');
@@ -1555,45 +1579,46 @@ async function enviarWhatsAppHistorico(index) {
 
     if (!inModelo || !inPlaca || !inAno || !inCor) return;
 
-    // Captura as etiquetas (labels) que ficam logo acima de cada input
+
     const lblModelo = inModelo.previousElementSibling;
     const lblPlaca = inPlaca.previousElementSibling;
     const lblAno = inAno.previousElementSibling;
     const lblCor = inCor.previousElementSibling;
+    
 
-    // Customização de acordo com a área selecionada (Apenas a palavra direta)
     if (prof === 'mecanico') {
         if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
         if(inModelo)  inModelo.placeholder = "Modelo / Motorização";
-        
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
         if(inPlaca)   inPlaca.placeholder = "Placa";
-        
         if(lblCor)    lblCor.innerText = "QUILOMETRAGEM (KM)";
         if(inCor)     { inCor.placeholder = "Quilometragem (KM)"; inCor.type = "text"; }
-
     } else if (prof === 'eletricista') {
-        if(lblModelo) lblModelo.innerText = "EQUIPAMENTO";
-        if(inModelo)  inModelo.placeholder = "Equipamento";
+        // TERMOS DIRETOS PARA ELETRICISTA DE CONSTRUÇÃO / PREDIAL
+        if(lblModelo) lblModelo.innerText = "LOCAL / TIPO DE OBRA";
+        if(inModelo)  inModelo.placeholder = "Local / Tipo de Obra";
         
-        if(lblPlaca)  lblPlaca.innerText = "Nº SÉRIE";
-        if(inPlaca)   inPlaca.placeholder = "Nº Série";
+        if(lblPlaca)  lblPlaca.innerText = "IDENTIFICAÇÃO / NÚMERO";
+        if(inPlaca)   inPlaca.placeholder = "Identificação / Número";
         
-        if(lblCor)    lblCor.innerText = "OBSERVAÇÃO";
-        if(inCor)     { inCor.placeholder = "Observação"; inCor.type = "text"; }
-
+        if(lblAno)    lblAno.innerText = "ANO";
+        if(inAno)     inAno.placeholder = "Ano";
+        
+        if(lblCor)    lblCor.innerText = "TIPO DE INSTALAÇÃO";
+        if(inCor)     { inCor.placeholder = "Tipo de Instalação"; inCor.type = "text"; }
     } else { 
         // Padrão para Pintor, Funileiro e Chapista
         if(lblModelo) lblModelo.innerText = "MODELO DO VEÍCULO";
         if(inModelo)  inModelo.placeholder = "Modelo do Veículo";
-        
         if(lblPlaca)  lblPlaca.innerText = "PLACA";
         if(inPlaca)   inPlaca.placeholder = "Placa";
-        
+        if(lblAno)    lblAno.innerText = "ANO";
+        if(inAno)     inAno.placeholder = "Ano";
         if(lblCor)    lblCor.innerText = "COR DO VEÍCULO / CÓDIGO";
         if(inCor)     { inCor.placeholder = "Cor do Veículo / Código"; inCor.type = "text"; }
     }
 }
+
 
 
     async function alterarStatus(index, novoStatus) {
