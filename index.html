@@ -221,61 +221,6 @@
 .toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
 .toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
 
-
-/* Botão de alternar a logística */
-.btn-logistica-toggle {
-    background-color: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-logistica-toggle:hover {
-    background-color: #e2e8f0;
-    border-color: #94a3b8;
-}
-
-/* Estado quando a aba estiver aberta */
-.btn-logistica-toggle.ativo {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border-color: #fca5a5;
-}
-
-/* Alinhamento dos 3 inputs na mesma linha */
-.row-inputs-logistica {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.row-inputs-logistica .form-group {
-    flex: 1;
-}
-
-/* Linha de resultado */
-.linha-custo {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-}
-
-.valor-vermelho {
-    color: #ef4444;
-    font-weight: bold;
-}
-
     </style>
 </head>
 <body>
@@ -319,19 +264,17 @@
 </header>
 
         <div class="container">
-           <div class="sidebar">
-            <div>
-            <h2>Menu</h2>
-          <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
-
-           <button onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
-           <button onclick="mostrarAba('materiais')">📦 Materiais</button>
-           <button onclick="mostrarAba('clientes')">👤 Clientes</button>
-           <button onclick="mostrarAba('historico')">📋 Histórico</button>
-           <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
-           </div>
-           <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
-           </div>
+            <div class="sidebar">
+                <div>
+                    <h2>Menu</h2>
+                    <button onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
+                    <button onclick="mostrarAba('materiais')">📦 Materiais</button>
+                    <button onclick="mostrarAba('clientes')">👤 Clientes</button>
+                    <button onclick="mostrarAba('historico')">📋 Histórico</button>
+                    <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
+                </div>
+                <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
+            </div>
 
             <div class="content">
                 <div class="top-actions">
@@ -356,20 +299,18 @@
         <div class="cards" id="lista"></div>
            </div>
         
+
                         <div id="aba-maoobra" style="display:none">
-    <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
-    
-    <div id="conteudo-mao-obra-real">
-        <div class="card" style="margin-bottom:20px; margin-top: 15px;">
-            <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-            <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-            <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
-                <span>＋</span> Adicionar Serviço
-            </button>
-        </div>
-        <div id="listaMaoObra"></div>
-    </div>
-                        
+                            <h2>Mão de Obra</h2>
+                            <div class="card" style="margin-bottom:20px; margin-top: 15px;">
+                                <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
+                                    <span>＋</span> Adicionar Serviço
+                                </button>
+                            </div>
+                            <div id="listaMaoObra"></div>
+                        </div>
 
                         <div id="aba-clientes" style="display:none">
                             <h2>Clientes Cadastrados</h2>
@@ -417,92 +358,6 @@
             </div> 
         </div> 
     </div>
-
-                        
-
-                        <div id="aba-clientes" style="display:none">
-                            <h2>Clientes Cadastrados</h2>
-                            <div class="clientes" id="listaClientes"></div>
-                        </div>
-
-                        <div id="aba-historico" style="display:none">
-                            <h2>Histórico de Orçamentos</h2>
-                            <div id="historicoLista" style="margin-top: 15px;"></div>
-                        </div>
-                    </div>
-
-                    <div class="resumo">
-                        <h2>Resumo</h2>
-                        <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
-                        <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        
-                        <label style="font-size:12px; font-weight:bold; color:#555;">CLIENTE</label>
-                        <input type="text" id="clienteNome" placeholder="Nome do cliente">
-                        <input type="text" id="clienteEndereco" placeholder="Endereço">
-                        <input type="text" id="clienteTel" placeholder="Telefone">
-                        <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátrio Dias/BA">
-                        
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">VEÍCULO</label>
-                        <input type="text" id="veiculoModelo" placeholder="Modelo (Ex: Palio)">
-                        <input type="text" id="veiculoPlaca" placeholder="Placa">
-                        <input type="text" id="veiculoAno" placeholder="Ano">
-                        <input type="text" id="veiculoCor" placeholder="Cor">
-                        <input type="text" id="nomeAvaliador" placeholder="Nome do Avaliador">
-                        <input type="text" id="tipoServico" placeholder="Tipo de Serviço (Ex: Pintura Geral)">
-
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">FINANCEIRO</label>
-                        <input type="number" id="valorCliente" placeholder="Valor total cobrado" oninput="atualizarResumo()">
-                        
-                        <div style="margin-top: 15px; font-weight: bold; font-size: 16px;">
-                            Lucro Real: <span style="color: #00a651;">R$ <span id="lucro">0.00</span></span>
-                        </div>
-                        <button class="btn-green" onclick="enviarWhatsApp()">📱 Enviar WhatsApp</button>
-                        <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
-                    </div>
-                </div>
-            </div> 
-        </div> 
-    </div>
-
-    <div>
-<!-- 1. O campo EQUIPAMENTO foi removido daqui conforme solicitado -->
-
-<!-- Botão Moderno para Abrir/Fechar a Logística -->
-<div style="margin: 15px 0;">
-    <button type="button" id="btn-toggle-logistica" class="btn-logistica-toggle" onclick="toggleLogistica()">
-        🚗 Adicionar Logística de Transporte
-    </button>
-</div>
-
-<!-- Container da Logística (Inicia escondido) -->
-
-    
-    <h4 style="margin-top: 0; color: #1e293b;">📋 LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)</h4>
-    
-    <div class="row-inputs-logistica">
-    <div class="form-group">
-        <label>Dias de Trabalho</label>
-        <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
-    </div>
-    
-    <div class="form-group">
-        <label>Preço Gasolina (R$)</label>
-        <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
-    </div>
-    
-    <div class="form-group">
-        <label>Consumo (km/L)</label>
-        <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
-    </div>
-   
-</div>
-
-
-
-</div>
 
     <div class="modal" id="modal">
         <div class="modal-content">
@@ -970,49 +825,20 @@ async function salvarNoBanco(silencioso = false) {
     async function mais(i){ materiais[i].qtd++; render(); await salvarNoBanco(); }
     async function menos(i){ if(materiais[i].qtd>0){ materiais[i].qtd--; render(); await salvarNoBanco(); } }
 
-   function atualizarResumo(){
-    let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
-    let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-    let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-    
-    // --- 1. CÁLCULO DA GASOLINA EM TEMPO REAL ---
-    let custoDeslocamento = 0;
-    const profAtual = dadosOficina.profissao || 'pintor';
+    function atualizarResumo(){
+        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+        let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
+        let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        let lucroReal = valorCobrado - totalMateriais;
 
-    if (profAtual === 'eletricista') {
-        const inputDias = document.getElementById('dias-trabalho');
-        const inputGasolina = document.getElementById('preco-gasolina');
-        const inputConsumo = document.getElementById('consumo-carro');
-        
-        if (inputDias && inputGasolina && inputConsumo) {
-            const dias = parseFloat(inputDias.value) || 0;
-            const precoGasolina = parseFloat(inputGasolina.value) || 0;
-            const consumo = parseFloat(inputConsumo.value) || 1; // Evita divisão por zero
-            
-            const kmDiario = 40; 
-            // Fórmula da logística
-            custoDeslocamento = ((kmDiario * dias) / consumo) * precoGasolina;
-        }
+        const tm = document.getElementById('totalMateriais');
+        const tmo = document.getElementById('totalMaoObra');
+        const l = document.getElementById('lucro');
 
-        // Atualiza aquele textinho vermelho de resumo dentro do painel de logística
-        const txtCustoGasolina = document.getElementById('custo-gasolina-txt');
-        if (txtCustoGasolina) {
-            txtCustoGasolina.innerText = `R$ ${custoDeslocamento.toFixed(2).replace('.', ',')}`;
-        }
+        if(tm) tm.innerText = totalMateriais.toFixed(2);
+        if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
+        if(l) l.innerText = lucroReal.toFixed(2);
     }
-
-    // --- 2. CÁLCULO DO LUCRO REAL (Descontando Material E Combustível) ---
-    let lucroReal = valorCobrado - totalMateriais - custoDeslocamento;
-
-    // --- 3. ATUALIZAÇÃO DOS CAMPOS NA TELA ---
-    const tm = document.getElementById('totalMateriais');
-    const tmo = document.getElementById('totalMaoObra');
-    const l = document.getElementById('lucro');
-
-    if(tm) tm.innerText = totalMateriais.toFixed(2);
-    if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
-    if(l) l.innerText = lucroReal.toFixed(2);
-}
 
     async function salvarMaterial(){
         const nome = document.getElementById('nomeMaterial').value;
@@ -1049,121 +875,62 @@ async function salvarNoBanco(silencioso = false) {
         });
     }
 
-
-    function calcularDeslocamentoAutomatico() {
-    const dias = parseFloat(document.getElementById('deslocamentoDias').value) || 0;
-    const precoLitro = parseFloat(document.getElementById('precoGasolina').value) || 0;
-    const consumo = parseFloat(document.getElementById('consumoCarro').value) || 10;
-    
-    const kmPorDia = 40; // 20km de ida + 20km de volta fixos
-    
-    // Regra: (Dias * 40km) / consumo do veículo * preço do litro da gasolina
-    const litrosNecessarios = (dias * kmPorDia) / consumo;
-    const custoTotalTransporte = litrosNecessarios * precoLitro;
-    
-    // Atualiza o valor oculto que a função de salvar vai ler
-    const inputOculto = document.getElementById('custoDeslocamento');
-    if (inputOculto) inputOculto.value = custoTotalTransporte.toFixed(2);
-    
-    // Atualiza os textos informativos na tela
-    const txtVisual = document.getElementById('txtCustoDeslocamento');
-    if (txtVisual) txtVisual.innerText = `R$ ${custoTotalTransporte.toFixed(2)}`;
-    
-    // Coleta o que já está lançado de material e mão de obra na tela para sugerir o preço correto
-    let matTotal = 0;
-    let moTotal = 0;
-    if (typeof materiais !== 'undefined') {
-        matTotal = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
-    }
-    if (typeof maoObraItens !== 'undefined') {
-        moTotal = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
-    }
-    
-    const totalSugerido = matTotal + moTotal + custoTotalTransporte;
-    const txtSugerido = document.getElementById('txtTotalSugeridoComDeslocamento');
-    if (txtSugerido) txtSugerido.innerText = `R$ ${totalSugerido.toFixed(2)}`;
-}
-
-async function salvarOrcamento(){
-    const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
-    const clienteEndereco = document.getElementById('clienteEndereco').value || '';
-    const clienteTel = document.getElementById('clienteTel').value || '';
-    const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
-    
-    const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
-    const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
-    const veiculoAno = document.getElementById('veiculoAno').value || '';
-    const veiculoCor = document.getElementById('veiculoCor').value || '';
-    const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-    const tipoServico = document.getElementById('tipoServico').value || '---';
-    
-    const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-    
-    let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
-    let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
-    
-    // --- COLETANDO O CUSTO DO TRANSPORTE AUTOMÁTICO BASEADO NOS 3 INPUTS ---
-    let custoDesloc = 0;
-    const profAtual = dadosOficina.profissao || 'pintor';
-    
-    if (profAtual === 'eletricista') {
-        const inputDias = document.getElementById('dias-trabalho');
-        const inputGasolina = document.getElementById('preco-gasolina');
-        const inputConsumo = document.getElementById('consumo-carro');
+   async function salvarOrcamento(){
+        const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
+        const clienteEndereco = document.getElementById('clienteEndereco').value || '';
+        const clienteTel = document.getElementById('clienteTel').value || '';
+        const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
         
-        if (inputDias && inputGasolina && inputConsumo) {
-            const dias = parseFloat(inputDias.value) || 0;
-            const precoGasolina = parseFloat(inputGasolina.value) || 0;
-            const consumo = parseFloat(inputConsumo.value) || 1; // Evita divisão por zero
+        const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
+        const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
+        const veiculoAno = document.getElementById('veiculoAno').value || '';
+        const veiculoCor = document.getElementById('veiculoCor').value || '';
+        const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
+        const tipoServico = document.getElementById('tipoServico').value || '---';
+        
+        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+        
+        let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+        let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+        
+        const novoOrcamento = {
+            data: new Date().toLocaleString('pt-BR'),
+            status: 'Orçamento',
+            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
+            veiculo: { 
+                modelo: veiculoModelo, 
+                placa: veiculoPlaca, 
+                ano: veiculoAno, 
+                cor: veiculoCor, 
+                avaliador: nomeAvaliador,
+                tipo_servico: tipoServico 
+            },
+            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
+            mao_obra: [...maoObraItens],
             
-            const kmDiario = 40; 
-            // Fórmula: (Quilometragem Total / Consumo) * Preço do Combustível
-            custoDesloc = ((kmDiario * dias) / consumo) * precoGasolina;
+            // Salvando com os dois nomes para garantir compatibilidade total:
+            totalMateriais: totalMateriais,
+            totalMateriaisCalculado: totalMateriais,
+            totalMaoObraCalculado: totalMaoObra,
+            
+            totalCobrado: valorCobrado,
+            lucro: valorCobrado - totalMateriais
+        };
+        
+        historico.unshift(novoOrcamento);
+        
+        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
+        if(!clienteExiste && clienteNome !== 'Sem nome') {
+            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade });
+            renderClientes();
         }
+        
+        renderHistorico();
+        mostrarToast("Orçamento saved com sucesso no histórico!");
+        await salvarNoBanco();
     }
-    
-    const novoOrcamento = {
-        data: new Date().toLocaleString('pt-BR'),
-        status: 'Orçamento',
-        cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
-        veiculo: { 
-            modelo: veiculoModelo, 
-            placa: veiculoPlaca, 
-            ano: veiculoAno, 
-            cor: veiculoCor, 
-            avaliador: nomeAvaliador,
-            tipo_servico: tipoServico 
-        },
-        materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
-        mao_obra: [...maoObraItens],
-        
-        totalMateriais: totalMateriais,
-        totalMateriaisCalculado: totalMateriais,
-        totalMaoObraCalculado: totalMaoObra,
-        
-        // Atributo guardando o valor calculado dinamicamente
-        deslocamento: custoDesloc,
-        
-        totalCobrado: valorCobrado,
-        // O lucro real agora desconta o material E o custo real calculado de transporte
-        lucro: valorCobrado - totalMateriais - custoDesloc
-    };
-    
-    historico.unshift(novoOrcamento);
-    
-    const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
-    if(!clienteExiste && clienteNome !== 'Sem nome') {
-        clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade, cidade: clienteCidade });
-        renderClientes();
-    }
-    
-    renderHistorico();
-    mostrarToast("Orçamento saved com sucesso no histórico!");
-    await salvarNoBanco();
-}
 
-
- function renderHistorico(){
+    function renderHistorico(){
     const h = document.getElementById('historicoLista');
     if(!h) return; h.innerHTML='';
     historico.forEach((item, index)=>{
@@ -1176,48 +943,34 @@ async function salvarOrcamento(){
             custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
         }
 
-        // Recupera o valor de transporte guardado no histórico
-        let custoDesloc = parseFloat(item.deslocamento) || 0;
         let valorCobrado = parseFloat(item.totalCobrado) || 0;
-        
-        // Lucro real readequado descontando a gasolina de forma segura
-        let lucroReal = valorCobrado - custoMat - custoDesloc;
+        let lucroReal = valorCobrado - custoMat;
 
+        // Identifica o status atual e define a classe CSS correta
         const statusAtual = item.status || 'Orçamento';
         let classeStatus = 'status-orcamento';
         if(statusAtual === 'Em Execução') classeStatus = 'status-execucao';
         if(statusAtual === 'Pronto') classeStatus = 'status-pronto';
         if(statusAtual === 'Pago') classeStatus = 'status-pago';
 
-        const profHist = dadosOficina.profissao || 'pintor';
-        let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-        let linhaDeslocamentoHTML = '';
-
-        if (profHist === 'eletricista') {
-            detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-            if (custoDesloc > 0) {
-                linhaDeslocamentoHTML = `⛽ Deslocamento: R$ ${custoDesloc.toFixed(2).replace('.', ',')}<br>`;
-            }
-        }
-
         h.innerHTML += `
             <div class="cliente-item">
                 <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
                     <div>
+                        <!-- Badge do Status -->
                         <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
+                        
                         <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                        ${detalheObraOuVeiculo}<br>
+                        🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})<br>
                         🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
-                        
-                        💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2).replace('.', ',')}<br>
-                        📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2).replace('.', ',')}<br>
-                        🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2).replace('.', ',')}<br>
-                        ${linhaDeslocamentoHTML}
-                        <strong style="color: ${lucroReal >= 0 ? '#16a34a' : '#dc2626'}">📈 Lucro Real: R$ ${lucroReal.toFixed(2).replace('.', ',')}</strong><br><br>
-                        
+                        💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2)}<br>
+                        📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2)}<br>
+                        🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2)}<br>
+                        📈 Lucro: R$ ${lucroReal.toFixed(2)}<br><br>
                         🕒 ${item.data || '---'}
                     </div>
                     
+                    <!-- Menu de Alteração de Status e Ações -->
                     <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
                         <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
                         <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
@@ -1816,23 +1569,13 @@ async function enviarWhatsAppHistorico(index) {
         });
     });
 
-   function configurarResumoPorProfissao() {
+    function configurarResumoPorProfissao() {
     const prof = dadosOficina.profissao || 'pintor';
-    const divDeslocamento = document.getElementById('grupo-deslocamento');
     
     const inModelo = document.getElementById('veiculoModelo');
     const inPlaca = document.getElementById('veiculoPlaca');
     const inAno = document.getElementById('veiculoAno');
     const inCor = document.getElementById('veiculoCor');
-
-    if (prof === 'eletricista') {
-        if(divDeslocamento) divDeslocamento.style.display = 'block'; // Mostra pro eletricista
-        // ... termos do eletricista
-    } else {
-        if(divDeslocamento) divDeslocamento.style.display = 'none';  // Esconde para os outros
-        // ... termos padrão
-    }
-
 
     if (!inModelo || !inPlaca || !inAno || !inCor) return;
 
@@ -1954,27 +1697,6 @@ function renderCategoriasETelas() {
     const profAtual = dadosOficina.profissao || 'pintor';
     const config = configuracoesProfissoes[profAtual] || configuracoesProfissoes.pintor;
     
-    // >>> CONTROLE EXCLUSIVO PARA O ELETRICISTA (SUBSTITUI MÃO DE OBRA POR LOGÍSTICA) <<<
-    const btnMenuMaoObra = document.getElementById('btn-menu-maoobra');
-    const tituloAbaMaoObra = document.getElementById('titulo-aba-maoobra');
-    const conteudoMaoObraReal = document.getElementById('conteudo-mao-obra-real');
-    const conteudoLogisticaEletricista = document.getElementById('conteudo-logistica-eletricista');
-
-    if (profAtual === 'eletricista') {
-        // Regra do Eletricista: Muda os textos e oculta a mão de obra tradicional
-        if (btnMenuMaoObra) btnMenuMaoObra.innerHTML = '⛽ Adicionar Logística';
-        if (tituloAbaMaoObra) tituloAbaMaoObra.innerText = 'Logística de Transporte';
-        if (conteudoMaoObraReal) conteudoMaoObraReal.style.display = 'none';
-        if (conteudoLogisticaEletricista) conteudoLogisticaEletricista.style.display = 'block';
-    } else {
-        // Outras profissões: Mantém o padrão de Mão de Obra original
-        if (btnMenuMaoObra) btnMenuMaoObra.innerHTML = '🔧 Mão de Obra';
-        if (tituloAbaMaoObra) tituloAbaMaoObra.innerText = 'Mão de Obra';
-        if (conteudoMaoObraReal) conteudoMaoObraReal.style.display = 'block';
-        if (conteudoLogisticaEletricista) conteudoLogisticaEletricista.style.display = 'none';
-    }
-    // ----------------------------------------------------------------------------------
-
     // 1. Atualizar a Label da Seção do Veículo/Equipamento no Resumo Lateral
     const labels = document.querySelectorAll('label');
     labels.forEach(lbl => {
@@ -2003,27 +1725,6 @@ function renderCategoriasETelas() {
                 selectModalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
             }
         });
-    }
-}
-
-function toggleLogistica() {
-    const container = document.getElementById('container-logistica');
-    const botao = document.getElementById('btn-toggle-logistica');
-    
-    if (container.style.display === 'none') {
-        // Mostra o painel
-        container.style.display = 'block';
-        botao.innerHTML = '❌ Remover/Ocultar Logística';
-        botao.classList.add('ativo');
-    } else {
-        // Esconde o painel
-        container.style.display = 'none';
-        botao.innerHTML = '🚗 Adicionar Logística de Transporte';
-        botao.classList.remove('ativo');
-        
-        // Opcional: Se quiser zerar os valores ao fechar para não impactar o cálculo global
-        // document.getElementById('dias-trabalho').value = 0; 
-        // calcularTudo(); 
     }
 }
 
