@@ -9,168 +9,81 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        
-        body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
-        
-        header { background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; }
-        .logo-container { height: 100%; display: flex; align-items: center; }
-        .logo-img { height: 42px; width: auto; object-fit: contain; }
-        .search { width:35%; padding:12px 18px; border-radius:12px; border: 1px solid #27272a; background: #18181b; color: white; font-size:14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search::placeholder { color: #71717a; }
-        .search:focus { outline: none; border-color: #f43f5e; background: #18181b; box-shadow: 0 0 0 1px #f43f5e; }
-        
-        .container { display:flex; min-height:calc(100vh - 72px); }
-        
-        /* Menu Lateral - Minimalista */
-        .sidebar { width: 260px; background: white; padding: 32px 20px; border-right: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 4px; }
-        .sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; color:#94a3b8; padding-left: 12px; font-weight: 700; }
-        .sidebar button { width:100%; padding:12px 14px; background: transparent; color:#64748b; border: none; border-radius: 10px; font-size:14px; font-weight: 600; cursor:pointer; text-align: left; transition: all 0.15s ease; display: flex; align-items: center; gap: 12px; }
-        .sidebar button:hover { background:#f8fafc; color:#0f172a; }
-        .sidebar button.active { background: #fff1f2; color: #e11d48; font-weight: 700; }
-        
-        /* Botão Sair Premium */
-        .sidebar .btn-logout { background: transparent; color: #f43f5e; border: none; text-align: center; font-weight: 700; margin-top: auto; justify-content: center; border: 1px solid #ffe4e6; background: #fff5f5; }
-        .sidebar .btn-logout:hover { background: #ffe4e6; color: #be123c; border-color: #fecdd3; }
-        
-        /* Área de Conteúdo Principal */
-        .content { flex:1; padding:40px; display: flex; flex-direction: column; gap: 32px; max-width: 1440px; margin: 0 auto; width: 100%; }
-        .top-actions { display:flex; gap:12px; flex-wrap:wrap; }
-        .top-actions button { padding:12px 24px; border:none; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
-        .top-actions button:hover { transform: translateY(-1px); }
-        
-        .btn-primary { background:#e11d48; color:white; }
-        .btn-primary:hover { background:#be123c; }
-        .btn-green { background:#10b981; color:white; }
-        .btn-green:hover { background:#059669; }
-        
-        .main-layout { display: flex; gap: 36px; align-items: flex-start; }
-        .aba-container { flex: 1; }
-        
-        /* Grid de Cards Elegantes */
-        .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:24px; }
-        .card { background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
-        .card:hover { border-color: #94a3b8; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); }
-        .card h3 { font-size: 14px; color: #334155; font-weight: 600; line-height: 1.5; margin-bottom: 8px; }
-        
-        .preco { color: #0f172a; font-size: 20px; font-weight: 700; margin: 12px 0; letter-spacing: -0.5px; }
-        .controls { display:flex; align-items:center; justify-content: space-between; background: #f8fafc; padding: 4px; border-radius: 30px; margin-top: auto; border: 1px solid #e2e8f0; }
-        .controls button { width:32px; height:32px; border:none; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; }
-        .controls button:active { transform: scale(0.9); }
-        .btn-plus { background:#0f172a; color:white; }
-        .btn-plus:hover { background: #1e293b; }
-        .btn-minus { background: white; color:#64748b; border: 1px solid #cbd5e1 !important; }
-        .btn-minus:hover { background: #f1f5f9; color: #0f172a; }
-        .qtd { font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
-        
-        /* Painel Lateral de Resumo */
-        .resumo { width: 380px; background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; position: sticky; top: 32px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02); }
-        .resumo h2 { font-size: 16px; font-weight: 700; margin-bottom: 24px; color:#0f172a; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
-        .resumo div { margin-bottom: 18px; font-size: 13px; color: #475569; font-weight: 600; }
-        .resumo input { width:100%; padding:11px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; font-size: 14px; color: #0f172a; transition: all 0.15s ease; background: #f8fafc; font-weight: 500; }
-        .resumo input:focus { outline: none; border-color: #0f172a; background: white; }
-        
-        .resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
-            background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155;
-        }
-        
-        .resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
-            background: #0f172a; color: white; padding: 20px; border-radius: 12px; margin-top: 24px; border: none; box-shadow: 0 8px 20px rgba(15,23,42,0.15);
-        }
-        .resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input {
-            background: #1e293b; border: 1px solid #334155; color: white; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; padding: 12px; margin-top: 8px; text-align: center; border-radius: 8px;
-        }
-        .resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus {
-            border-color: #38bdf8;
-        }
-        
-        .resumo button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:700; font-size: 14px; cursor:pointer; transition: all 0.15s ease; }
-        
-        /* Modais */
-        .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9, 9, 11, 0.4); backdrop-filter: blur(4px); align-items:center; justify-content:center; z-index:999; }
-        .modal-content { background:#09090b; padding:32px; border-radius:12px; width:90%; max-width:420px; color: white; max-height: 85vh; overflow-y: auto; border: 1px solid #27272a; }
-        .modal-content h3 { font-size: 16px; margin-bottom: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; }
-        .modal-content input, .modal-content select { width:100%; padding:12px; margin:6px 0 16px 0; border:1px solid #27272a; border-radius:8px; color: white; background: #141416; font-size: 14px; }
-        .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #f43f5e; }
-        .modal-content button { width:100%; padding:12px; border:none; border-radius:8px; margin-top:6px; font-weight:600; font-size:14px; cursor:pointer; }
-        
-        /* Listagem de Clientes e Histórico */
-        .cliente-item { background:white; padding:24px; border-radius:12px; margin-bottom:16px; border: 1px solid #e2e8f0; color: #0f172a; }
-        
-        .add-servico-btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:14px; font-weight:600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition: all 0.15s ease; }
-        .add-servico-btn:hover { background: #dcfce7; }
-        
-        /* Filtros de Categorias */
-        .categorias-materiais { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
-        .categorias-materiais button { padding:8px 16px; border:none; border-radius:20px; background:#f1f5f9; color:#64748b; font-weight:600; font-size:13px; cursor:pointer; transition: all 0.15s ease; border: 1px solid transparent; }
-        .categorias-materiais button:hover { background:#e2e8f0; color:#0f172a; }
-        .categorias-materiais button.active { background:#0f172a; color:white; }
-        
-        /* Botão do WhatsApp Customizado */
-        button[onclick*="enviarWhatsApp"] { background: #075e54 !important; color: white !important; font-weight: 700; border-radius: 8px; transition: 0.2s; }
-        button[onclick*="enviarWhatsApp"]:hover { background: #128c7e !important; }
+       * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
-        /* --- DESIGN RESPONSIVO PARA O CELULAR --- */
-        @media(max-width:992px){
-            header { height: auto; padding: 16px; flex-direction: column; gap: 12px; align-items: stretch; }
-            .search { width: 100%; padding: 11px 14px; font-size: 14px; }
-            .logo-container { justify-content: center; }
-            
-            .container { flex-direction:column; min-height: auto; }
-            
-            .sidebar { width:100%; display:flex; flex-direction: row; gap:6px; overflow-x:auto; padding: 12px; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; background: #ffffff; scrollbar-width: none; }
-            .sidebar::-webkit-scrollbar { display: none; }
-            .sidebar h2 { display: none; }
-            .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: #f8fafc; white-space: nowrap; flex-shrink: 0; }
-            
-            .sidebar .btn-logout { 
-                margin-top: 0 !important; 
-                min-width: 80px !important; 
-                background: #fff5f5 !important; 
-                color: #f43f5e !important; 
-                border: 1px solid #fee2e2 !important;
-                padding: 10px !important;
-                font-size: 13px !important;
-            }
-            
-            .content { padding: 16px; gap: 20px; }
-            .main-layout { flex-direction: column; gap: 20px; width: 100%; }
-            
-            .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .card { padding: 16px; border-radius: 12px; min-height: 150px; }
-            .card h3 { font-size: 13px; }
-            .preco { font-size: 16px; margin: 4px 0; }
-            .controls button { width: 28px; height: 28px; font-size: 14px; }
-            
-            .resumo { width:100%; margin-top:0; position: static; padding: 24px; border-radius: 14px; }
-            
-            .top-actions { gap: 8px; }
-            .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
-        }
+body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
 
-        /* Estilos para o Ciclo de Vida da OS */
-        .badge-status { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-orcamento { background: #e2e8f0; color: #475569; }
-        .status-execucao { background: #dbeafe; color: #1e40af; }
-        .status-pronto { background: #dcfce7; color: #15803d; }
-        .status-pago { background: #fef08a; color: #854d0e; }
+header { background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; }
+.logo-container { height: 100%; display: flex; align-items: center; }
+.logo-img { height: 42px; width: auto; object-fit: contain; }
+.search { width:35%; padding:12px 18px; border-radius:12px; border: 1px solid #27272a; background: #18181b; color: white; font-size:14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.search::placeholder { color: #71717a; }
+.search:focus { outline: none; border-color: #f43f5e; background: #18181b; box-shadow: 0 0 0 1px #f43f5e; }
 
-        .select-status-inline { padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; background: white; font-weight: 600; cursor: pointer; color: #0f172a; outline: none; }
-        .select-status-inline:focus { border-color: #0f172a; }
+.container { display:flex; min-height:calc(100vh - 72px); }
 
-        /* Estilos para as Notificações Toast */
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; min-width: 280px; max-width: 380px; padding: 14px 20px; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 12px; transform: translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .toast.toast-ativo { transform: translateY(0); opacity: 1; }
-        .toast-sucesso { background-color: #10b981; border-left: 5px solid #059669; }
-        .toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
-        .toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
+/* Menu Lateral */
+.sidebar { width: 260px; background: white; padding: 32px 20px; border-right: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 4px; }
+.sidebar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; color:#94a3b8; padding-left: 12px; font-weight: 700; }
+.sidebar button { width:100%; padding:12px 14px; background: transparent; color:#64748b; border: none; border-radius: 10px; font-size:14px; font-weight: 600; cursor:pointer; text-align: left; transition: all 0.15s ease; display: flex; align-items: center; gap: 12px; }
+.sidebar button:hover { background:#f8fafc; color:#0f172a; }
+.sidebar button.active { background: #fff1f2; color: #e11d48; font-weight: 700; }
 
-        /* Alinhamento dos inputs de logística */
-        .row-inputs-logistica { display: flex; gap: 15px; margin-bottom: 15px; margin-top: 15px; }
-        .row-inputs-logistica .form-group { flex: 1; }
-        .row-inputs-logistica .form-group label { display:block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 5px;}
-        .row-inputs-logistica .form-group input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;}
+.sidebar .btn-logout { background: transparent; color: #f43f5e; border: none; text-align: center; font-weight: 700; margin-top: auto; justify-content: center; border: 1px solid #ffe4e6; background: #fff5f5; }
+.sidebar .btn-logout:hover { background: #ffe4e6; color: #be123c; border-color: #fecdd3; }
+
+/* Área de Conteúdo Principal */
+.content { flex:1; padding:40px; display: flex; flex-direction: column; gap: 32px; max-width: 1440px; margin: 0 auto; width: 100%; }
+
+/* ESTRUTURA DO LAYOUT PRINCIPAL (Corrigido) */
+.main-layout { 
+    display: flex; 
+    gap: 36px; 
+    align-items: flex-start; 
+    width: 100%; 
+}
+.aba-container { 
+    flex: 1; 
+    min-width: 0; /* IMPEDE que o conteúdo empurre o resumo */
+}
+.resumo { 
+    width: 380px; 
+    flex-shrink: 0; /* FORÇA o resumo a manter o tamanho */
+    background: white; 
+    padding: 32px; 
+    border-radius: 16px; 
+    border: 1px solid #e2e8f0; 
+    position: sticky; 
+    top: 32px; 
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02); 
+}
+
+/* Restante dos estilos mantidos */
+.cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:24px; }
+.card { background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
+.card:hover { border-color: #94a3b8; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); }
+.preco { color: #0f172a; font-size: 20px; font-weight: 700; margin: 12px 0; }
+.controls { display:flex; align-items:center; justify-content: space-between; background: #f8fafc; padding: 4px; border-radius: 30px; margin-top: auto; border: 1px solid #e2e8f0; }
+.controls button { width:32px; height:32px; border:none; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; display: flex; align-items: center; justify-content: center; }
+.btn-plus { background:#0f172a; color:white; }
+.btn-minus { background: white; color:#64748b; border: 1px solid #cbd5e1 !important; }
+.qtd { font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
+
+.resumo h2 { font-size: 16px; font-weight: 700; margin-bottom: 24px; color:#0f172a; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+.resumo div { margin-bottom: 18px; font-size: 13px; color: #475569; font-weight: 600; }
+.resumo input { width:100%; padding:11px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; background: #f8fafc; }
+
+/* Logística e extras */
+.row-inputs-logistica { display: flex; gap: 15px; margin-bottom: 15px; margin-top: 15px; }
+.row-inputs-logistica .form-group { flex: 1; }
+.row-inputs-logistica .form-group label { display:block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 5px;}
+.row-inputs-logistica .form-group input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;}
+
+@media(max-width:992px){
+    .main-layout { flex-direction: column; }
+    .resumo { width: 100%; position: static; }
+    .aba-container { width: 100%; }
+}
     </style>
 </head>
 <body>
