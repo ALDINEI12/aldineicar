@@ -264,23 +264,35 @@
                             </div>
                             
                             <div id="conteudo-logistica-eletricista" style="display:none; margin-top:15px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
-                                <h4 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 CÁLCULO DE DESLOCAMENTO (p/ 40 km Diários)</h4>
-                                <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Preencha os dados abaixo para adicionar automaticamente o custo de gasolina ao resumo.</p>
-                                
-                                <div class="row-inputs-logistica">
-                                    <div class="form-group">
-                                        <label>Dias de Trabalho</label>
-                                        <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Preço Gasolina (R$)</label>
-                                        <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Consumo (km/L)</label>
-                                        <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
-                                    </div>
-                                </div>
+    <h4 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 CÁLCULO DE DESLOCAMENTO</h4>
+    <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Preencha os dados abaixo para adicionar automaticamente o custo de gasolina ao resumo.</p>
+    
+    <div class="row-inputs-logistica">
+        <div class="form-group">
+            <label>KM Diários</label>
+            <input type="number" id="km-diario" value="40" oninput="atualizarResumo()">
+        </div>
+        <div class="form-group">
+            <label>Dias de Trabalho</label>
+            <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
+        </div>
+    </div>
+    <div class="row-inputs-logistica">
+        <div class="form-group">
+            <label>Preço Gasolina (R$)</label>
+            <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
+        </div>
+        <div class="form-group">
+            <label>Consumo (km/L)</label>
+            <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; padding: 12px 16px; background: #fff5f5; border: 1px solid #fecdd3; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
+        <strong style="color: #be123c;">Custo Estimado do Transporte:</strong> 
+        <span id="custo-gasolina-txt" style="color: #e11d48; font-size: 16px; font-weight: bold;">R$ 0,00</span>
+    </div>
+</div>
                                 
                                 <div style="margin-top: 20px; padding: 12px 16px; background: #fff5f5; border: 1px solid #fecdd3; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
                                     <strong style="color: #be123c;">Custo Estimado do Transporte:</strong> 
@@ -793,44 +805,47 @@
     async function mais(i){ materiais[i].qtd++; render(); await salvarNoBanco(); }
     async function menos(i){ if(materiais[i].qtd>0){ materiais[i].qtd--; render(); await salvarNoBanco(); } }
 
-    function atualizarResumo(){
-        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
-        let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-        let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+   function atualizarResumo(){
+    let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+    let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
+    let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+    
+    let custoDeslocamento = 0;
+    const profAtual = dadosOficina.profissao || 'pintor';
+
+    if (profAtual === 'eletricista') {
+        const inputKm = document.getElementById('km-diario');
+        const inputDias = document.getElementById('dias-trabalho');
+        const inputGasolina = document.getElementById('preco-gasolina');
+        const inputConsumo = document.getElementById('consumo-carro');
         
-        let custoDeslocamento = 0;
-        const profAtual = dadosOficina.profissao || 'pintor';
-
-        if (profAtual === 'eletricista') {
-            const inputDias = document.getElementById('dias-trabalho');
-            const inputGasolina = document.getElementById('preco-gasolina');
-            const inputConsumo = document.getElementById('consumo-carro');
+        if (inputKm && inputDias && inputGasolina && inputConsumo) {
+            const km = parseFloat(inputKm.value) || 0;
+            const dias = parseFloat(inputDias.value) || 0;
+            const precoGasolina = parseFloat(inputGasolina.value) || 0;
+            const consumo = parseFloat(inputConsumo.value) || 1; 
             
-            if (inputDias && inputGasolina && inputConsumo) {
-                const dias = parseFloat(inputDias.value) || 0;
-                const precoGasolina = parseFloat(inputGasolina.value) || 0;
-                const consumo = parseFloat(inputConsumo.value) || 1; 
-                
-                const kmDiario = 40; 
-                custoDeslocamento = ((kmDiario * dias) / consumo) * precoGasolina;
-            }
-
-            const txtCustoGasolina = document.getElementById('custo-gasolina-txt');
-            if (txtCustoGasolina) {
-                txtCustoGasolina.innerText = `R$ ${custoDeslocamento.toFixed(2).replace('.', ',')}`;
-            }
+            // Fórmula: (KM * Dias / Consumo) * Preço
+            custoDeslocamento = ((km * dias) / consumo) * precoGasolina;
         }
 
-        let lucroReal = valorCobrado - totalMateriais - custoDeslocamento;
-
-        const tm = document.getElementById('totalMateriais');
-        const tmo = document.getElementById('totalMaoObra');
-        const l = document.getElementById('lucro');
-
-        if(tm) tm.innerText = totalMateriais.toFixed(2);
-        if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
-        if(l) l.innerText = lucroReal.toFixed(2);
+        const txtCustoGasolina = document.getElementById('custo-gasolina-txt');
+        if (txtCustoGasolina) {
+            txtCustoGasolina.innerText = `R$ ${custoDeslocamento.toFixed(2).replace('.', ',')}`;
+        }
     }
+
+    // Agora o Lucro Real subtrai o custo de deslocamento, se houver
+    let lucroReal = valorCobrado - totalMateriais - totalMaoObra - custoDeslocamento;
+
+    const tm = document.getElementById('totalMateriais');
+    const tmo = document.getElementById('totalMaoObra');
+    const l = document.getElementById('lucro');
+
+    if(tm) tm.innerText = totalMateriais.toFixed(2);
+    if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
+    if(l) l.innerText = lucroReal.toFixed(2);
+}
 
     async function salvarMaterial(){
         const nome = document.getElementById('nomeMaterial').value;
