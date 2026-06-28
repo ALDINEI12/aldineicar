@@ -63,17 +63,28 @@
         .btn-minus:hover { background: #f1f5f9; color: #0f172a; }
         .qtd { font-size:14px; font-weight:700; color: #0f172a; padding: 0 6px; }
         
-        /* Painel Lateral de Resumo */
+        /* Painel Lateral de Resumo - O Grande Destaque */
         .resumo { width: 380px; background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; position: sticky; top: 32px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.02); }
         .resumo h2 { font-size: 16px; font-weight: 700; margin-bottom: 24px; color:#0f172a; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
         .resumo div { margin-bottom: 18px; font-size: 13px; color: #475569; font-weight: 600; }
         .resumo input { width:100%; padding:11px 14px; margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; font-size: 14px; color: #0f172a; transition: all 0.15s ease; background: #f8fafc; font-weight: 500; }
         .resumo input:focus { outline: none; border-color: #0f172a; background: white; }
         
-        .resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155; }
-        .resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) { background: #0f172a; color: white; padding: 20px; border-radius: 12px; margin-top: 24px; border: none; box-shadow: 0 8px 20px rgba(15,23,42,0.15); }
-        .resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input { background: #1e293b; border: 1px solid #334155; color: white; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; padding: 12px; margin-top: 8px; text-align: center; border-radius: 8px; }
-        .resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus { border-color: #38bdf8; }
+        /* Destaque Elegante para o Custo de Material no Resumo */
+        .resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
+            background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #334155;
+        }
+        
+        /* Destaque Ultra Premium para o VALOR TOTAL */
+        .resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
+            background: #0f172a; color: white; padding: 20px; border-radius: 12px; margin-top: 24px; border: none; box-shadow: 0 8px 20px rgba(15,23,42,0.15);
+        }
+        .resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input {
+            background: #1e293b; border: 1px solid #334155; color: white; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; padding: 12px; margin-top: 8px; text-align: center; border-radius: 8px;
+        }
+        .resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus {
+            border-color: #38bdf8;
+        }
         
         .resumo button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:700; font-size: 14px; cursor:pointer; transition: all 0.15s ease; }
         
@@ -114,7 +125,16 @@
             .sidebar h2 { display: none; }
             .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: #f8fafc; white-space: nowrap; flex-shrink: 0; }
             
-            .sidebar .btn-logout { margin-top: 0 !important; min-width: 80px !important; background: #fff5f5 !important; color: #f43f5e !important; border: 1px solid #fee2e2 !important; padding: 10px !important; font-size: 13px !important; }
+            /* Sair discreto na rolagem lateral do celular */
+            .sidebar .btn-logout { 
+                margin-top: 0 !important; 
+                min-width: 80px !important; 
+                background: #fff5f5 !important; 
+                color: #f43f5e !important; 
+                border: 1px solid #fee2e2 !important;
+                padding: 10px !important;
+                font-size: 13px !important;
+            }
             
             .content { padding: 16px; gap: 20px; }
             .main-layout { flex-direction: column; gap: 20px; width: 100%; }
@@ -132,35 +152,130 @@
         }
 
         /* Estilos para o Ciclo de Vida da OS */
-        .badge-status { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-orcamento { background: #e2e8f0; color: #475569; }
-        .status-execucao { background: #dbeafe; color: #1e40af; }
-        .status-pronto { background: #dcfce7; color: #15803d; }
-        .status-pago { background: #fef08a; color: #854d0e; }
+.badge-status { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: inline-block; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
+.status-orcamento { background: #e2e8f0; color: #475569; }
+.status-execucao { background: #dbeafe; color: #1e40af; }
+.status-pronto { background: #dcfce7; color: #15803d; }
+.status-pago { background: #fef08a; color: #854d0e; }
 
-        .select-status-inline { padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; background: white; font-weight: 600; cursor: pointer; color: #0f172a; outline: none; }
-        .select-status-inline:focus { border-color: #0f172a; }
+.select-status-inline { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid #cbd5e1; 
+    font-size: 13px; 
+    background: white; 
+    font-weight: 600; 
+    cursor: pointer;
+    color: #0f172a;
+    outline: none;
+}
+.select-status-inline:focus { border-color: #0f172a; }
 
-        /* Estilos para as Notificações Toast */
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; min-width: 280px; max-width: 380px; padding: 14px 20px; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 12px; transform: translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .toast.toast-ativo { transform: translateY(0); opacity: 1; }
-        .toast-sucesso { background-color: #10b981; border-left: 5px solid #059669; }
-        .toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
-        .toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
+/* Estilos para as Notificações Toast */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Não bloqueia cliques no fundo */
+}
 
-        /* Botão de alternar a logística */
-        .btn-logistica-toggle { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
-        .btn-logistica-toggle:hover { background-color: #e2e8f0; border-color: #94a3b8; }
-        .btn-logistica-toggle.ativo { background-color: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.toast {
+    pointer-events: auto; /* Permite interação se necessário */
+    min-width: 280px;
+    max-width: 380px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-        .row-inputs-logistica { display: flex; gap: 15px; margin-bottom: 15px; }
-        .row-inputs-logistica .form-group { flex: 1; }
-        .row-inputs-logistica .form-group input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 4px; }
-        .row-inputs-logistica .form-group label { font-size: 12px; font-weight: bold; color: #475569; }
+/* Classe que ativa a animação de entrada */
+.toast.toast-ativo {
+    transform: translateY(0);
+    opacity: 1;
+}
 
-        .linha-custo { display: flex; justify-content: space-between; padding: 8px 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .valor-vermelho { color: #ef4444; font-weight: bold; }
+/* Variações de cores baseadas no tipo */
+.toast-sucesso { background-color: #10b981; border-left: 5px solid #059669; }
+.toast-erro { background-color: #ef4444; border-left: 5px solid #dc2626; }
+.toast-aviso { background-color: #f59e0b; border-left: 5px solid #d97706; }
+
+
+/* Botão de alternar a logística */
+.btn-logistica-toggle {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-logistica-toggle:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+/* Estado quando a aba estiver aberta */
+.btn-logistica-toggle.ativo {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+/* Alinhamento dos 3 inputs na mesma linha */
+.row-inputs-logistica {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.row-inputs-logistica .form-group {
+    flex: 1;
+}
+
+/* Linha de resultado */
+.linha-custo {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.valor-vermelho {
+    color: #ef4444;
+    font-weight: bold;
+}
+
     </style>
 </head>
 <body>
@@ -192,29 +307,29 @@
 
     <div id="appContainer">
         <header>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="logo-container" id="headerLogoContainer">
-                    <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
-                </div>
-                <span id="statusRedeBadge" style="padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #10b981; color: white; transition: all 0.3s ease;">
-                    ● Online
-                </span>
-            </div>
-            <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
-        </header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div class="logo-container" id="headerLogoContainer">
+            <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
+        </div>
+        <span id="statusRedeBadge" style="padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #10b981; color: white; transition: all 0.3s ease;">
+            ● Online
+        </span>
+    </div>
+    <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+</header>
 
         <div class="container">
-            <div class="sidebar">
-                <div>
-                    <h2>Menu</h2>
-                    <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
-                    <button onclick="mostrarAba('materiais')">📦 Materiais</button>
-                    <button onclick="mostrarAba('clientes')">👤 Clientes</button>
-                    <button onclick="mostrarAba('historico')">📋 Histórico</button>
-                    <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
-                </div>
-                <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
-            </div>
+           <div class="sidebar">
+            <div>
+            <h2>Menu</h2>
+          <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
+           <button onclick="mostrarAba('materiais')">📦 Materiais</button>
+           <button onclick="mostrarAba('clientes')">👤 Clientes</button>
+           <button onclick="mostrarAba('historico')">📋 Histórico</button>
+           <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
+           </div>
+           <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
+           </div>
 
             <div class="content">
                 <div class="top-actions">
@@ -222,84 +337,50 @@
                     <button class="btn-green" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
                     <button class="btn-primary" onclick="gerarPDFdoResumo()">📄 Gerar PDF</button>
                 </div>
-
-                <div class="main-layout">
-                    <div class="aba-container">
-                        
-                        <!-- ABA MATERIAIS -->
-                        <div id="aba-materiais">
-                            <div class="categorias-materiais" id="botoesCategorias">
-                                <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
-                                <button onclick="filtrarCategoria('Primer')">Primer</button>
-                                <button onclick="filtrarCategoria('Tintas')">Tintas</button>
-                                <button onclick="filtrarCategoria('Verniz')">Verniz</button>
-                                <button onclick="filtrarCategoria('Massa')">Massa</button>
-                                <button onclick="filtrarCategoria('Thinner')">Thinner</button>
-                                <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
-                            </div>
-                            <div class="cards" id="lista"></div>
-                        </div>
-                        
-                        <!-- ABA MÃO DE OBRA -->
+<div class="main-layout">
+    <div class="aba-container">
+        
+        <div id="aba-materiais">
+    <div class="categorias-materiais" id="botoesCategorias">
+        <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
+        <button onclick="filtrarCategoria('Primer')">Primer</button>
+        <button onclick="filtrarCategoria('Tintas')">Tintas</button>
+        <button onclick="filtrarCategoria('Verniz')">Verniz</button>
+        <button onclick="filtrarCategoria('Massa')">Massa</button>
+        <button onclick="filtrarCategoria('Thinner')">Thinner</button>
+        <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+    </div>
+    
+        <div class="cards" id="lista"></div>
+           </div>
+        
                         <div id="aba-maoobra" style="display:none">
-                            <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
-                            <div id="conteudo-mao-obra-real">
-                                <div class="card" style="margin-bottom:20px; margin-top: 15px;">
-                                    <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                                    <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                                    <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
-                                        <span>＋</span> Adicionar Serviço
-                                    </button>
-                                </div>
-                                <div id="listaMaoObra"></div>
-                            </div>
+    <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
+    
+    <div id="conteudo-mao-obra-real">
+        <div class="card" style="margin-bottom:20px; margin-top: 15px;">
+            <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+            <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+            <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
+                <span>＋</span> Adicionar Serviço
+            </button>
+        </div>
+        <div id="listaMaoObra"></div>
+    </div>
                         </div>
 
-                        <!-- ABA CLIENTES -->
                         <div id="aba-clientes" style="display:none">
                             <h2>Clientes Cadastrados</h2>
                             <div class="clientes" id="listaClientes"></div>
                         </div>
 
-                        <!-- ABA HISTÓRICO -->
                         <div id="aba-historico" style="display:none">
                             <h2>Histórico de Orçamentos</h2>
                             <div id="historicoLista" style="margin-top: 15px;"></div>
                         </div>
-                        
-                        <!-- LOGÍSTICA DE TRANSPORTE -->
-                        <div id="container-logistica" style="display:none; margin-top: 30px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
-                            <h4 style="margin-top: 0; margin-bottom: 15px; color: #1e293b;">📋 LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)</h4>
-                            <div class="row-inputs-logistica">
-                                <div class="form-group">
-                                    <label>Dias de Trabalho</label>
-                                    <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Preço Gasolina (R$)</label>
-                                    <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Consumo (km/L)</label>
-                                    <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
-                                </div>
-                            </div>
-                            <div class="linha-custo">
-                                <span>Custo do Deslocamento (Estimado):</span>
-                                <span class="valor-vermelho" id="custo-gasolina-txt">R$ 0,00</span>
-                            </div>
-                        </div>
-                        
                     </div>
 
-                    <!-- RESUMO -->
                     <div class="resumo">
-                        <div style="margin-bottom: 20px;">
-                            <button type="button" id="btn-toggle-logistica" class="btn-logistica-toggle" onclick="toggleLogistica()" style="width:100%; justify-content:center;">
-                                🚗 Configurar Logística de Transporte
-                            </button>
-                        </div>
-                        
                         <h2>Resumo</h2>
                         <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
                         <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
@@ -335,7 +416,37 @@
         </div> 
     </div>
 
-    <!-- MODAIS -->
+    <div>
+<div style="margin: 15px 0;">
+    <button type="button" id="btn-toggle-logistica" class="btn-logistica-toggle" onclick="toggleLogistica()">
+        🚗 Adicionar Logística de Transporte
+    </button>
+</div>
+
+<h4 style="margin-top: 0; color: #1e293b;">📋 LOGÍSTICA DE TRANSPORTE (Cálculo p/ 40 km Diários)</h4>
+    
+    <div class="row-inputs-logistica">
+    <div class="form-group">
+        <label>Dias de Trabalho</label>
+        <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
+    </div>
+    
+    <div class="form-group">
+        <label>Preço Gasolina (R$)</label>
+        <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
+    </div>
+    
+    <div class="form-group">
+        <label>Consumo (km/L)</label>
+        <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
+    </div>
+   
+</div>
+
+
+
+</div>
+
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2>Novo Material</h2>
@@ -406,66 +517,66 @@
     let clientes = []; 
     let maoObraItens = [];
     let dadosOficina = { 
-        nome: 'ALDINEICAR', 
-        cnpj: '', 
-        end: '', 
-        cep: '', 
-        fone: '', 
-        email: '', 
-        pix: '', 
-        logoBase64: '',
-        profissao: 'pintor'
-    };
+    nome: 'ALDINEICAR', 
+    cnpj: '', 
+    end: '', 
+    cep: '', 
+    fone: '', 
+    email: '', 
+    pix: '', 
+    logoBase64: '',
+    profissao: 'pintor' // Nova chave padrão
+};
     let categoriaAtual = 'Todos';
     let acaoConfirmada = null;
 
     const configuracoesProfissoes = {
-        pintor: {
-            nome: "Pintura Automotiva",
-            labelSecao: "VEÍCULO",
-            categorias: ['Todos', 'Primer', 'Tintas', 'Verniz', 'Massa', 'Thinner', 'Acessórios'],
-            materiais: [
-                {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
-                {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
-                {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
-                {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
-            ]
-        },
-        mecanico: {
-            nome: "Mecânica Geral",
-            labelSecao: "VEÍCULO",
-            categorias: ['Todos', 'Óleos/Fluidos', 'Filtros', 'Suspensão', 'Freios', 'Motor', 'Peças'],
-            materiais: [
-                {nome:'Óleo Motor 5W30 (Litro)',valor:45,qtd:0,cat:'Óleos/Fluidos'},
-                {nome:'Filtro de Óleo',valor:35,qtd:0,cat:'Filtros'},
-                {nome:'Jogo de Pastilhas de Freio',valor:120,qtd:0,cat:'Freios'},
-                {nome:'Vela de Ignição',valor:25,qtd:0,cat:'Motor'}
-            ]
-        },
-        eletricista: {
-            nome: "Elétrica Profissional",
-            labelSecao: "EQUIPAMENTO",
-            categorias: ['Todos', 'Fiação', 'Fusíveis/Relés', 'Iluminação', 'Conectores', 'Isolantes'],
-            materiais: [
-                {nome:'Fita Isolante 20m',valor:12,qtd:0,cat:'Isolantes'},
-                {nome:'Fusível Lâmina 10A',valor:1.50,qtd:0,cat:'Fusíveis/Relés'},
-                {nome:'Relé Auxiliar 4 Pinos',valor:22,qtd:0,cat:'Fusíveis/Relés'},
-                {nome:'Fio Flexível 2.5mm (Metro)',valor:4,qtd:0,cat:'Fiação'},
-                {nome:'Lâmpada H7 Halógena',valor:35,qtd:0,cat:'Iluminação'}
-            ]
-        },
-        funileiro: {
-            nome: "Funilaria e Chaparia",
-            labelSecao: "VEÍCULO",
-            categorias: ['Todos', 'Chaparia', 'Solda', 'Abrasivos', 'Massas', 'Ferramentas'],
-            materiais: [
-                {nome:'Chapa de Aço Galv.',valor:80,qtd:0,cat:'Chaparia'},
-                {nome:'Arame p/ Solda MIG (Kg)',valor:45,qtd:0,cat:'Solda'},
-                {nome:'Disco de Corte 4.5',valor:7,qtd:0,cat:'Abrasivos'},
-                {nome:'Massa Plástica',valor:18,qtd:0,cat:'Massas'}
-            ]
-        }
-    };
+    pintor: {
+        nome: "Pintura Automotiva",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Primer', 'Tintas', 'Verniz', 'Massa', 'Thinner', 'Acessórios'],
+        materiais: [
+            {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
+            {nome:'Verniz PU',valor:65,qtd:0,cat:'Verniz'},
+            {nome:'Massa Poliéster',valor:30,qtd:0,cat:'Massa'},
+            {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
+        ]
+    },
+    mecanico: {
+        nome: "Mecânica Geral",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Óleos/Fluidos', 'Filtros', 'Suspensão', 'Freios', 'Motor', 'Peças'],
+        materiais: [
+            {nome:'Óleo Motor 5W30 (Litro)',valor:45,qtd:0,cat:'Óleos/Fluidos'},
+            {nome:'Filtro de Óleo',valor:35,qtd:0,cat:'Filtros'},
+            {nome:'Jogo de Pastilhas de Freio',valor:120,qtd:0,cat:'Freios'},
+            {nome:'Vela de Ignição',valor:25,qtd:0,cat:'Motor'}
+        ]
+    },
+    eletricista: {
+        nome: "Elétrica Profissional",
+        labelSecao: "EQUIPAMENTO",
+        categorias: ['Todos', 'Fiação', 'Fusíveis/Relés', 'Iluminação', 'Conectores', 'Isolantes'],
+        materiais: [
+            {nome:'Fita Isolante 20m',valor:12,qtd:0,cat:'Isolantes'},
+            {nome:'Fusível Lâmina 10A',valor:1.50,qtd:0,cat:'Fusíveis/Relés'},
+            {nome:'Relé Auxiliar 4 Pinos',valor:22,qtd:0,cat:'Fusíveis/Relés'},
+            {nome:'Fio Flexível 2.5mm (Metro)',valor:4,qtd:0,cat:'Fiação'},
+            {nome:'Lâmpada H7 Halógena',valor:35,qtd:0,cat:'Iluminação'}
+        ]
+    },
+    funileiro: {
+        nome: "Funilaria e Chaparia",
+        labelSecao: "VEÍCULO",
+        categorias: ['Todos', 'Chaparia', 'Solda', 'Abrasivos', 'Massas', 'Ferramentas'],
+        materiais: [
+            {nome:'Chapa de Aço Galv.',valor:80,qtd:0,cat:'Chaparia'},
+            {nome:'Arame p/ Solda MIG (Kg)',valor:45,qtd:0,cat:'Solda'},
+            {nome:'Disco de Corte 4.5',valor:7,qtd:0,cat:'Abrasivos'},
+            {nome:'Massa Plástica',valor:18,qtd:0,cat:'Massas'}
+        ]
+    }
+};
 
     const materiaisPadrao = [
         {nome:'Primer PU',valor:25,qtd:0,cat:'Primer'},
@@ -474,173 +585,131 @@
         {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
     ];
 
-    // Função de Toast (Notificações visuais)
-    function mostrarToast(mensagem, tipo = 'sucesso') {
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            document.body.appendChild(container);
-        }
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${tipo}`;
-        toast.innerText = mensagem;
-        container.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add('toast-ativo'), 10);
-        setTimeout(() => {
-            toast.classList.remove('toast-ativo');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Função para mostrar/esconder a div de logística
-    function toggleLogistica() {
-        const btn = document.getElementById('btn-toggle-logistica');
-        const container = document.getElementById('container-logistica');
-        if (container.style.display === 'none' || !container.style.display) {
-            container.style.display = 'block';
-            btn.classList.add('ativo');
-        } else {
-            container.style.display = 'none';
-            btn.classList.remove('ativo');
-        }
-    }
-
-    // Função para enviar resumo atual por WhatsApp
-    function enviarWhatsApp() {
-        const nome = document.getElementById('clienteNome').value || 'Cliente';
-        const modelo = document.getElementById('veiculoModelo').value || 'Veículo';
-        const placa = document.getElementById('veiculoPlaca').value || '---';
-        const tipoServico = document.getElementById('tipoServico').value || '---';
-        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
-        
-        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
-        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
-        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`;
-        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
-        textoWhats += `Aguardamos sua aprovação!`;
-
-        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
-    }
-
     async function carregarDadosDoUsuario(userId) {
-        if (!userId) return;
-        usuarioAtualId = userId;
-        
-        let localTimestamp = 0;
-        const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
-        if(fallback){
-            const parsed = JSON.parse(fallback);
-            materiais = parsed.materiais || [...materiaisPadrao];
-            historico = parsed.historico || [];
-            clientes = parsed.clientes || [];
-            maoObraItens = parsed.maoObraItens || [];
-            dadosOficina = parsed.dadosOficina || dadosOficina;
-            localTimestamp = parsed.local_updated_at || 0;
-        } else {
-            materiais = [...materiaisPadrao];
-        }
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('user_data')
-                .select('*')
-                .eq('user_id', userId);
-
-            if (error) {
-                await salvarNoBanco(true); 
-            } else if (data && data.length > 0) {
-                const registro = data[0];
-                const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
-                
-                if (localTimestamp > cloudTimestamp) {
-                    console.log("Alterações offline detectadas pós-reinício. Sincronizando com a nuvem...");
-                    await salvarNoBanco(true); 
-                } else {
-                    materiais = registro.materiais || [...materiaisPadrao];
-                    historico = registro.historico || [];
-                    clientes = registro.clientes || [];
-                    maoObraItens = registro.mao_obra || [];
-                    if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
-                    
-                    clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
-                    salvarFallbackLocal();
-                }
-            } else {
-                await salvarNoBanco(true);
-            }
-        } catch (err) {
-            console.error("Erro na comunicação com a nuvem (App operando offline):", err);
-        }
-
-        atualizarInputsOficina();
-        atualizarLogoHeader(); // ← Correção: faltavam os parênteses aqui
-        if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
-        
-        if (typeof renderCategoriasETelas === 'function') renderCategoriasETelas(); 
-        configurarResumoPorProfissao();
-        render();
-        renderMaoObra();
-        renderHistorico();
-        renderClientes();
+    if (!userId) return;
+    usuarioAtualId = userId;
+    
+    let localTimestamp = 0;
+    const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
+    if(fallback){
+        const parsed = JSON.parse(fallback);
+        materiais = parsed.materiais || [...materiaisPadrao];
+        historico = parsed.historico || [];
+        clientes = parsed.clientes || [];
+        maoObraItens = parsed.maoObraItens || [];
+        dadosOficina = parsed.dadosOficina || dadosOficina;
+        localTimestamp = parsed.local_updated_at || 0; // <-- Recupera o tempo local
+    } else {
+        materiais = [...materiaisPadrao];
     }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('user_data')
+            .select('*')
+            .eq('user_id', userId);
+
+        if (error) {
+            await salvarNoBanco(true); 
+        } else if (data && data.length > 0) {
+            const registro = data[0];
+            // Converte o timestamp da nuvem para milissegundos
+            const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
+            
+            // SE O DADO LOCAL FOR MAIS RECENTE QUE O DA NUVEM:
+            if (localTimestamp > cloudTimestamp) {
+                console.log("Alterações offline detectadas pós-reinício. Sincronizando com a nuvem...");
+                await salvarNoBanco(true); // Envia o dado local mais recente para o banco
+            } else {
+                // CASO CONTRÁRIO: A nuvem é mais recente ou igual, pode aplicar os dados dela
+                materiais = registro.materiais || [...materiaisPadrao];
+                historico = registro.historico || [];
+                clientes = registro.clientes || [];
+                maoObraItens = registro.mao_obra || [];
+                if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
+                
+                clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
+                salvarFallbackLocal();
+            }
+        } else {
+            await salvarNoBanco(true);
+        }
+    } catch (err) {
+        console.error("Erro na comunicação com a nuvem (App operando offline):", err);
+        // Em caso de erro de rede, o app mantém intacto o que leu do localStorage no início da função
+    }
+
+    atualizarInputsOficina();
+    atualizarLogoHeader(); // Corrigido aqui (estava sem parênteses no original)
+    if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
+    renderCategoriasETelas(); 
+    configurarResumoPorProfissao();
+    render();
+    renderMaoObra();
+    renderHistorico();
+    renderClientes();
+}
 
     function salvarFallbackLocal() {
-        if (!usuarioAtualId) return;
-        localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
-            materiais, 
-            historico, 
-            clientes, 
-            maoObraItens, 
-            dadosOficina,
-            local_updated_at: new Date().getTime()
-        }));
-    }
+    if (!usuarioAtualId) return;
+    localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
+        materiais, 
+        historico, 
+        clientes, 
+        maoObraItens, 
+        dadosOficina,
+        local_updated_at: new Date().getTime() // <-- Guarda o momento exato da alteração local
+    }));
+}
 
    function atualizarStatusRedeVisual(online) {
-        const badge = document.getElementById('statusRedeBadge');
-        if (!badge) return;
-        if (online) {
-            badge.style.background = '#10b981';
-            badge.innerText = '● Online';
-        } else {
-            badge.style.background = '#f59e0b';
-            badge.innerText = '● Modo Local (Offline)';
+    const badge = document.getElementById('statusRedeBadge');
+    if (!badge) return;
+    if (online) {
+        badge.style.background = '#10b981'; // Verde esmeralda
+        badge.innerText = '● Online';
+    } else {
+        badge.style.background = '#f59e0b'; // Amarelo/Laranja de alerta
+        badge.innerText = '● Modo Local (Offline)';
+    }
+}
+
+async function salvarNoBanco(silencioso = false) {
+    if (!usuarioAtualId) return;
+    
+    // Sempre garante o salvamento de segurança local primeiro
+    salvarFallbackLocal();
+    
+    // VERIFICAÇÃO INTELIGENTE DE INTERNET
+    if (!navigator.onLine) {
+        atualizarStatusRedeVisual(false);
+        if (!silencioso) {
+            console.log("Modo Offline ativo: Alteração armazenada apenas no dispositivo.");
         }
+        return; // Interrompe o envio para a nuvem temporariamente
     }
 
-    async function salvarNoBanco(silencioso = false) {
-        if (!usuarioAtualId) return;
-        salvarFallbackLocal();
-        
-        if (!navigator.onLine) {
-            atualizarStatusRedeVisual(false);
-            if (!silencioso) console.log("Modo Offline ativo: Alteração armazenada apenas no dispositivo.");
-            return;
-        }
+    atualizarStatusRedeVisual(true);
 
-        atualizarStatusRedeVisual(true);
+    try {
+        const { error } = await supabaseClient
+            .from('user_data')
+            .upsert({
+                user_id: usuarioAtualId,
+                materiais: materiais,
+                historico: historico,
+                clientes: clientes,
+                mao_obra: maoObraItens,
+                dados_oficina: dadosOficina,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' });
 
-        try {
-            const { error } = await supabaseClient
-                .from('user_data')
-                .upsert({
-                    user_id: usuarioAtualId,
-                    materiais: materiais,
-                    historico: historico,
-                    clientes: clientes,
-                    mao_obra: maoObraItens,
-                    dados_oficina: dadosOficina,
-                    updated_at: new Date()
-                }, { onConflict: 'user_id' });
-
-            if (error) throw error;
-        } catch(e) {
-            console.error("Erro ao sincronizar com a nuvem:", e);
-            atualizarStatusRedeVisual(false);
-        }
+        if (error) throw error;
+    } catch(e) {
+        console.error("Erro ao sincronizar com a nuvem:", e);
+        atualizarStatusRedeVisual(false);
     }
+}
 
     function abrirModalOficina() { 
         atualizarInputsOficina();
@@ -679,7 +748,8 @@
         document.getElementById('oficinaFone').value = dadosOficina.fone || '';
         document.getElementById('oficinaEmail').value = dadosOficina.email || '';
         document.getElementById('oficinaPix').value = dadosOficina.pix || '';
-        document.getElementById('oficinaProfissao').value = dadosOficina.profissao || 'pintor'; 
+        document.getElementById('oficinaNome').value = dadosOficina.nome || 'ALDINEICAR';
+        document.getElementById('oficinaProfissao').value = dadosOficina.profissao || 'pintor'; // <-- ADICIONE AQUI
         
         const preview = document.getElementById('previewLogoModal');
         if (dadosOficina.logoBase64 && preview) {
@@ -690,34 +760,36 @@
     }
 
     async function salvarDadosOficina() {
-        const profissaoAnterior = dadosOficina.profissao || 'pintor';
-        const novaProfissao = document.getElementById('oficinaProfissao').value;
+    const profissaoAnterior = dadosOficina.profissao || 'pintor';
+    const novaProfissao = document.getElementById('oficinaProfissao').value;
 
-        dadosOficina.nome = document.getElementById('oficinaNome').value;
-        dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
-        dadosOficina.end = document.getElementById('oficinaEnd').value;
-        dadosOficina.cep = document.getElementById('oficinaCep').value;
-        dadosOficina.fone = document.getElementById('oficinaFone').value;
-        dadosOficina.email = document.getElementById('oficinaEmail').value;
-        dadosOficina.pix = document.getElementById('oficinaPix').value;
-        dadosOficina.profissao = novaProfissao; 
+    dadosOficina.nome = document.getElementById('oficinaNome').value;
+    dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
+    dadosOficina.end = document.getElementById('oficinaEnd').value;
+    dadosOficina.cep = document.getElementById('oficinaCep').value;
+    dadosOficina.fone = document.getElementById('oficinaFone').value;
+    dadosOficina.email = document.getElementById('oficinaEmail').value;
+    dadosOficina.pix = document.getElementById('oficinaPix').value;
+    dadosOficina.profissao = novaProfissao; // <-- ADICIONE AQUI
 
-        if (profissaoAnterior !== novaProfissao) {
-            if (confirm("Você alterou o Ramo de Atuação! Deseja carregar a lista de materiais padrão recomendada para esta nova área? (Seus clientes e histórico guardados não serão perdidos)")) {
-                const config = configuracoesProfissoes[novaProfissao];
-                materiais = JSON.parse(JSON.stringify(config.materiais));
-                categoriaAtual = 'Todos';
-            }
+    // Se mudou de profissão, oferece os novos materiais padrões
+    if (profissaoAnterior !== novaProfissao) {
+        if (confirm("Você alterou o Ramo de Atuação! Deseja carregar a lista de materiais padrão recomendada para esta nova área? (Seus clientes e histórico guardados não serão perdidos)")) {
+            const config = configuracoesProfissoes[novaProfissao];
+            materiais = JSON.parse(JSON.stringify(config.materiais));
+            categoriaAtual = 'Todos';
         }
-
-        atualizarLogoHeader();
-        fecharModalOficina();
-        if(typeof renderCategoriasETelas === 'function') renderCategoriasETelas();
-        render();
-        configurarResumoPorProfissao(); 
-        mostrarToast("Configurações profissionais salvas com sucesso!");
-        await salvarNoBanco();
     }
+
+    atualizarLogoHeader();
+    fecharModalOficina();
+    renderCategoriasETelas(); // <-- ADICIONE AQUI
+    render();
+    configurarResumoPorProfissao(); // <-- ADICIONE ESTAS DUAS LINHAS SE NÃO HOUVER
+    if(typeof renderCategoriasETelas === 'function') renderCategoriasETelas();
+    alert("Configurações profissionais salvas com sucesso!");
+    await salvarNoBanco();
+}
 
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
@@ -730,7 +802,7 @@
         const btnEntrar = document.querySelector('#loginForm button');
 
         if (!email || !password) {
-            mostrarToast("Por favor, preencha o e-mail e a senha.", "aviso");
+            mostrarToast("Por favor, preencha o e-mail e a senha.");
             return;
         }
 
@@ -754,7 +826,7 @@
                 mostrarAba('materiais');
             }
         } catch (err) {
-            mostrarToast("Erro de conexão ou no servidor.", "erro");
+            mostrarToast("Erro de conexão ou no servidor: " + err.message, "erro");
         } finally {
             btnEntrar.innerText = textoOriginal;
             btnEntrar.disabled = false;
@@ -768,7 +840,7 @@
         const btnCadastrar = document.querySelector('#signupForm button');
 
         if (!email || !password || password.length < 6) {
-            mostrarToast("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)", "aviso");
+            mostrarToast("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)");
             return;
         }
 
@@ -789,7 +861,7 @@
             mostrarToast("Cadastro realizado com sucesso! Agora faça login.");
             toggleTab('login');
         } catch (err) {
-            mostrarToast("Erro no processo de cadastro.", "erro");
+            mostrarToast("Erro no processo de cadastro: " + err.message, " erro ");
         } finally {
             btnCadastrar.innerText = textoOriginal;
             btnCadastrar.disabled = false;
@@ -841,44 +913,49 @@
     async function mais(i){ materiais[i].qtd++; render(); await salvarNoBanco(); }
     async function menos(i){ if(materiais[i].qtd>0){ materiais[i].qtd--; render(); await salvarNoBanco(); } }
 
-    function atualizarResumo(){
-        let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
-        let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
-        let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+   function atualizarResumo(){
+    let totalMateriais = materiais.reduce((s,item)=>s+(item.valor*item.qtd),0);
+    let totalMaoObra = maoObraItens.reduce((s,item)=>s+item.valor,0);
+    let valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+    
+    // --- 1. CÁLCULO DA GASOLINA EM TEMPO REAL ---
+    let custoDeslocamento = 0;
+    const profAtual = dadosOficina.profissao || 'pintor';
+
+    if (profAtual === 'eletricista') {
+        const inputDias = document.getElementById('dias-trabalho');
+        const inputGasolina = document.getElementById('preco-gasolina');
+        const inputConsumo = document.getElementById('consumo-carro');
         
-        let custoDeslocamento = 0;
-        const profAtual = dadosOficina.profissao || 'pintor';
-
-        if (profAtual === 'eletricista') {
-            const inputDias = document.getElementById('dias-trabalho');
-            const inputGasolina = document.getElementById('preco-gasolina');
-            const inputConsumo = document.getElementById('consumo-carro');
+        if (inputDias && inputGasolina && inputConsumo) {
+            const dias = parseFloat(inputDias.value) || 0;
+            const precoGasolina = parseFloat(inputGasolina.value) || 0;
+            const consumo = parseFloat(inputConsumo.value) || 1; // Evita divisão por zero
             
-            if (inputDias && inputGasolina && inputConsumo) {
-                const dias = parseFloat(inputDias.value) || 0;
-                const precoGasolina = parseFloat(inputGasolina.value) || 0;
-                const consumo = parseFloat(inputConsumo.value) || 1; 
-                
-                const kmDiario = 40; 
-                custoDeslocamento = ((kmDiario * dias) / consumo) * precoGasolina;
-            }
-
-            const txtCustoGasolina = document.getElementById('custo-gasolina-txt');
-            if (txtCustoGasolina) {
-                txtCustoGasolina.innerText = `R$ ${custoDeslocamento.toFixed(2).replace('.', ',')}`;
-            }
+            const kmDiario = 40; 
+            // Fórmula da logística
+            custoDeslocamento = ((kmDiario * dias) / consumo) * precoGasolina;
         }
 
-        let lucroReal = valorCobrado - totalMateriais - custoDeslocamento;
-
-        const tm = document.getElementById('totalMateriais');
-        const tmo = document.getElementById('totalMaoObra');
-        const l = document.getElementById('lucro');
-
-        if(tm) tm.innerText = totalMateriais.toFixed(2);
-        if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
-        if(l) l.innerText = lucroReal.toFixed(2);
+        // Atualiza aquele textinho vermelho de resumo dentro do painel de logística
+        const txtCustoGasolina = document.getElementById('custo-gasolina-txt');
+        if (txtCustoGasolina) {
+            txtCustoGasolina.innerText = `R$ ${custoDeslocamento.toFixed(2).replace('.', ',')}`;
+        }
     }
+
+    // --- 2. CÁLCULO DO LUCRO REAL (Descontando Material E Combustível) ---
+    let lucroReal = valorCobrado - totalMateriais - custoDeslocamento;
+
+    // --- 3. ATUALIZAÇÃO DOS CAMPOS NA TELA ---
+    const tm = document.getElementById('totalMateriais');
+    const tmo = document.getElementById('totalMaoObra');
+    const l = document.getElementById('lucro');
+
+    if(tm) tm.innerText = totalMateriais.toFixed(2);
+    if(tmo) tmo.innerText = totalMaoObra.toFixed(2);
+    if(l) l.innerText = lucroReal.toFixed(2);
+}
 
     async function salvarMaterial(){
         const nome = document.getElementById('nomeMaterial').value;
@@ -915,148 +992,194 @@
         });
     }
 
-    async function salvarOrcamento(){
-        const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
-        const clienteEndereco = document.getElementById('clienteEndereco').value || '';
-        const clienteTel = document.getElementById('clienteTel').value || '';
-        const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
-        
-        const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
-        const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
-        const veiculoAno = document.getElementById('veiculoAno').value || '';
-        const veiculoCor = document.getElementById('veiculoCor').value || '';
-        const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---';
-        
-        const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
-        
-        let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
-        let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
-        
-        let custoDesloc = 0;
-        const profAtual = dadosOficina.profissao || 'pintor';
-        
-        if (profAtual === 'eletricista') {
-            const inputDias = document.getElementById('dias-trabalho');
-            const inputGasolina = document.getElementById('preco-gasolina');
-            const inputConsumo = document.getElementById('consumo-carro');
-            
-            if (inputDias && inputGasolina && inputConsumo) {
-                const dias = parseFloat(inputDias.value) || 0;
-                const precoGasolina = parseFloat(inputGasolina.value) || 0;
-                const consumo = parseFloat(inputConsumo.value) || 1; 
-                const kmDiario = 40; 
-                custoDesloc = ((kmDiario * dias) / consumo) * precoGasolina;
-            }
-        }
-        
-        const novoOrcamento = {
-            data: new Date().toLocaleString('pt-BR'),
-            status: 'Orçamento',
-            cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
-            veiculo: { 
-                modelo: veiculoModelo, 
-                placa: veiculoPlaca, 
-                ano: veiculoAno, 
-                cor: veiculoCor, 
-                avaliador: nomeAvaliador,
-                tipo_servico: tipoServico 
-            },
-            materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
-            mao_obra: [...maoObraItens],
-            
-            totalMateriais: totalMateriais,
-            totalMateriaisCalculado: totalMateriais,
-            totalMaoObraCalculado: totalMaoObra,
-            deslocamento: custoDesloc,
-            totalCobrado: valorCobrado,
-            lucro: valorCobrado - totalMateriais - custoDesloc
-        };
-        
-        historico.unshift(novoOrcamento);
-        
-        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
-        if(!clienteExiste && clienteNome !== 'Sem nome') {
-            clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade, cidade: clienteCidade });
-            renderClientes();
-        }
-        
-        renderHistorico();
-        mostrarToast("Orçamento salvo com sucesso no histórico!");
-        await salvarNoBanco();
+
+    function calcularDeslocamentoAutomatico() {
+    const dias = parseFloat(document.getElementById('deslocamentoDias').value) || 0;
+    const precoLitro = parseFloat(document.getElementById('precoGasolina').value) || 0;
+    const consumo = parseFloat(document.getElementById('consumoCarro').value) || 10;
+    
+    const kmPorDia = 40; // 20km de ida + 20km de volta fixos
+    
+    // Regra: (Dias * 40km) / consumo do veículo * preço do litro da gasolina
+    const litrosNecessarios = (dias * kmPorDia) / consumo;
+    const custoTotalTransporte = litrosNecessarios * precoLitro;
+    
+    // Atualiza o valor oculto que a função de salvar vai ler
+    const inputOculto = document.getElementById('custoDeslocamento');
+    if (inputOculto) inputOculto.value = custoTotalTransporte.toFixed(2);
+    
+    // Atualiza os textos informativos na tela
+    const txtVisual = document.getElementById('txtCustoDeslocamento');
+    if (txtVisual) txtVisual.innerText = `R$ ${custoTotalTransporte.toFixed(2)}`;
+    
+    // Coleta o que já está lançado de material e mão de obra na tela para sugerir o preço correto
+    let matTotal = 0;
+    let moTotal = 0;
+    if (typeof materiais !== 'undefined') {
+        matTotal = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
     }
+    if (typeof maoObraItens !== 'undefined') {
+        moTotal = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+    }
+    
+    const totalSugerido = matTotal + moTotal + custoTotalTransporte;
+    const txtSugerido = document.getElementById('txtTotalSugeridoComDeslocamento');
+    if (txtSugerido) txtSugerido.innerText = `R$ ${totalSugerido.toFixed(2)}`;
+}
 
-    function renderHistorico(){
-        const h = document.getElementById('historicoLista');
-        if(!h) return; h.innerHTML='';
-        historico.forEach((item, index)=>{
-            const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
-            const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
+async function salvarOrcamento(){
+    const clienteNome = document.getElementById('clienteNome').value || 'Sem nome';
+    const clienteEndereco = document.getElementById('clienteEndereco').value || '';
+    const clienteTel = document.getElementById('clienteTel').value || '';
+    const clienteCidade = document.getElementById('clienteCidade').value || 'Sátrio Dias/BA';
+    
+    const veiculoModelo = document.getElementById('veiculoModelo').value || '---';
+    const veiculoPlaca = document.getElementById('veiculoPlaca').value || '---';
+    const veiculoAno = document.getElementById('veiculoAno').value || '';
+    const veiculoCor = document.getElementById('veiculoCor').value || '';
+    const nomeAvaliador = document.getElementById('nomeAvaliador').value || '';
+    const tipoServico = document.getElementById('tipoServico').value || '---';
+    
+    const valorCobrado = parseFloat(document.getElementById('valorCliente').value) || 0;
+    
+    let totalMateriais = materiais.reduce((s, item) => s + (item.valor * item.qtd), 0);
+    let totalMaoObra = maoObraItens.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+    
+    // --- COLETANDO O CUSTO DO TRANSPORTE AUTOMÁTICO BASEADO NOS 3 INPUTS ---
+    let custoDesloc = 0;
+    const profAtual = dadosOficina.profissao || 'pintor';
+    
+    if (profAtual === 'eletricista') {
+        const inputDias = document.getElementById('dias-trabalho');
+        const inputGasolina = document.getElementById('preco-gasolina');
+        const inputConsumo = document.getElementById('consumo-carro');
+        
+        if (inputDias && inputGasolina && inputConsumo) {
+            const dias = parseFloat(inputDias.value) || 0;
+            const precoGasolina = parseFloat(inputGasolina.value) || 0;
+            const consumo = parseFloat(inputConsumo.value) || 1; // Evita divisão por zero
+            
+            const kmDiario = 40; 
+            // Fórmula: (Quilometragem Total / Consumo) * Preço do Combustível
+            custoDesloc = ((kmDiario * dias) / consumo) * precoGasolina;
+        }
+    }
+    
+    const novoOrcamento = {
+        data: new Date().toLocaleString('pt-BR'),
+        status: 'Orçamento',
+        cliente: { nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, cidade: clienteCidade, city: clienteCidade },
+        veiculo: { 
+            modelo: veiculoModelo, 
+            placa: veiculoPlaca, 
+            ano: veiculoAno, 
+            cor: veiculoCor, 
+            avaliador: nomeAvaliador,
+            tipo_servico: tipoServico 
+        },
+        materiais: materiais.filter(m => m.qtd > 0).map(m => ({ id: m.id, nome: m.nome, qtd: m.qtd, valor: m.valor })),
+        mao_obra: [...maoObraItens],
+        
+        totalMateriais: totalMateriais,
+        totalMateriaisCalculado: totalMateriais,
+        totalMaoObraCalculado: totalMaoObra,
+        
+        // Atributo guardando o valor calculado dinamicamente
+        deslocamento: custoDesloc,
+        
+        totalCobrado: valorCobrado,
+        // O lucro real agora desconta o material E o custo real calculado de transporte
+        lucro: valorCobrado - totalMateriais - custoDesloc
+    };
+    
+    historico.unshift(novoOrcamento);
+    
+    const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
+    if(!clienteExiste && clienteNome !== 'Sem nome') {
+        clientes.push({ nome: clienteNome, endereco: clienteEndereco, tel: clienteTel, city: clienteCidade, cidade: clienteCidade });
+        renderClientes();
+    }
+    
+    renderHistorico();
+    mostrarToast("Orçamento salvo com sucesso no histórico!");
+    await salvarNoBanco();
+}
 
-            let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
-            let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
-            if (custoMaoObra === 0 && item.mao_obra) {
-                custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+
+ function renderHistorico(){
+    const h = document.getElementById('historicoLista');
+    if(!h) return; h.innerHTML='';
+    historico.forEach((item, index)=>{
+        const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
+        const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
+
+        let custoMat = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
+        let custoMaoObra = item.totalMaoObraCalculado !== undefined ? item.totalMaoObraCalculado : 0;
+        if (custoMaoObra === 0 && item.mao_obra) {
+            custoMaoObra = item.mao_obra.reduce((s, mo) => s + (parseFloat(mo.valor) || 0), 0);
+        }
+
+        // Recupera o valor de transporte guardado no histórico
+        let custoDesloc = parseFloat(item.deslocamento) || 0;
+        let valorCobrado = parseFloat(item.totalCobrado) || 0;
+        
+        // Lucro real readequado descontando a gasolina de forma segura
+        let lucroReal = valorCobrado - custoMat - custoDesloc;
+
+        const statusAtual = item.status || 'Orçamento';
+        let classeStatus = 'status-orcamento';
+        if(statusAtual === 'Em Execução') classeStatus = 'status-execucao';
+        if(statusAtual === 'Pronto') classeStatus = 'status-pronto';
+        if(statusAtual === 'Pago') classeStatus = 'status-pago';
+
+        const profHist = dadosOficina.profissao || 'pintor';
+        let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
+        let linhaDeslocamentoHTML = '';
+
+        if (profHist === 'eletricista') {
+            detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
+            if (custoDesloc > 0) {
+                linhaDeslocamentoHTML = `⛽ Deslocamento: R$ ${custoDesloc.toFixed(2).replace('.', ',')}<br>`;
             }
+        }
 
-            let custoDesloc = parseFloat(item.deslocamento) || 0;
-            let valorCobrado = parseFloat(item.totalCobrado) || 0;
-            let lucroReal = valorCobrado - custoMat - custoDesloc;
-
-            const statusAtual = item.status || 'Orçamento';
-            let classeStatus = 'status-orcamento';
-            if(statusAtual === 'Em Execução') classeStatus = 'status-execucao';
-            if(statusAtual === 'Pronto') classeStatus = 'status-pronto';
-            if(statusAtual === 'Pago') classeStatus = 'status-pago';
-
-            const profHist = dadosOficina.profissao || 'pintor';
-            let detalheObraOuVeiculo = `🚗 Veículo: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-            let linhaDeslocamentoHTML = '';
-
-            if (profHist === 'eletricista') {
-                detalheObraOuVeiculo = `🏢 Edifício: ${veiculo.modelo || 'Não informado'} (${veiculo.placa || '---'})`;
-                if (custoDesloc > 0) {
-                    linhaDeslocamentoHTML = `⛽ Deslocamento: R$ ${custoDesloc.toFixed(2).replace('.', ',')}<br>`;
-                }
-            }
-
-            h.innerHTML += `
-                <div class="cliente-item">
-                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
-                        <div>
-                            <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
-                            <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                            ${detalheObraOuVeiculo}<br>
-                            🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
-                            
-                            💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2).replace('.', ',')}<br>
-                            📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2).replace('.', ',')}<br>
-                            🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2).replace('.', ',')}<br>
-                            ${linhaDeslocamentoHTML}
-                            <strong style="color: ${lucroReal >= 0 ? '#16a34a' : '#dc2626'}">📈 Lucro Real: R$ ${lucroReal.toFixed(2).replace('.', ',')}</strong><br><br>
-                            
-                            🕒 ${item.data || '---'}
-                        </div>
+        h.innerHTML += `
+            <div class="cliente-item">
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
+                    <div>
+                        <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
+                        <strong>👤 Cliente: ${cliente.nome}</strong><br>
+                        ${detalheObraOuVeiculo}<br>
+                        🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
                         
-                        <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
-                            <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
-                            <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
-                                <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
-                                <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
-                                <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
-                                <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
-                            </select>
-                            <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
-                            <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
-                            <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
-                            <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
-                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
-                        </div>
+                        💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2).replace('.', ',')}<br>
+                        📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2).replace('.', ',')}<br>
+                        🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2).replace('.', ',')}<br>
+                        ${linhaDeslocamentoHTML}
+                        <strong style="color: ${lucroReal >= 0 ? '#16a34a' : '#dc2626'}">📈 Lucro Real: R$ ${lucroReal.toFixed(2).replace('.', ',')}</strong><br><br>
+                        
+                        🕒 ${item.data || '---'}
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
+                        <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
+                        <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
+                            <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
+                            <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
+                            <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
+                            <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
+                        </select>
+                        <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
+                        <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
+                        <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
+                        <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
+                        <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
                     </div>
                 </div>
-            `;
-        });
-    }
+            </div>
+        `;
+    });
+}
 
     function renderClientes(){
         const c = document.getElementById('listaClientes');
@@ -1081,70 +1204,97 @@
     }
 
     function carregarParaEditar(index) {
-        const item = historico[index];
-        if (!item) {
-            mostrarToast("Orçamento não encontrado.", "erro");
-            return;
-        }
-
-        document.getElementById('clienteNome').value = item.cliente?.nome || item.nome || '';
-        document.getElementById('clienteEndereco').value = item.cliente?.endereco || item.cliente?.end || '';
-        document.getElementById('clienteTel').value = item.cliente?.tel || '';
-        document.getElementById('clienteCidade').value = item.cliente?.cidade || item.cliente?.city || 'Sátrio Dias/BA';
-
-        if (item.veiculo) {
-            document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
-            document.getElementById('veiculoPlaca').value = item.veiculo.placa || '';
-            document.getElementById('veiculoAno').value = item.veiculo.ano || '';
-            document.getElementById('veiculoCor').value = item.veiculo.cor || '';
-            document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
-            
-            if (document.getElementById('tipoServico')) {
-                document.getElementById('tipoServico').value = item.veiculo.tipo_servico || '';
-            }
-        }
-
-        if (document.getElementById('valorCliente')) {
-            document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
-        }
-
-        if (typeof materiais !== 'undefined' && Array.isArray(materiais)) {
-            materiais.forEach(m => m.qtd = 0);
-            if (item.materiais && Array.isArray(item.materiais)) {
-                item.materiais.forEach(matSalvo => {
-                    const matGeral = materiais.find(m => 
-                        (m.id && matSalvo.id && m.id == matSalvo.id) || 
-                        (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase())
-                    );
-                    
-                    if (matGeral) matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || 0);
-                });
-            }
-        }
-
-        if (item.mao_obra && typeof maoObraItens !== 'undefined') {
-            maoObraItens = [...item.mao_obra];
-        }
-
-        setTimeout(() => {
-            const botaoCategoria = document.querySelector('.categorias-materiais button.active') || 
-                                   document.querySelector('.categorias-materiais button');
-            if (botaoCategoria) botaoCategoria.click();
-
-            setTimeout(() => {
-                const primeiroBotaoMenos = document.querySelector('.btn-minus');
-                const primeiroBotaoMais = document.querySelector('.btn-plus');
-                
-                if (primeiroBotaoMenos && primeiroBotaoMais) {
-                    primeiroBotaoMenos.click();
-                    primeiroBotaoMais.click();
-                }
-            }, 100); 
-        }, 50);
-
-        mostrarAba('materiais');
-        mostrarToast("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
+    const item = historico[index];
+    if (!item) {
+        mostrarToast("Orçamento não encontrado.");
+        return;
     }
+
+    console.log("Item selecionado para editar:", item);
+
+    // 1. Preenche os campos de texto do Cliente e Veículo
+    document.getElementById('clienteNome').value = item.cliente?.nome || item.nome || '';
+    document.getElementById('clienteEndereco').value = item.cliente?.endereco || item.cliente?.end || '';
+    document.getElementById('clienteTel').value = item.cliente?.tel || '';
+    document.getElementById('clienteCidade').value = item.cliente?.cidade || item.cliente?.city || 'Sátrio Dias/BA';
+
+    if (item.veiculo) {
+        document.getElementById('veiculoModelo').value = item.veiculo.modelo || '';
+        document.getElementById('veiculoPlaca').value = item.veiculo.placa || '';
+        document.getElementById('veiculoAno').value = item.veiculo.ano || '';
+        document.getElementById('veiculoCor').value = item.veiculo.cor || '';
+        document.getElementById('nomeAvaliador').value = item.veiculo.avaliador || '';
+        
+        if (document.getElementById('tipoServico')) {
+            document.getElementById('tipoServico').value = item.veiculo.tipo_servico || '';
+        }
+    }
+
+    // 2. Preenche o valor total cobrado
+    if (document.getElementById('valorCliente')) {
+        document.getElementById('valorCliente').value = item.totalCobrado || item.total || 0;
+    }
+
+    // 3. ATUALIZA AS QUANTIDADES DE MATERIAIS NA MEMÓRIA
+    if (typeof materiais !== 'undefined' && Array.isArray(materiais)) {
+        materiais.forEach(m => m.qtd = 0);
+
+        if (item.materiais && Array.isArray(item.materiais)) {
+            item.materiais.forEach(matSalvo => {
+                const matGeral = materiais.find(m => 
+                    (m.id && matSalvo.id && m.id == matSalvo.id) || 
+                    (m.nome && matSalvo.nome && m.nome.toLowerCase() === matSalvo.nome.toLowerCase())
+                );
+                
+                if (matGeral) {
+                    matGeral.qtd = parseInt(matSalvo.qtd || matSalvo.quantidade || 0);
+                }
+            });
+        }
+    }
+
+    if (item.mao_obra && typeof maoObraItens !== 'undefined') {
+        maoObraItens = [...item.mao_obra];
+    }
+
+    // 4 e 5. GATILHO AUTOMÁTICO E CLIQUE FANTASMA (Resolve o problema do atraso visual)
+    setTimeout(() => {
+        // Primeiro força o clique na categoria para desenhar a lista de cards na tela
+        const botaoCategoria = document.querySelector('.categorias-materiais button.active') || 
+                               document.querySelector('.categorias-materiais button');
+        if (botaoCategoria) {
+            botaoCategoria.click();
+        }
+
+        // Aguarda os cards aparecerem no HTML e simula a interação para forçar o update visual geral
+        setTimeout(() => {
+            const primeiroBotaoMenos = document.querySelector('.btn-minus');
+            const primeiroBotaoMais = document.querySelector('.btn-plus');
+            
+            if (primeiroBotaoMenos && primeiroBotaoMais) {
+                primeiroBotaoMenos.click();
+                primeiroBotaoMais.click();
+            }
+        }, 100); 
+    }, 50);
+
+    // Tentativa complementar executando as funções padrão do escopo global
+    try {
+        const funcoesCalculo = ['atualizarTotais', 'calcularTotal', 'calcular', 'atualizarResumo', 'calcTotal'];
+        funcoesCalculo.forEach(nomeFuncao => {
+            if (typeof window[nomeFuncao] === 'function') window[nomeFuncao]();
+        });
+    } catch (e) { console.log("Aviso no recálculo secundário:", e); }
+
+    // 6. MUDA DE ABA AUTOMATICAMENTE PARA A TELA DE ORÇAMENTO
+    if (typeof mudarAba === 'function') { 
+        mudarAba('resumo'); 
+    } else if (typeof mudarAba === 'function') {
+        mudarAba('orcamento');
+    }
+
+    mostrarToast("Orçamento carregado para edição! Verifique os materiais e valores no resumo.");
+}
 
     function carregarDadosClienteNoResumo(index) {
         const cli = clientes[index];
@@ -1173,6 +1323,7 @@
         const doc = new jsPDF('p', 'mm', 'a4');
         let y = 15;
 
+        // --- AJUSTE DINÂMICO DE TERMOS POR PROFISSÃO ---
         const profPDF = dadosOficina.profissao || 'pintor';
         let txtSecao = 'VEÍCULO';
         let txtPlaca = 'PLACA';
@@ -1189,10 +1340,11 @@
         } else if (profPDF === 'eletricista') {
             txtSecao = 'DADOS DA OBRA';
             txtPlaca = 'IDENTIFICAÇÃO';
-            txtModelo = 'EDIFÍCIO';
-            txtAno = 'ÁREA m²';
+            txtModelo = 'EDIFÍCIO';  // Alterado conforme solicitado
+            txtAno = 'ÁREA m²';      // Alterado conforme solicitado
             txtCor = 'TIPO DE INSTALAÇÃO';
         }
+        // ----------------------------------------------
 
         if (dadosOficina.logoBase64) {
             try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
@@ -1223,6 +1375,7 @@
         doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
         y += 15;
 
+        // Cabeçalho da tabela do topo adaptado
         doc.setFontSize(9).setTextColor(100,100,100).text(txtPlaca, 25, y).text(txtModelo, 95, y).text('AVALIADOR', 155, y);
         y += 4;
         doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
@@ -1230,15 +1383,18 @@
         
         y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
 
+        // Seção principal adaptada
         doc.setFont('Helvetica', 'bold').setFontSize(11).text(txtSecao, 15, y).text('CLIENTE', 110, y);
         y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
 
+        // Linhas de detalhes com as novas etiquetas
         doc.setFont('Helvetica', 'normal').setFontSize(9.5);
         doc.text(`${txtModelo}: ${modVeic || '---'}`, 15, y).text(`NOME: ${nomeCli || '---'}`, 110, y); y += 5.5;
         doc.text(`${txtPlaca}: ${placVeic || '---'}`, 15, y).text(`ENDEREÇO: ${endCli || '---'}`, 110, y); y += 5.5;
         doc.text(`${txtAno}: ${anoVeic || '---'}`, 15, y).text(`TEL: ${telCli || '---'}`, 110, y); y += 5.5;
         doc.text(`${txtCor}: ${corVeic || '---'}`, 15, y).text(`CIDADE: ${cidCli || '---'}`, 110, y);
         
+        // --- SEÇÃO DO TIPO DE SERVIÇO ---
         y += 8;
         doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
         y += 4.5;
@@ -1257,7 +1413,7 @@
         doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
 
         doc.save(`orcamento_${nomeCli.replace(/\s+/g, '_')}.pdf`);
-    }
+}
 
     function gerarPDFdoResumo(){
         const nome = document.getElementById('clienteNome').value || 'Cliente';
@@ -1269,9 +1425,10 @@
         const ano = document.getElementById('veiculoAno').value || '';
         const cor = document.getElementById('veiculoCor').value || '';
         const avaliador = document.getElementById('nomeAvaliador').value || '';
-        const tipoServico = document.getElementById('tipoServico').value || '---';
+        const tipoServico = document.getElementById('tipoServico').value || '---'; // <-- Nova linha aqui
         const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
         
+        // Adicionamos 'tipoServico' antes do 'valor' na chamada abaixo:
         construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
     }
 
@@ -1281,7 +1438,7 @@
         construirDocumentoPDF(
             item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
             item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
-            item.veiculo.tipo_servico || '---', 
+            item.veiculo.tipo_servico || '---', // Caso salve no histórico futuramente
             item.totalCobrado, item.data.split(' ')[0]
         );
     }
@@ -1323,121 +1480,144 @@
 
     async function removerMaoObra(i){ maoObraItens.splice(i,1); renderMaoObra(); atualizarResumo(); await salvarNoBanco(); }
 
-    async function enviarWhatsAppHistorico(index) {
-        const item = historico[index];
-        if (!item) {
-            mostrarToast("Orçamento não encontrado no histórico.", "erro");
-            return;
-        }
+   async function enviarWhatsAppHistorico(index) {
+    const item = historico[index];
+    if (!item) {
+        mostrarToast("Orçamento não encontrado no histórico.");
+        return;
+    }
 
-        if (!usuarioAtualId) {
-            mostrarToast("Você precisa estar logado para realizar esta operação.", "aviso");
-            return;
-        }
+    if (!usuarioAtualId) {
+        mostrarToast("Você precisa estar logado para realizar esta operação.");
+        return;
+    }
 
-        try {
-            const nome = item.cliente.nome;
-            const end = item.cliente.endereco || '';
-            const tel = item.cliente.tel || '';
-            const cid = item.cliente.cidade || 'Sátrio Dias/BA';
-            const modelo = item.veiculo.modelo || '---';
-            const placa = item.veiculo.placa || '---';
-            const ano = item.veiculo.ano || '';
-            const cor = item.veiculo.cor || '';
-            const avaliador = item.veiculo.avaliador || '';
-            const tipoServico = item.veiculo.tipo_servico || '---';
-            const valor = item.totalCobrado || 0;
+    try {
+        // Puxa os dados direto do histórico salvo no banco/memória
+        const nome = item.cliente.nome;
+        const end = item.cliente.endereco || '';
+        const tel = item.cliente.tel || '';
+        const cid = item.cliente.cidade || 'Sátrio Dias/BA';
+        const modelo = item.veiculo.modelo || '---';
+        const placa = item.veiculo.placa || '---';
+        const ano = item.veiculo.ano || '';
+        const cor = item.veiculo.cor || '';
+        const avaliador = item.veiculo.avaliador || '';
+        const tipoServico = item.veiculo.tipo_servico || '---'; // <-- 1. RESGATA O SERVIÇO SALVO
+        const valor = item.totalCobrado || 0;
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            let y = 15;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        let y = 15;
 
-            if (dadosOficina.logoBase64) {
-                try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
-                    doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
-                }
-            } else {
+        // --- ESTRUTURA DO PDF DO HISTÓRICO ---
+        if (dadosOficina.logoBase64) {
+            try { doc.addImage(dadosOficina.logoBase64, 'PNG', 15, y, 45, 20); } catch (e) {
                 doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
             }
-
-            doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
-            doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
-            
-            doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
-            doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
-            doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
-            doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
-            doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
-            doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
-            doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
-
-            const dataOrc = item.data ? item.data.split(' ')[0] : new Date().toLocaleDateString('pt-BR');
-            doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
-            doc.text(dataOrc, 175, y + 5);
-            y += 36;
-            doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
-            y += 5;
-
-            doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
-            y += 15;
-
-            doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
-            y += 4;
-            doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
-            doc.text(placa, 25, y).text(modelo, 95, y).text(avaliador, 155, y);
-            
-            y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
-
-            doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
-            y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
-
-            doc.setFont('Helvetica', 'normal').setFontSize(9.5);
-            doc.text(`MODELO: ${modelo}`, 15, y).text(`NOME: ${nome}`, 110, y); y += 5.5;
-            doc.text(`PLACA: ${placa}`, 15, y).text(`ENDEREÇO: ${end}`, 110, y); y += 5.5;
-            doc.text(`ANO: ${ano}`, 15, y).text(`TEL: ${tel}`, 110, y); y += 5.5;
-            doc.text(`COR: ${cor}`, 15, y).text(`CIDADE: ${cid}`, 110, y);
-            
-            y += 8;
-            doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
-            y += 4.5;
-            doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
-
-            y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
-            doc.setLineWidth(0.3).rect(65, y, 80, 16);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
-            doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
-            
-            y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
-            doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
-            
-            y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
-            doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
-
-            const pdfBlob = doc.output('blob');
-            const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
-
-            const { data, error } = await supabaseClient.storage
-                .from('orcamentos')
-                .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
-
-            if (error) throw error;
-
-            const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
-            const linkPdfPublico = urlData.publicUrl;
-
-            let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
-            textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
-            textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; 
-            textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
-            textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
-
-            window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
-
-        } catch (err) {
-            mostrarToast("Erro ao enviar WhatsApp.", "erro");
+        } else {
+            doc.setFillColor(240,240,240); doc.rect(15, y, 45, 20, 'F');
         }
+
+        doc.setFont('Helvetica', 'bold').setFontSize(16).setTextColor(0,0,0);
+        doc.text((dadosOficina.nome || 'ALDINEICAR').toUpperCase(), 65, y + 5);
+        
+        doc.setFont('Helvetica', 'normal').setFontSize(9).setTextColor(60,60,60);
+        doc.text(`CNPJ/CPF: ${dadosOficina.cnpj || '---'}`, 65, y + 10);
+        doc.text(`END: ${dadosOficina.end || '---'}`, 65, y + 14);
+        doc.text(`CEP: ${dadosOficina.cep || '---'}`, 65, y + 18);
+        doc.text(`FONE: ${dadosOficina.fone || '---'}`, 65, y + 22);
+        doc.text(`EMAIL: ${dadosOficina.email || '---'}`, 65, y + 26);
+        doc.text(`PIX: ${dadosOficina.pix || '---'}`, 65, y + 30);
+
+        const dataOrc = item.data ? item.data.split(' ')[0] : new Date().toLocaleDateString('pt-BR');
+        doc.setFont('Helvetica', 'bold').setFontSize(10).setTextColor(0,0,0);
+        doc.text(dataOrc, 175, y + 5);
+        y += 36;
+        doc.setDrawColor(200, 200, 200).line(15, y, 195, y);
+        y += 5;
+
+        doc.setDrawColor(0,0,0).rect(85, y, 40, 8);
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('ORÇAMENTO', 92, y + 5.5);
+        y += 15;
+
+        doc.setFontSize(9).setTextColor(100,100,100).text('PLACA', 25, y).text('MODELO', 95, y).text('AVALIADOR', 155, y);
+        y += 4;
+        doc.setFont('Helvetica', 'bold').setTextColor(0,0,0).setFontSize(10);
+        doc.text(placa, 25, y).text(modelo, 95, y).text(avaliador, 155, y);
+        
+        y += 4; doc.setDrawColor(0, 0, 0).setLineWidth(0.4).line(15, y, 195, y); y += 6;
+
+        doc.setFont('Helvetica', 'bold').setFontSize(11).text('VEÍCULO', 15, y).text('CLIENTE', 110, y);
+        y += 2; doc.setLineWidth(0.2).line(15, y, 100, y).line(110, y, 195, y); y += 5;
+
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5);
+        doc.text(`MODELO: ${modelo}`, 15, y).text(`NOME: ${nome}`, 110, y); y += 5.5;
+        doc.text(`PLACA: ${placa}`, 15, y).text(`ENDEREÇO: ${end}`, 110, y); y += 5.5;
+        doc.text(`ANO: ${ano}`, 15, y).text(`TEL: ${tel}`, 110, y); y += 5.5;
+        doc.text(`COR: ${cor}`, 15, y).text(`CIDADE: ${cid}`, 110, y);
+        
+        // --- 2. ADICIONA O SERVIÇO NO LAYOUT DO PDF DO WHATSAPP ---
+        y += 8;
+        doc.setFont('Helvetica', 'bold').setFontSize(10).text('SERVIÇO A SER REALIZADO:', 15, y);
+        y += 4.5;
+        doc.setFont('Helvetica', 'normal').setFontSize(9.5).text(tipoServico.toUpperCase(), 15, y);
+
+        y += 7; doc.setLineWidth(0.8).line(15, y, 195, y); y += 10;
+        doc.setLineWidth(0.3).rect(65, y, 80, 16);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('TOTAL R$', 98, y + 5);
+        doc.setFont('Helvetica', 'bold').setFontSize(15).text(`R$ ${valor.toFixed(2)}`, 91, y + 12);
+        
+        y += 26; doc.setLineWidth(0.2).rect(15, y, 180, 16);
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('OBSERVAÇÕES', 18, y + 5);
+        doc.setFont('Helvetica', 'normal').setFontSize(9).text('ORÇAMENTO VÁLIDO POR 30 DIAS', 18, y + 11);
+        
+        y += 35; doc.setLineWidth(0.2).line(60, y, 150, y); y += 4;
+        doc.setFont('Helvetica', 'bold').setFontSize(9).text('ASSINATURA DO CLIENTE', 85, y);
+
+        // Gera o arquivo e envia para o Storage do Supabase
+        const pdfBlob = doc.output('blob');
+        const nomeArquivo = `${usuarioAtualId}/orc_${Date.now()}.pdf`;
+
+        const { data, error } = await supabaseClient.storage
+            .from('orcamentos')
+            .upload(nomeArquivo, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabaseClient.storage.from('orcamentos').getPublicUrl(nomeArquivo);
+        const linkPdfPublico = urlData.publicUrl;
+
+        // Texto que vai aparecer diretamente no chat do WhatsApp
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`; // <-- 3. ADICIONA NO TEXTO DA MENSAGEM
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `👉 *Clique no link abaixo para abrir o PDF oficial detalhado:* \n${linkPdfPublico}`;
+
+        // Abre o WhatsApp Web ou App com a mensagem preenchida
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
+
+    } catch (err) {
+        mostrarToast("Erro ao enviar WhatsApp do histórico: " + err.message, " erro ");
+    }
+}
+
+    // --- NOVA FUNÇÃO ADICIONADA PARA O BOTÃO WHATSAPP DA ABA RESUMO ---
+    function enviarWhatsApp() {
+        const nome = document.getElementById('clienteNome').value || 'Cliente';
+        const modelo = document.getElementById('veiculoModelo').value || 'Veículo';
+        const placa = document.getElementById('veiculoPlaca').value || '---';
+        const tipoServico = document.getElementById('tipoServico').value || '---';
+        const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
+        
+        let textoWhats = `Olá *${nome}*, segue o orçamento do seu veículo na *${dadosOficina.nome || 'ALDINEICAR'}*:\n\n`;
+        textoWhats += `🚗 *Veículo:* ${modelo} (${placa})\n`;
+        textoWhats += `🔧 *Serviço:* ${tipoServico}\n`;
+        textoWhats += `💰 *Valor Total:* R$ ${valor.toFixed(2)}\n\n`;
+        textoWhats += `Aguardamos sua aprovação!`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(textoWhats)}`, '_blank');
     }
 
     function abrirConfirmacao(texto, callback){
@@ -1480,37 +1660,219 @@
         });
     });
 
-    function configurarResumoPorProfissao() {
-        const prof = dadosOficina.profissao || 'pintor';
-        const divDeslocamento = document.getElementById('grupo-deslocamento');
+   function configurarResumoPorProfissao() {
+    const prof = dadosOficina.profissao || 'pintor';
+    const divDeslocamento = document.getElementById('grupo-deslocamento');
+    
+    const inModelo = document.getElementById('veiculoModelo');
+    const inPlaca = document.getElementById('veiculoPlaca');
+    const inAno = document.getElementById('veiculoAno');
+    const inCor = document.getElementById('veiculoCor');
+
+    if (prof === 'eletricista') {
+        if(divDeslocamento) divDeslocamento.style.display = 'block'; // Mostra pro eletricista
+        // ... termos do eletricista
+    } else {
+        if(divDeslocamento) divDeslocamento.style.display = 'none';  // Esconde para os outros
+        // ... termos padrão
+    }
+
+
+    if (!inModelo || !inPlaca || !inAno || !inCor) return;
+
+    const lblModelo = inModelo.previousElementSibling;
+    const lblPlaca = inPlaca.previousElementSibling;
+    const lblAno = inAno.previousElementSibling;
+    const lblCor = inCor.previousElementSibling;
+
+    if (prof === 'mecanico') {
+        if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
+        if(inModelo)  inModelo.placeholder = "Modelo / Motorização";
+        if(lblPlaca)  lblPlaca.innerText = "PLACA";
+        if(inPlaca)   inPlaca.placeholder = "Placa";
+        if(lblAno)    lblAno.innerText = "ANO";
+        if(inAno)     inAno.placeholder = "Ano";
+        if(lblCor)    lblCor.innerText = "QUILOMETRAGEM (KM)";
+        if(inCor)     { inCor.placeholder = "Quilometragem (KM)"; inCor.type = "text"; }
+    } else if (prof === 'eletricista') {
+        // AJUSTADO COM EDIFÍCIO E ÁREA M²
+        if(lblModelo) lblModelo.innerText = "EDIFÍCIO";
+        if(inModelo)  inModelo.placeholder = "Edifício";
         
-        const inModelo = document.getElementById('veiculoModelo');
-        const inPlaca = document.getElementById('veiculoPlaca');
-        const inAno = document.getElementById('veiculoAno');
-        const inCor = document.getElementById('veiculoCor');
+        if(lblPlaca)  lblPlaca.innerText = "IDENTIFICAÇÃO / NÚMERO";
+        if(inPlaca)   inPlaca.placeholder = "Identificação / Número";
+        
+        if(lblAno)    lblAno.innerText = "ÁREA m²";
+        if(inAno)     inAno.placeholder = "Área m²";
+        
+        if(lblCor)    lblCor.innerText = "TIPO DE INSTALAÇÃO";
+        if(inCor)     { inCor.placeholder = "Tipo de Instalação"; inCor.type = "text"; }
+    } else { 
+        if(lblModelo) lblModelo.innerText = "MODELO DO VEÍCULO";
+        if(inModelo)  inModelo.placeholder = "Modelo do Veículo";
+        if(lblPlaca)  lblPlaca.innerText = "PLACA";
+        if(inPlaca)   inPlaca.placeholder = "Placa";
+        if(lblAno)    lblAno.innerText = "ANO";
+        if(inAno)     inAno.placeholder = "Ano";
+        if(lblCor)    lblCor.innerText = "COR DO VEÍCULO / CÓDIGO";
+        if(inCor)     { inCor.placeholder = "Cor do Veículo / Código"; inCor.type = "text"; }
+    }
+}
 
-        if (prof === 'eletricista') {
-            if(divDeslocamento) divDeslocamento.style.display = 'block'; 
-        } else {
-            if(divDeslocamento) divDeslocamento.style.display = 'none';  
+
+    async function alterarStatus(index, novoStatus) {
+    if (historico[index]) {
+        historico[index].status = novoStatus;
+        renderHistorico(); // Atualiza o visual e as cores imediatamente
+        await salvarNoBanco(); // Sincroniza com o Supabase
+    }
+}
+
+function mostrarToast(mensagem, tipo = 'sucesso') {
+    // 1. Verifica se o container já existe no body, se não, cria-o
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    // 2. Cria o elemento do Toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    
+    // 3. Define o emoji correto para cada situação
+    let icone = '✅';
+    if (tipo === 'erro') icone = '❌';
+    if (tipo === 'aviso') icone = '⚠️';
+
+    toast.innerHTML = `<span>${icone}</span> <span>${mensagem}</span>`;
+    
+    // 4. Adiciona ao ecrã
+    container.appendChild(toast);
+
+    // 5. Pequeno delay para ativar a animação do CSS
+    setTimeout(() => {
+        toast.classList.add('toast-ativo');
+    }, 10);
+
+    // 6. Remove o toast após 3.5 segundos (com efeito de fecho)
+    setTimeout(() => {
+        toast.classList.remove('toast-ativo');
+        // Espera a animação de fade-out terminar para apagar do HTML
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3500);
+}
+
+// Detecta automaticamente quando o dispositivo recupera a conexão com a internet
+window.addEventListener('online', async () => {
+    atualizarStatusRedeVisual(true);
+    console.log("Conexão restaurada! Sincronizando dados com o banco de dados nuvem...");
+    if (usuarioAtualId) {
+        await salvarNoBanco(true); // Força sincronização em segundo plano
+    }
+});
+
+// Detecta automaticamente quando o dispositivo perde a conexão com a internet
+window.addEventListener('offline', () => {
+    atualizarStatusRedeVisual(false);
+    console.log("A conexão caiu. O sistema entrou em Modo Local automaticamente.");
+});
+
+// Define o estado inicial da rede assim que a página termina de carregar completamente
+window.addEventListener('load', () => {
+    atualizarStatusRedeVisual(navigator.onLine);
+});
+
+// Detecta automaticamente o retorno da internet e sincroniza os dados pendentes
+window.addEventListener('online', async () => {
+    if (usuarioAtualId) {
+        console.log("Conexão restabelecida! Verificando sincronização pendente...");
+        await carregarDadosDoUsuario(usuarioAtualId);
+    }
+});
+
+function renderCategoriasETelas() {
+    const profAtual = dadosOficina.profissao || 'pintor';
+    const config = configuracoesProfissoes[profAtual] || configuracoesProfissoes.pintor;
+    
+    // >>> CONTROLE EXCLUSIVO PARA O ELETRICISTA (SUBSTITUI MÃO DE OBRA POR LOGÍSTICA) <<<
+    const btnMenuMaoObra = document.getElementById('btn-menu-maoobra');
+    const tituloAbaMaoObra = document.getElementById('titulo-aba-maoobra');
+    const conteudoMaoObraReal = document.getElementById('conteudo-mao-obra-real');
+    const conteudoLogisticaEletricista = document.getElementById('conteudo-logistica-eletricista');
+
+    if (profAtual === 'eletricista') {
+        // Regra do Eletricista: Muda os textos e oculta a mão de obra tradicional
+        if (btnMenuMaoObra) btnMenuMaoObra.innerHTML = '⛽ Adicionar Logística';
+        if (tituloAbaMaoObra) tituloAbaMaoObra.innerText = 'Logística de Transporte';
+        if (conteudoMaoObraReal) conteudoMaoObraReal.style.display = 'none';
+        if (conteudoLogisticaEletricista) conteudoLogisticaEletricista.style.display = 'block';
+    } else {
+        // Outras profissões: Mantém o padrão de Mão de Obra original
+        if (btnMenuMaoObra) btnMenuMaoObra.innerHTML = '🔧 Mão de Obra';
+        if (tituloAbaMaoObra) tituloAbaMaoObra.innerText = 'Mão de Obra';
+        if (conteudoMaoObraReal) conteudoMaoObraReal.style.display = 'block';
+        if (conteudoLogisticaEletricista) conteudoLogisticaEletricista.style.display = 'none';
+    }
+    // ----------------------------------------------------------------------------------
+
+    // 1. Atualizar a Label da Seção do Veículo/Equipamento no Resumo Lateral
+    const labels = document.querySelectorAll('label');
+    labels.forEach(lbl => {
+        if(lbl.innerText.includes("VEÍCULO")) {
+            lbl.innerText = config.labelSecao;
         }
+    });
 
-        if (!inModelo || !inPlaca || !inAno || !inCor) return;
+    // 2. Renderizar botões de filtro de categoria
+    const containerBotoes = document.getElementById('botoesCategorias');
+    if (containerBotoes) {
+        containerBotoes.innerHTML = '';
+        config.categorias.forEach(cat => {
+            const isActive = cat === categoriaAtual;
+            const btnClass = cat === 'Todos' ? 'btn-green' : (isActive ? 'active' : '');
+            containerBotoes.innerHTML += `<button onclick="filtrarCategoria('${cat}')" class="${btnClass}">${cat}</button>`;
+        });
+    }
 
-        const lblModelo = inModelo.previousElementSibling;
-        const lblPlaca = inPlaca.previousElementSibling;
-        const lblAno = inAno.previousElementSibling;
-        const lblCor = inCor.previousElementSibling;
+    // 3. Atualizar as opções do Modal de Criar Material Novo de forma condicional
+    const selectModalCat = document.getElementById('categoriaMaterial');
+    if (selectModalCat) {
+        selectModalCat.innerHTML = '';
+        config.categorias.forEach(cat => {
+            if (cat !== 'Todos') {
+                selectModalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+            }
+        });
+    }
+}
 
-        if (prof === 'mecanico') {
-            if(lblModelo) lblModelo.innerText = "MODELO / MOTORIZAÇÃO";
-            if(inModelo)  inModelo.placeholder = "Modelo / Motorização";
-            if(lblPlaca)  lblPlaca.innerText = "PLACA";
-            if(inPlaca)   inPlaca.placeholder = "Placa";
-            if(lblAno)    lblAno.innerText = "ANO";
-            if(inAno)     inAno.placeholder = "Ano";
+function toggleLogistica() {
+    const container = document.getElementById('container-logistica');
+    if (!container) return; // proteção caso o container tenha sumido
+    
+    const botao = document.getElementById('btn-toggle-logistica');
+    
+    if (container.style.display === 'none' || !container.style.display) {
+        // Mostra o painel
+        container.style.display = 'block';
+        if(botao) {
+            botao.innerHTML = '❌ Remover/Ocultar Logística';
+            botao.classList.add('ativo');
+        }
+    } else {
+        // Esconde o painel
+        container.style.display = 'none';
+        if(botao) {
+            botao.innerHTML = '🚗 Adicionar Logística de Transporte';
+            botao.classList.remove('ativo');
         }
     }
-    </script>
+}
+
+</script>
 </body>
 </html>
