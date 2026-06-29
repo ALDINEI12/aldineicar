@@ -360,52 +360,33 @@ function mostrarSecao(id) {
                         </div>
 
                         <div id="aba-loja" style="display: none; padding: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                                <h2 style="font-size: 24px; font-weight: 800;">Minha Loja</h2>
-                                <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">+ Adicionar Produto</button>
-                            </div>
-                            
-                            <div class="categorias-materiais" id="botoesCategoriasLoja" style="margin-bottom: 25px;">
-                                <button onclick="filtrarProdutosLoja('Todos')" id="btn-cat-loja-Todos" class="active">Todos</button>
-                                <button onclick="filtrarProdutosLoja('pintor')" id="btn-cat-loja-pintor">Pintor</button>
-                                <button onclick="filtrarProdutosLoja('eletricista')" id="btn-cat-loja-eletricista">Eletricista</button>
-                                <button onclick="filtrarProdutosLoja('mecanico')" id="btn-cat-loja-mecanico">Mecânico</button>
-                                <button onclick="filtrarProdutosLoja('funileiro')" id="btn-cat-loja-funileiro">Funileiro</button>
-                                <button onclick="filtrarProdutosLoja('chapista')" id="btn-cat-loja-chapista">Chapista</button>
-                            </div>
-
-                            <div id="vitrine-produtos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;"></div>
-                        </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2 style="font-size: 24px; font-weight: 800;">Minha Loja</h2>
+        <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">+ Adicionar Produto</button>
+    </div>
+    <div id="vitrine-produtos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        </div>
+</div>
 
                         <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center;">
-                            <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto;">
-                                <h3 id="titulo-modal-produto" style="margin-bottom: 20px; color: #0f172a; font-weight: bold;">Novo Produto</h3>
-                                <input type="hidden" id="editandoId">
-                                
-                                <label style="display:block; margin-bottom:5px; font-weight:600; color:#334155;">Categoria / Profissão:</label>
-                                <select id="prodCategoria" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #0f172a;">
-                                    <option value="pintor">Pintor</option>
-                                    <option value="eletricista">Eletricista</option>
-                                    <option value="mecanico">Mecânico</option>
-                                    <option value="funileiro">Funileiro</option>
-                                    <option value="chapista">Chapista</option>
-                                </select>
-
-                                <label style="display:block; margin-bottom:5px; font-weight:600; color:#334155;">Foto do Produto:</label>
-                                <input type="file" id="prodImgFile" accept="image/*" style="width: 100%; margin-bottom: 15px; padding: 5px; border: 1px solid #ddd; border-radius: 8px;">
-                                
-                                <input type="text" id="prodNome" placeholder="Nome" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; color: #0f172a;">
-                                <input type="number" id="prodPreco" placeholder="Preço" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; color: #0f172a;">
-                                <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; color: #0f172a; min-height: 70px;"></textarea>
-                                <input type="number" id="prodEstoque" placeholder="Estoque" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; color: #0f172a;">
-                                
-                                <div style="display: flex; gap: 10px;">
-                                    <button onclick="salvarProdutoLoja()" style="flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Salvar Produto</button>
-                                    <button onclick="fecharModalProduto()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Cancelar</button>
-                                </div>
-                            </div>
-                        </div>
-
+    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto;">
+        <h3 id="titulo-modal-produto" style="margin-bottom: 20px;">Novo Produto</h3>
+        <input type="hidden" id="editandoId">
+        
+        <label>Foto do Produto (URL)</label>
+        <input type="text" id="prodImgUrl" placeholder="Cole o link da imagem aqui" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        
+        <input type="text" id="prodNome" placeholder="Nome" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+        <input type="number" id="prodPreco" placeholder="Preço" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+        <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 10px;"></textarea>
+        <input type="number" id="prodEstoque" placeholder="Estoque" style="width: 100%; margin-bottom: 15px; padding: 10px;">
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="salvarProdutoLoja()" style="flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px;">Salvar Produto</button>
+            <button onclick="fecharModal()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px;">Cancelar</button>
+        </div>
+    </div>
+</div>
 
                         <div id="aba-historico" style="display:none">
                             <h2>Histórico de Orçamentos</h2>
@@ -694,13 +675,160 @@ function mostrarSecao(id) {
     renderClientes();
 }
 
+async function cadastrarProdutoLoja() {
+    const nome = document.getElementById('prodNome').value;
+    const preco = document.getElementById('prodPreco').value;
+    const descricao = document.getElementById('prodDesc').value;
+    const estoque = document.getElementById('prodEstoque').value;
+
+    if (!nome || !preco) {
+        alert("Preencha ao menos o Nome e o Preço!");
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from('produtos_loja')
+        .insert([{ 
+            user_id: usuarioAtualId, 
+            nome: nome, 
+            preco: preco, 
+            descricao: descricao, 
+            estoque: estoque // Agora o estoque está sendo enviado
+        }]);
+
+    if (error) {
+        alert("Erro ao salvar: " + error.message);
+    } else {
+        alert("Produto salvo com sucesso!");
+        // Limpar campos
+        document.getElementById('prodNome').value = '';
+        document.getElementById('prodPreco').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodEstoque').value = '';
+        
+        fecharModal();
+        await carregarProdutosDaLoja(); // Atualiza a vitrine
+    }
+}
+
+function fecharModal() {
+    document.getElementById('modal-cadastro-produto').style.display = 'none';
+}
+
+function fecharModal() {
+    document.getElementById('modal-cadastro-produto').style.display = 'none';
+}
+
+// Atualize sua função de cadastro para fechar o modal ao salvar
+async function cadastrarProdutoLoja() {
+    // 1. Buscamos os elementos
+    const inputNome = document.getElementById('prodNome');
+    const inputPreco = document.getElementById('prodPreco');
+    const inputDesc = document.getElementById('prodDesc');
+    const inputEstoque = document.getElementById('prodEstoque');
+
+    // 2. Verificação de existência
+    if (!inputNome || !inputPreco) {
+        console.error("ERRO: Campos do formulário não encontrados no HTML!");
+        alert("Erro no formulário: os campos não foram encontrados.");
+        return;
+    }
+
+    const dados = {
+        user_id: usuarioAtualId,
+        nome: inputNome.value,
+        preco: parseFloat(inputPreco.value),
+        descricao: inputDesc.value,
+        estoque: parseInt(inputEstoque.value) || 0
+    };
+
+    console.log("Dados que serão salvos:", dados);
+
+    // 3. Salvamento
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .insert([dados]);
+
+    if (error) {
+        console.error("Erro do Supabase:", error);
+        alert("Erro ao salvar no banco: " + error.message);
+    } else {
+        alert("Produto salvo com sucesso!");
+        
+        // Limpar os campos
+        inputNome.value = '';
+        inputPreco.value = '';
+        inputDesc.value = '';
+        inputEstoque.value = '';
+        
+        fecharModal();
+        await carregarProdutosDaLoja();
+    }
+}
+
+async function carregarProdutosDaLoja() {
+    const container = document.getElementById('vitrine-produtos');
+    const { data, error } = await supabaseClient.from('produtos_loja').select('*').eq('user_id', usuarioAtualId);
+    
+    if (error) return console.error(error);
+    container.innerHTML = data.map(p => `
+        <div style="background: white; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; text-align: center;">
+            <img src="${p.imagem_url || 'https://via.placeholder.com/150'}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+            <h3 style="margin: 10px 0;">${p.nome}</h3>
+            <p style="font-weight:bold; color:#e11d48;">R$ ${p.preco}</p>
+            <p style="font-size:12px; color:#64748b;">Estoque: ${p.estoque}</p>
+            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                <button onclick="editarProduto('${p.id}')" style="flex:1; background:#f1f5f9; border:none; padding:8px; border-radius:5px;">Editar</button>
+                <button onclick="deletarProduto('${p.id}')" style="flex:1; background:#fee2e2; color:#dc2626; border:none; padding:8px; border-radius:5px;">Excluir</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function abrirResumoMobile() {
+    const resumo = document.querySelector('.resumo');
+    
+    // Se o resumo estiver escondido, mostra. Se estiver visível, esconde.
+    if (resumo.style.display === 'block') {
+        resumo.style.display = 'none';
+    } else {
+        resumo.style.display = 'block';
+        // Adiciona um botão de fechar dentro do resumo se não existir
+        if (!document.getElementById('btn-fechar-resumo')) {
+            const btnFechar = document.createElement('button');
+            btnFechar.id = 'btn-fechar-resumo';
+            btnFechar.innerHTML = '✖ Fechar';
+            btnFechar.style.cssText = "width:100%; margin-bottom:20px; padding:10px; background:#f1f5f9; border:none; border-radius:8px;";
+            btnFechar.onclick = () => { resumo.style.display = 'none'; };
+            resumo.prepend(btnFechar);
+        }
+    }
+}
+
 async function inicializarSistema() {
         await carregarMateriais();
         await carregarProdutosLoja();
         // Adicione outras chamadas de carregamento caso necessário
     }
 
-     async function carregarProdutosLoja() {
+    // --- LÓGICA DE PRODUTOS / MINHA LOJA ---
+    function prepararNovoProduto() {
+        document.getElementById('editandoId').value = '';
+        document.getElementById('titulo-modal-produto').innerText = 'Novo Produto';
+        document.getElementById('prodCategoria').value = 'pintor';
+        document.getElementById('prodImgFile').value = '';
+        document.getElementById('prodNome').value = '';
+        document.getElementById('prodPreco').value = '';
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodEstoque').value = '';
+        document.getElementById('modal-cadastro-produto').style.display = 'flex';
+    }
+
+
+
+
+
+ async function carregarProdutosLoja() {
         const { data, error } = await supabaseClient
             .from('produtos_loja')
             .select('*')
@@ -753,29 +881,100 @@ async function inicializarSistema() {
         renderizarProdutosLoja();
     }
 
+    function prepararEdicaoProduto(id) {
+        const prod = produtosLoja.find(p => p.id === id);
+        if(!prod) return;
 
+        document.getElementById('editandoId').value = prod.id;
+        document.getElementById('titulo-modal-produto').innerText = 'Editar Produto';
+        document.getElementById('prodCategoria').value = prod.categoria || 'pintor';
+        document.getElementById('prodImgFile').value = ''; 
+        document.getElementById('prodNome').value = prod.nome;
+        document.getElementById('prodPreco').value = prod.preco;
+        document.getElementById('prodDesc').value = prod.descricao || '';
+        document.getElementById('prodEstoque').value = prod.estoque || 0;
+        document.getElementById('modal-cadastro-produto').style.display = 'flex';
+    }
 
+    async function salvarProdutoLoja() {
+        const id = document.getElementById('editandoId').value;
+        const categoria = document.getElementById('prodCategoria').value;
+        const nome = document.getElementById('prodNome').value;
+        const preco = document.getElementById('prodPreco').value;
+        const descricao = document.getElementById('prodDesc').value;
+        const estoque = document.getElementById('prodEstoque').value;
+        const fileInput = document.getElementById('prodImgFile');
+        const file = fileInput.files[0];
 
+        if (!nome || !preco) {
+            alert("Preencha ao menos o Nome e o Preço do item.");
+            return;
+        }
 
-function abrirResumoMobile() {
-    const resumo = document.querySelector('.resumo');
-    
-    // Se o resumo estiver escondido, mostra. Se estiver visível, esconde.
-    if (resumo.style.display === 'block') {
-        resumo.style.display = 'none';
-    } else {
-        resumo.style.display = 'block';
-        // Adiciona um botão de fechar dentro do resumo se não existir
-        if (!document.getElementById('btn-fechar-resumo')) {
-            const btnFechar = document.createElement('button');
-            btnFechar.id = 'btn-fechar-resumo';
-            btnFechar.innerHTML = '✖ Fechar';
-            btnFechar.style.cssText = "width:100%; margin-bottom:20px; padding:10px; background:#f1f5f9; border:none; border-radius:8px;";
-            btnFechar.onclick = () => { resumo.style.display = 'none'; };
-            resumo.prepend(btnFechar);
+        let imagemBase64 = '';
+        if (file) {
+            imagemBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const dadosPayload = {
+            categoria: categoria,
+            nome: nome,
+            preco: parseFloat(preco),
+            descricao: descricao,
+            estoque: parseInt(estoque) || 0,
+            user_id: usuarioAtualId
+        };
+
+        if (imagemBase64) {
+            dadosPayload.imagem_url = imagemBase64;
+        }
+
+        if (id) {
+            // Edição / Update
+            const { error } = await supabaseClient
+                .from('produtos_loja')
+                .update(dadosPayload)
+                .eq('id', id);
+
+            if (error) alert("Erro ao atualizar: " + error.message);
+            else alert("Produto atualizado com sucesso!");
+        } else {
+            // Criação / Insert
+            if(!imagemBase64) { dadosPayload.imagem_url = ''; }
+            const { error } = await supabaseClient
+                .from('produtos_loja')
+                .insert([dadosPayload]);
+
+            if (error) alert("Erro ao criar produto: " + error.message);
+            else alert("Produto cadastrado com sucesso!");
+        }
+
+        fecharModalProduto();
+        await carregarProdutosLoja();
+    }
+
+    async function deletarProdutoLoja(id) {
+        if(confirm("Deseja realmente remover este produto da sua loja?")) {
+            const { error } = await supabaseClient
+                .from('produtos_loja')
+                .delete()
+                .eq('id', id);
+            
+            if(error) alert("Erro ao remover: " + error.message);
+            else {
+                alert("Removido com sucesso!");
+                await carregarProdutosLoja();
+            }
         }
     }
-}
+
+
+
+
 
     function salvarFallbackLocal() {
         if (!usuarioAtualId) return;
@@ -843,7 +1042,6 @@ function abrirResumoMobile() {
     function fecharModalOficina() { document.getElementById('modalOficina').style.display='none'; }
     function fecharModalOficina() { document.getElementById('modalOficina').style.display = 'none'; }
     function fecharModalProduto() { document.getElementById('modal-cadastro-produto').style.display = 'none'; }
-
 
 
     
