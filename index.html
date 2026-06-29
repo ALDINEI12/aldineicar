@@ -293,6 +293,7 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
+                <button onclick="mostrarAba('loja')">Minha Loja</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -369,6 +370,11 @@ function mostrarSecao(id) {
                         <div id="aba-clientes" style="display:none">
                             <h2>Clientes Cadastrados</h2>
                             <div class="clientes" id="listaClientes"></div>
+                        </div>
+
+                        <div id="aba-loja" style="display: none;">
+                        <h2>Minha Loja</h2>
+                        <div id="vitrine-produtos" class="grid-produtos"></div>
                         </div>
 
                         <div id="aba-historico" style="display:none">
@@ -472,10 +478,17 @@ function mostrarSecao(id) {
         </div>
     </div>
 
-    <section id="secao-loja" style="display: none;">
-    <h2>Minha Loja</h2>
+   <div id="secao-loja" class="conteudo-aba" style="display: none;">
+    <div class="header-aba">
+        <h2>Minha Loja</h2>
+        <button onclick="abrirModalCadastroProduto()">+ Novo Produto</button>
+    </div>
+    
     <div id="vitrine-produtos" class="grid-produtos">
         </div>
+</div>
+
+
 </section>
 
 <style>
@@ -1345,17 +1358,24 @@ function abrirResumoMobile() {
         mostrarAba('materiais');
     }
 
-    function mostrarAba(nome){
-        document.getElementById('aba-materiais').style.display='none';
-        document.getElementById('aba-clientes').style.display='none';
-        document.getElementById('aba-historico').style.display='none';
-        document.getElementById('aba-maoobra').style.display='none';
+    function mostrarAba(nome) {
+    // Esconde todas as abas existentes
+    document.getElementById('aba-materiais').style.display = 'none';
+    document.getElementById('aba-clientes').style.display = 'none';
+    document.getElementById('aba-historico').style.display = 'none';
+    document.getElementById('aba-maoobra').style.display = 'none';
+    document.getElementById('aba-loja').style.display = 'none'; // Adicionado
 
-        if(nome==='materiais') document.getElementById('aba-materiais').style.display='block';
-        if(nome==='clientes') document.getElementById('aba-clientes').style.display='block';
-        if(nome==='historico') document.getElementById('aba-historico').style.display='block';
-        if(nome==='maoobra') document.getElementById('aba-maoobra').style.display='block';
+    // Mostra a aba selecionada
+    if (nome === 'materiais') document.getElementById('aba-materiais').style.display = 'block';
+    if (nome === 'clientes') document.getElementById('aba-clientes').style.display = 'block';
+    if (nome === 'historico') document.getElementById('aba-historico').style.display = 'block';
+    if (nome === 'maoobra') document.getElementById('aba-maoobra').style.display = 'block';
+    if (nome === 'loja') {
+        document.getElementById('aba-loja').style.display = 'block';
+        carregarProdutosDaLoja(); // Carrega os produtos ao abrir
     }
+}
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
         const { jsPDF } = window.jspdf;
