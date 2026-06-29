@@ -479,13 +479,16 @@
         {nome:'Preto Ninja',valor:55,qtd:0,cat:'Tintas'}
     ];
 
-    async function carregarDadosDoUsuario(userId) {
+  async function carregarDadosDoUsuario(userId) {
+        console.log("Local Timestamp:", localTimestamp);
+        console.log("Cloud Timestamp:", cloudTimestamp);
         if (!userId) return;
         usuarioAtualId = userId;
         
         let localTimestamp = 0;
         const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
-        if(fallback){
+        
+        if (fallback) {
             const parsed = JSON.parse(fallback);
             materiais = parsed.materiais || [...materiaisPadrao];
             historico = parsed.historico || [];
@@ -504,34 +507,52 @@
                 .eq('user_id', userId);
 
             if (error) {
-                await salvarNoBanco(true); 
+                console.error("Erro ao buscar do Supabase, mantendo dados locais.");
+                // Se der erro de conexão, não fazemos nada, já carregamos do local acima
             } else if (data && data.length > 0) {
                 const registro = data[0];
                 const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
                 
                 if (localTimestamp > cloudTimestamp) {
-                    console.log("Alterações offline detectadas pós-reinício. Sincronizando com a nuvem...");
+                    console.log("Alterações offline locais são mais recentes. Sincronizando com a nuvem...");
                     await salvarNoBanco(true); 
                 } else {
-                    materiais = registro.materiais || [...materiaisPadrao];
-                    historico = registro.historico || [];
-                    clientes = registro.clientes || [];
-                    maoObraItens = registro.mao_obra || [];
-                    if(registro.dados_oficina) dadosOficina = registro.dados_oficina;
+                    // --- PROTEÇÃO APLICADA AQUI ---
+                    // Só atualiza os dados se o banco retornar algo consistente, 
+                    // evitando apagar dados locais com registros vazios ou antigos.
                     
-                    clientes = clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
+                    if (registro.materiais && registro.materiais.length > 0) {
+                        materiais = registro.materiais;
+                    }
+                    if (registro.historico && registro.historico.length > 0) {
+                        historico = registro.historico;
+                    }
+                    if (registro.clientes && registro.clientes.length > 0) {
+                        clientes = registro.clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
+                    }
+                    if (registro.mao_obra && registro.mao_obra.length > 0) {
+                        maoObraItens = registro.mao_obra;
+                    }
+                    if (registro.dados_oficina) {
+                        dadosOficina = registro.dados_oficina;
+                    }
+                    
+                    // Atualiza o fallback local com o que veio da nuvem
                     salvarFallbackLocal();
                 }
             } else {
+                // Caso não exista registro na nuvem, garante que o banco tenha o que temos local
                 await salvarNoBanco(true);
             }
         } catch (err) {
             console.error("Erro na comunicação com a nuvem (App operando offline):", err);
         }
 
+        // Renderização final
         atualizarInputsOficina();
         atualizarLogoHeader(); 
         if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
+        
         renderCategoriasETelas(); 
         configurarResumoPorProfissao();
         render();
