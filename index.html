@@ -656,6 +656,12 @@
         const profissaoAnterior = dadosOficina.profissao || 'pintor';
         const novaProfissao = document.getElementById('oficinaProfissao').value;
 
+        // 1. ANTES DE MUDAR, SALVAMOS O ESTADO DA PROFISSÃO ATUAL NO LOCALSTORAGE
+        if (usuarioAtualId) {
+            localStorage.setItem(`materiais_${profissaoAnterior}_${usuarioAtualId}`, JSON.stringify(materiais));
+        }
+
+        // Atualiza os dados de perfil
         dadosOficina.nome = document.getElementById('oficinaNome').value;
         dadosOficina.cnpj = document.getElementById('oficinaCnpj').value;
         dadosOficina.end = document.getElementById('oficinaEnd').value;
@@ -665,23 +671,38 @@
         dadosOficina.pix = document.getElementById('oficinaPix').value;
         dadosOficina.profissao = novaProfissao; 
 
+        // 2. LÓGICA DE TROCA
         if (profissaoAnterior !== novaProfissao) {
-            if (confirm("Você alterou o Ramo de Atuação! Deseja carregar a lista de materiais padrão recomendada para esta nova área? (Seus clientes e histórico guardados não serão perdidos)")) {
-                const config = configuracoesProfissoes[novaProfissao];
-                materiais = JSON.parse(JSON.stringify(config.materiais));
+            // Tentamos recuperar rascunho da nova profissão
+            const rascunhoNovaProf = localStorage.getItem(`materiais_${novaProfissao}_${usuarioAtualId}`);
+            
+            if (rascunhoNovaProf) {
+                // Se já existia um rascunho, recupera ele automaticamente
+                materiais = JSON.parse(rascunhoNovaProf);
                 categoriaAtual = 'Todos';
+            } else {
+                // Se é primeira vez, pergunta se quer o padrão
+                if (confirm("Você alterou o Ramo de Atuação! Deseja carregar a lista de materiais padrão recomendada para esta nova área?")) {
+                    const config = configuracoesProfissoes[novaProfissao];
+                    materiais = JSON.parse(JSON.stringify(config.materiais));
+                    categoriaAtual = 'Todos';
+                }
             }
         }
 
+        // Finalização e salvamento
         atualizarLogoHeader();
         fecharModalOficina();
         renderCategoriasETelas(); 
         render();
         configurarResumoPorProfissao(); 
         mostrarToast("Configurações profissionais salvas com sucesso!");
+        
+        // Salva tudo no banco e no fallback geral
+        salvarFallbackLocal();
         await salvarNoBanco();
     }
-
+    
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
         document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
@@ -1048,6 +1069,13 @@
             `;
         });
     }
+
+    function salvarEstadoProfissaoAtual() {
+    if (!usuarioAtualId) return;
+    // Salva o estado atual dos materiais no localStorage usando a profissão como chave
+    const prof = dadosOficina.profissao || 'pintor';
+    localStorage.setItem(`materiais_${prof}_${usuarioAtualId}`, JSON.stringify(materiais));
+}
 
     function carregarParaEditar(index) {
         const item = historico[index];
