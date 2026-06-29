@@ -368,7 +368,10 @@ function mostrarSecao(id) {
         </div>
 </div>
 
-                        <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center;">
+                       <button onclick="document.getElementById('modal-cadastro-produto').style.display = 'none'" 
+        style="flex: 1; padding: 10px; background: #64748b; color: white; border: none; border-radius: 5px;">
+    Cancelar
+</button>
     <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px;">
         <h3>Produto</h3>
         <input type="hidden" id="editandoId">
@@ -1003,6 +1006,37 @@ async function editarProduto(id) {
         }
     }
 
+    async function cadastrarProdutoLoja() {
+    const nome = document.getElementById('prodNome').value;
+    const preco = document.getElementById('prodPreco').value;
+    const desc = document.getElementById('prodDesc').value;
+    const estoque = document.getElementById('prodEstoque').value;
+
+    if (!nome || !preco) {
+        alert("Preencha ao menos o Nome e o Preço.");
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .insert([{ 
+            nome: nome, 
+            preco: parseFloat(preco), 
+            descricao: desc, 
+            estoque: parseInt(estoque),
+            user_id: usuarioAtualId // Certifique-se que usuarioAtualId está preenchido
+        }]);
+
+    if (error) {
+        console.error(error);
+        alert("Erro ao salvar: " + error.message);
+    } else {
+        alert("Produto salvo com sucesso!");
+        document.getElementById('modal-cadastro-produto').style.display = 'none';
+        // Opcional: recarregar a lista de produtos aqui
+    }
+}
+
     async function salvarDadosOficina() {
         const profissaoAnterior = dadosOficina.profissao || 'pintor';
         const novaProfissao = document.getElementById('oficinaProfissao').value;
@@ -1526,6 +1560,13 @@ async function editarProduto(id) {
         document.getElementById('aba-loja').style.display = 'block';
         carregarProdutosDaLoja(); // Carrega os produtos ao abrir
     }
+    document.querySelectorAll('.aba-container > div').forEach(div => div.style.display = 'none');
+    
+    // Mostra o container selecionado
+    document.getElementById('aba-' + abaId).style.display = 'block';
+    
+    // SEGURANÇA: Fecha o modal se o usuário mudar de aba
+    document.getElementById('modal-cadastro-produto').style.display = 'none';
 }
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
