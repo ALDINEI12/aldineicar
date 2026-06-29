@@ -1527,7 +1527,10 @@ function abrirResumoMobile() {
     }
 
     function abrirModal(){ document.getElementById('modal').style.display='flex'; }
-    function fecharModal(){ document.getElementById('modal').style.display='none'; }
+    function fecharModal() {
+    // Altere 'modal' para 'modal-cadastro-produto'
+    document.getElementById('modal-cadastro-produto').style.display = 'none';
+}
 
     async function adicionarMaoObra(){
         const nome = document.getElementById('nomeServico').value;
