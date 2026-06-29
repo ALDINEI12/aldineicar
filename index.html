@@ -368,32 +368,23 @@ function mostrarSecao(id) {
         </div>
 </div>
 
-                       <button onclick="document.getElementById('modal-cadastro-produto').style.display = 'none'" 
-        style="flex: 1; padding: 10px; background: #64748b; color: white; border: none; border-radius: 5px;">
-    Cancelar
-</button>
-    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px;">
-        <h3>Produto</h3>
+                        <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto;">
+        <h3 id="titulo-modal-produto" style="margin-bottom: 20px;">Novo Produto</h3>
         <input type="hidden" id="editandoId">
         
-        <label>Categoria:</label>
-        <select id="prodCategoria" style="width: 100%; margin-bottom: 10px; padding: 10px;">
-            <option value="pintor">Pintor</option>
-            <option value="eletricista">Eletricista</option>
-            <option value="mecanico">Mecânico</option>
-            <option value="funileiro">Funileiro</option>
-            <option value="chapista">Chapista</option>
-        </select>
-
-        <label>Foto:</label>
-        <input type="file" id="prodImgFile" accept="image/*" style="width: 100%; margin-bottom: 15px;">
+        <label>Foto do Produto (URL)</label>
+        <input type="text" id="prodImgUrl" placeholder="Cole o link da imagem aqui" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
         
         <input type="text" id="prodNome" placeholder="Nome" style="width: 100%; margin-bottom: 10px; padding: 10px;">
         <input type="number" id="prodPreco" placeholder="Preço" style="width: 100%; margin-bottom: 10px; padding: 10px;">
         <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 10px;"></textarea>
         <input type="number" id="prodEstoque" placeholder="Estoque" style="width: 100%; margin-bottom: 15px; padding: 10px;">
         
-        <button onclick="salvarProdutoLoja()" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px;">Salvar Produto</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="salvarProdutoLoja()" style="flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px;">Salvar Produto</button>
+            <button onclick="fecharModal()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px;">Cancelar</button>
+        </div>
     </div>
 </div>
 
@@ -902,31 +893,28 @@ function abrirResumoMobile() {
     }
 
     async function salvarProdutoLoja() {
-    const fileInput = document.getElementById('prodImgFile');
-    const file = fileInput.files[0];
-    let imagemBase64 = '';
-
-    // Converte imagem para Base64 (salva no banco sem precisar de links externos)
-    if (file) {
-        imagemBase64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(file);
-        });
-    }
-
     const id = document.getElementById('editandoId').value;
     const dados = {
-        categoria: document.getElementById('prodCategoria').value,
         nome: document.getElementById('prodNome').value,
         preco: document.getElementById('prodPreco').value,
         descricao: document.getElementById('prodDesc').value,
         estoque: document.getElementById('prodEstoque').value,
-        imagem_url: imagemBase64 || '', // Salva a imagem convertida
+        imagem_url: document.getElementById('prodImgUrl').value,
         user_id: usuarioAtualId
     };
 
-    // ... (o restante da lógica de Insert/Update que usamos antes) ...
+    let res;
+    if (id) {
+        res = await supabaseClient.from('produtos_loja').update(dados).eq('id', id);
+    } else {
+        res = await supabaseClient.from('produtos_loja').insert([dados]);
+    }
+
+    if (res.error) return alert("Erro ao salvar: " + res.error.message);
+    
+    alert("Produto salvo!");
+    fecharModal();
+    carregarProdutosDaLoja();
 }
 
 function prepararNovoProduto() {
@@ -1005,37 +993,6 @@ async function editarProduto(id) {
             preview.innerHTML = '';
         }
     }
-
-    async function cadastrarProdutoLoja() {
-    const nome = document.getElementById('prodNome').value;
-    const preco = document.getElementById('prodPreco').value;
-    const desc = document.getElementById('prodDesc').value;
-    const estoque = document.getElementById('prodEstoque').value;
-
-    if (!nome || !preco) {
-        alert("Preencha ao menos o Nome e o Preço.");
-        return;
-    }
-
-    const { data, error } = await supabaseClient
-        .from('produtos_loja')
-        .insert([{ 
-            nome: nome, 
-            preco: parseFloat(preco), 
-            descricao: desc, 
-            estoque: parseInt(estoque),
-            user_id: usuarioAtualId // Certifique-se que usuarioAtualId está preenchido
-        }]);
-
-    if (error) {
-        console.error(error);
-        alert("Erro ao salvar: " + error.message);
-    } else {
-        alert("Produto salvo com sucesso!");
-        document.getElementById('modal-cadastro-produto').style.display = 'none';
-        // Opcional: recarregar a lista de produtos aqui
-    }
-}
 
     async function salvarDadosOficina() {
         const profissaoAnterior = dadosOficina.profissao || 'pintor';
@@ -1560,7 +1517,6 @@ async function editarProduto(id) {
         document.getElementById('aba-loja').style.display = 'block';
         carregarProdutosDaLoja(); // Carrega os produtos ao abrir
     }
-
 }
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
