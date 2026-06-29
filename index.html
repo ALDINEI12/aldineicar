@@ -359,25 +359,31 @@ function mostrarSecao(id) {
                             <div class="clientes" id="listaClientes"></div>
                         </div>
 
-                        <div id="aba-loja" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>Minha Loja</h2>
-                         <button onclick="document.getElementById('modal-cadastro-produto').style.display = 'flex'">+ Adicionar</button>
-                        </div>
-                        <div id="vitrine-produtos" class="grid-produtos"></div>
-                        </div>
+                        <div id="aba-loja" style="display: none; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2 style="font-size: 24px; font-weight: 800;">Minha Loja</h2>
+        <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">+ Adicionar Produto</button>
+    </div>
+    <div id="vitrine-produtos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+        </div>
+</div>
 
-                        <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;">
-        <h3>Novo Produto</h3>
-        <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px; padding: 8px;">
-        <input type="number" id="prodPreco" placeholder="Preço (ex: 50.00)" style="width: 100%; margin-bottom: 10px; padding: 8px;">
-        <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
-        <input type="number" id="prodEstoque" placeholder="Quantidade em Estoque" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+                        <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto;">
+        <h3 id="titulo-modal-produto" style="margin-bottom: 20px;">Novo Produto</h3>
+        <input type="hidden" id="editandoId">
+        
+        <label>Foto do Produto (URL)</label>
+        <input type="text" id="prodImgUrl" placeholder="Cole o link da imagem aqui" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        
+        <input type="text" id="prodNome" placeholder="Nome" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+        <input type="number" id="prodPreco" placeholder="Preço" style="width: 100%; margin-bottom: 10px; padding: 10px;">
+        <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 10px;"></textarea>
+        <input type="number" id="prodEstoque" placeholder="Estoque" style="width: 100%; margin-bottom: 15px; padding: 10px;">
         
         <div style="display: flex; gap: 10px;">
-            <button onclick="cadastrarProdutoLoja()" style="flex: 1; padding: 10px; background: #e11d48; color: white; border: none; border-radius: 5px;">Salvar</button>
-            <button onclick="fecharModal()" style="flex: 1; padding: 10px; background: #64748b; color: white; border: none; border-radius: 5px;">Cancelar</button>
+            <button onclick="salvarProdutoLoja()" style="flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px;">Salvar Produto</button>
+            <button onclick="fecharModal()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px;">Cancelar</button>
         </div>
     </div>
 </div>
@@ -471,6 +477,8 @@ function mostrarSecao(id) {
             <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
         </div>
     </div>
+
+    <input type="hidden" id="editandoId">
 
     <div id="modalConfirmar" class="modal">
         <div class="modal-content" style="max-width:350px; text-align:center; background:white; color:#333;">
@@ -760,35 +768,21 @@ async function cadastrarProdutoLoja() {
 
 async function carregarProdutosDaLoja() {
     const container = document.getElementById('vitrine-produtos');
-    container.innerHTML = 'Carregando produtos...';
-
-    const { data, error } = await supabaseClient
-        .from('produtos_loja')
-        .select('*')
-        .eq('user_id', usuarioAtualId);
-
-    if (error) {
-        mostrarToast("Erro ao carregar loja.");
-        return;
-    }
-
-    container.innerHTML = ''; // Limpa o carregando
-
-   // Dentro do seu forEach ou map na função carregarProdutosDaLoja:
-data.forEach(produto => {
-    const card = document.createElement('div');
-    card.className = 'card-produto';
-    card.innerHTML = `
-        <h3>${produto.nome}</h3>
-        <p>R$ ${produto.preco}</p>
-        <p><small>Estoque: ${produto.estoque}</small></p>
-        <div style="margin-top: 10px;">
-            <button onclick="editarProduto('${produto.id}')">Editar</button>
-            <button onclick="deletarProduto('${produto.id}')" style="background: #fee2e2; color: #dc2626;">Excluir</button>
+    const { data, error } = await supabaseClient.from('produtos_loja').select('*').eq('user_id', usuarioAtualId);
+    
+    if (error) return console.error(error);
+    container.innerHTML = data.map(p => `
+        <div style="background: white; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; text-align: center;">
+            <img src="${p.imagem_url || 'https://via.placeholder.com/150'}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+            <h3 style="margin: 10px 0;">${p.nome}</h3>
+            <p style="font-weight:bold; color:#e11d48;">R$ ${p.preco}</p>
+            <p style="font-size:12px; color:#64748b;">Estoque: ${p.estoque}</p>
+            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                <button onclick="editarProduto('${p.id}')" style="flex:1; background:#f1f5f9; border:none; padding:8px; border-radius:5px;">Editar</button>
+                <button onclick="deletarProduto('${p.id}')" style="flex:1; background:#fee2e2; color:#dc2626; border:none; padding:8px; border-radius:5px;">Excluir</button>
+            </div>
         </div>
-    `;
-    container.appendChild(card);
-});
+    `).join('');
 }
 
 function abrirResumoMobile() {
@@ -897,6 +891,51 @@ function abrirResumoMobile() {
             container.innerHTML = `<span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; color: white;">${dadosOficina.nome ? dadosOficina.nome.toUpperCase() : 'ALDINEICAR'}</span>`;
         }
     }
+
+    async function salvarProdutoLoja() {
+    const id = document.getElementById('editandoId').value;
+    const dados = {
+        nome: document.getElementById('prodNome').value,
+        preco: document.getElementById('prodPreco').value,
+        descricao: document.getElementById('prodDesc').value,
+        estoque: document.getElementById('prodEstoque').value,
+        imagem_url: document.getElementById('prodImgUrl').value,
+        user_id: usuarioAtualId
+    };
+
+    let res;
+    if (id) {
+        res = await supabaseClient.from('produtos_loja').update(dados).eq('id', id);
+    } else {
+        res = await supabaseClient.from('produtos_loja').insert([dados]);
+    }
+
+    if (res.error) return alert("Erro ao salvar: " + res.error.message);
+    
+    alert("Produto salvo!");
+    fecharModal();
+    carregarProdutosDaLoja();
+}
+
+function prepararNovoProduto() {
+    document.getElementById('editandoId').value = '';
+    document.getElementById('titulo-modal-produto').innerText = "Novo Produto";
+    // Limpar campos
+    ['prodNome', 'prodPreco', 'prodDesc', 'prodEstoque', 'prodImgUrl'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('modal-cadastro-produto').style.display = 'flex';
+}
+
+async function editarProduto(id) {
+    const { data } = await supabaseClient.from('produtos_loja').select('*').eq('id', id).single();
+    document.getElementById('editandoId').value = data.id;
+    document.getElementById('prodNome').value = data.nome;
+    document.getElementById('prodPreco').value = data.preco;
+    document.getElementById('prodDesc').value = data.descricao;
+    document.getElementById('prodEstoque').value = data.estoque;
+    document.getElementById('prodImgUrl').value = data.imagem_url || '';
+    document.getElementById('titulo-modal-produto').innerText = "Editar Produto";
+    document.getElementById('modal-cadastro-produto').style.display = 'flex';
+}
 
     async function deletarProduto(id) {
     if (!confirm("Tem certeza que deseja excluir este produto?")) return;
