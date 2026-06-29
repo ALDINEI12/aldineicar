@@ -480,86 +480,72 @@
     ];
 
   async function carregarDadosDoUsuario(userId) {
-        console.log("Local Timestamp:", localTimestamp);
-        console.log("Cloud Timestamp:", cloudTimestamp);
-        if (!userId) return;
-        usuarioAtualId = userId;
-        
-        let localTimestamp = 0;
-        const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
-        
-        if (fallback) {
-            const parsed = JSON.parse(fallback);
-            materiais = parsed.materiais || [...materiaisPadrao];
-            historico = parsed.historico || [];
-            clientes = parsed.clientes || [];
-            maoObraItens = parsed.maoObraItens || [];
-            dadosOficina = parsed.dadosOficina || dadosOficina;
-            localTimestamp = parsed.local_updated_at || 0; 
-        } else {
-            materiais = [...materiaisPadrao];
-        }
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('user_data')
-                .select('*')
-                .eq('user_id', userId);
-
-            if (error) {
-                console.error("Erro ao buscar do Supabase, mantendo dados locais.");
-                // Se der erro de conexão, não fazemos nada, já carregamos do local acima
-            } else if (data && data.length > 0) {
-                const registro = data[0];
-                const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
-                
-                if (localTimestamp > cloudTimestamp) {
-                    console.log("Alterações offline locais são mais recentes. Sincronizando com a nuvem...");
-                    await salvarNoBanco(true); 
-                } else {
-                    // --- PROTEÇÃO APLICADA AQUI ---
-                    // Só atualiza os dados se o banco retornar algo consistente, 
-                    // evitando apagar dados locais com registros vazios ou antigos.
-                    
-                    if (registro.materiais && registro.materiais.length > 0) {
-                        materiais = registro.materiais;
-                    }
-                    if (registro.historico && registro.historico.length > 0) {
-                        historico = registro.historico;
-                    }
-                    if (registro.clientes && registro.clientes.length > 0) {
-                        clientes = registro.clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
-                    }
-                    if (registro.mao_obra && registro.mao_obra.length > 0) {
-                        maoObraItens = registro.mao_obra;
-                    }
-                    if (registro.dados_oficina) {
-                        dadosOficina = registro.dados_oficina;
-                    }
-                    
-                    // Atualiza o fallback local com o que veio da nuvem
-                    salvarFallbackLocal();
-                }
-            } else {
-                // Caso não exista registro na nuvem, garante que o banco tenha o que temos local
-                await salvarNoBanco(true);
-            }
-        } catch (err) {
-            console.error("Erro na comunicação com a nuvem (App operando offline):", err);
-        }
-
-        // Renderização final
-        atualizarInputsOficina();
-        atualizarLogoHeader(); 
-        if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
-        
-        renderCategoriasETelas(); 
-        configurarResumoPorProfissao();
-        render();
-        renderMaoObra();
-        renderHistorico();
-        renderClientes();
+    if (!userId) return;
+    usuarioAtualId = userId;
+    
+    // Mova a declaração PARA CIMA de qualquer lógica de bloco
+    let localTimestamp = 0;
+    
+    const fallback = localStorage.getItem(`aldineicar_fallback_${userId}`);
+    
+    if (fallback) {
+        const parsed = JSON.parse(fallback);
+        materiais = parsed.materiais || [...materiaisPadrao];
+        historico = parsed.historico || [];
+        clientes = parsed.clientes || [];
+        maoObraItens = parsed.maoObraItens || [];
+        dadosOficina = parsed.dadosOficina || dadosOficina;
+        // Garantimos que a variável seja atribuída corretamente
+        localTimestamp = parsed.local_updated_at || 0; 
+    } else {
+        materiais = [...materiaisPadrao];
     }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('user_data')
+            .select('*')
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error("Erro ao buscar do Supabase:", error);
+        } else if (data && data.length > 0) {
+            const registro = data[0];
+            const cloudTimestamp = registro.updated_at ? new Date(registro.updated_at).getTime() : 0;
+            
+            // Agora a variável 'localTimestamp' é acessível com segurança aqui
+            if (localTimestamp > cloudTimestamp) {
+                console.log("Sincronizando com a nuvem...");
+                await salvarNoBanco(true); 
+            } else {
+                if (registro.materiais && registro.materiais.length > 0) materiais = registro.materiais;
+                if (registro.historico && registro.historico.length > 0) historico = registro.historico;
+                if (registro.clientes && registro.clientes.length > 0) {
+                    clientes = registro.clientes.map(c => typeof c === 'string' ? {nome: c, endereco: '', tel: '', cidade: ''} : c);
+                }
+                if (registro.mao_obra && registro.mao_obra.length > 0) maoObraItens = registro.mao_obra;
+                if (registro.dados_oficina) dadosOficina = registro.dados_oficina;
+                
+                salvarFallbackLocal();
+            }
+        } else {
+            await salvarNoBanco(true);
+        }
+    } catch (err) {
+        console.error("Erro na comunicação com a nuvem:", err);
+    }
+
+    // Renderizações...
+    atualizarInputsOficina();
+    atualizarLogoHeader(); 
+    if(!dadosOficina.profissao) dadosOficina.profissao = 'pintor';
+    renderCategoriasETelas(); 
+    configurarResumoPorProfissao();
+    render();
+    renderMaoObra();
+    renderHistorico();
+    renderClientes();
+}
 
     function salvarFallbackLocal() {
         if (!usuarioAtualId) return;
