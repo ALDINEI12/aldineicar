@@ -231,17 +231,7 @@ function mostrarSecao(id) {
 }
 </script>
 
-    <section id="form-cadastro-produto" style="padding: 20px; background: #f9f9f9; border-radius: 10px; margin-bottom: 20px;">
-    <h3>Cadastrar Novo Produto</h3>
-    <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px; padding: 8px;">
-    <input type="number" id="prodPreco" placeholder="Preço (ex: 50.00)" style="width: 100%; margin-bottom: 10px; padding: 8px;">
-    <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
-    <input type="number" id="prodEstoque" placeholder="Quantidade em Estoque" style="width: 100%; margin-bottom: 10px; padding: 8px;">
     
-    <button onclick="cadastrarProdutoLoja()" style="width: 100%; padding: 10px; background: #e11d48; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Salvar Produto na Loja
-    </button>
-</section>
 
 <button id="btn-resumo-flutuante" onclick="abrirResumoMobile()">
     <span>📋</span>
@@ -383,11 +373,15 @@ function mostrarSecao(id) {
                         <div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center;">
     <div style="background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;">
         <h3>Novo Produto</h3>
-        <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px;">
-        <input type="number" id="prodPreco" placeholder="Preço" style="width: 100%; margin-bottom: 10px;">
-        <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px;"></textarea>
-        <button onclick="cadastrarProdutoLoja()">Salvar</button>
-        <button onclick="fecharModal()">Cancelar</button>
+        <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+        <input type="number" id="prodPreco" placeholder="Preço (ex: 50.00)" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+        <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
+        <input type="number" id="prodEstoque" placeholder="Quantidade em Estoque" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="cadastrarProdutoLoja()" style="flex: 1; padding: 10px; background: #e11d48; color: white; border: none; border-radius: 5px;">Salvar</button>
+            <button onclick="fecharModal()" style="flex: 1; padding: 10px; background: #64748b; color: white; border: none; border-radius: 5px;">Cancelar</button>
+        </div>
     </div>
 </div>
 
@@ -677,40 +671,43 @@ function mostrarSecao(id) {
 }
 
 async function cadastrarProdutoLoja() {
-    // Exemplo: assumindo que você terá inputs com estes IDs no seu HTML
     const nome = document.getElementById('prodNome').value;
     const preco = document.getElementById('prodPreco').value;
     const descricao = document.getElementById('prodDesc').value;
     const estoque = document.getElementById('prodEstoque').value;
 
     if (!nome || !preco) {
-        mostrarToast("Nome e preço são obrigatórios!");
+        alert("Preencha ao menos o Nome e o Preço!");
         return;
     }
 
-    const { data, error } = await supabaseClient
+    const { error } = await supabaseClient
         .from('produtos_loja')
-        .insert([
-            { 
-                user_id: usuarioAtualId, // O ID que você já tem no sistema
-                nome: nome,
-                preco: preco,
-                descricao: descricao,
-                estoque: estoque
-            }
-        ]);
+        .insert([{ 
+            user_id: usuarioAtualId, 
+            nome: nome, 
+            preco: preco, 
+            descricao: descricao, 
+            estoque: estoque // Agora o estoque está sendo enviado
+        }]);
 
     if (error) {
-        console.error("Erro ao cadastrar:", error);
-        mostrarToast("Erro ao salvar produto.");
+        alert("Erro ao salvar: " + error.message);
     } else {
-        mostrarToast("Produto cadastrado na Loja!");
-        // Limpar campos após sucesso
+        alert("Produto salvo com sucesso!");
+        // Limpar campos
         document.getElementById('prodNome').value = '';
         document.getElementById('prodPreco').value = '';
-        // Opcional: recarregar a lista de produtos da loja
-        carregarProdutosDaLoja();
+        document.getElementById('prodDesc').value = '';
+        document.getElementById('prodEstoque').value = '';
+        
+        fecharModal();
+        await carregarProdutosDaLoja(); // Atualiza a vitrine
     }
+}
+
+function fecharModal() {
+    document.getElementById('modal-cadastro-produto').style.display = 'none';
 }
 
 function fecharModal() {
