@@ -774,16 +774,21 @@ async function carregarProdutosDaLoja() {
 
     container.innerHTML = ''; // Limpa o carregando
 
-    data.forEach(produto => {
-        const card = document.createElement('div');
-        card.className = 'card-produto';
-        card.innerHTML = `
-            <h3>${produto.nome}</h3>
-            <p>R$ ${produto.preco}</p>
-            <button onclick="adicionarAoCarrinho('${produto.id}')">Adicionar</button>
-        `;
-        container.appendChild(card);
-    });
+   // Dentro do seu forEach ou map na função carregarProdutosDaLoja:
+data.forEach(produto => {
+    const card = document.createElement('div');
+    card.className = 'card-produto';
+    card.innerHTML = `
+        <h3>${produto.nome}</h3>
+        <p>R$ ${produto.preco}</p>
+        <p><small>Estoque: ${produto.estoque}</small></p>
+        <div style="margin-top: 10px;">
+            <button onclick="editarProduto('${produto.id}')">Editar</button>
+            <button onclick="deletarProduto('${produto.id}')" style="background: #fee2e2; color: #dc2626;">Excluir</button>
+        </div>
+    `;
+    container.appendChild(card);
+});
 }
 
 function abrirResumoMobile() {
@@ -892,6 +897,45 @@ function abrirResumoMobile() {
             container.innerHTML = `<span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; color: white;">${dadosOficina.nome ? dadosOficina.nome.toUpperCase() : 'ALDINEICAR'}</span>`;
         }
     }
+
+    async function deletarProduto(id) {
+    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+
+    const { error } = await supabaseClient
+        .from('produtos_loja')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        alert("Erro ao excluir: " + error.message);
+    } else {
+        alert("Produto removido!");
+        carregarProdutosDaLoja(); // Recarrega a vitrine
+    }
+}
+
+async function editarProduto(id) {
+    // 1. Busca os dados do produto no banco pelo ID
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) return alert("Erro ao carregar dados para edição");
+
+    // 2. Preenche o formulário do modal (assumindo que você tenha um input hidden para o ID)
+    document.getElementById('prodNome').value = data.nome;
+    document.getElementById('prodPreco').value = data.preco;
+    document.getElementById('prodDesc').value = data.descricao;
+    document.getElementById('prodEstoque').value = data.estoque;
+
+    // Adicione um campo hidden <input type="hidden" id="editandoId"> no seu modal
+    document.getElementById('editandoId').value = data.id;
+
+    // 3. Abre o modal
+    document.getElementById('modal-cadastro-produto').style.display = 'flex';
+}
 
     function atualizarInputsOficina() {
         document.getElementById('oficinaNome').value = dadosOficina.nome || 'ALDINEICAR';
