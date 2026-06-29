@@ -1560,13 +1560,7 @@ async function editarProduto(id) {
         document.getElementById('aba-loja').style.display = 'block';
         carregarProdutosDaLoja(); // Carrega os produtos ao abrir
     }
-    document.querySelectorAll('.aba-container > div').forEach(div => div.style.display = 'none');
-    
-    // Mostra o container selecionado
-    document.getElementById('aba-' + abaId).style.display = 'block';
-    
-    // SEGURANÇA: Fecha o modal se o usuário mudar de aba
-    document.getElementById('modal-cadastro-produto').style.display = 'none';
+
 }
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
