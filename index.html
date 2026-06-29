@@ -209,9 +209,23 @@
 }
 
 
+
+
     </style>
 </head>
 <body>
+
+    <section id="form-cadastro-produto" style="padding: 20px; background: #f9f9f9; border-radius: 10px; margin-bottom: 20px;">
+    <h3>Cadastrar Novo Produto</h3>
+    <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+    <input type="number" id="prodPreco" placeholder="Preço (ex: 50.00)" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+    <textarea id="prodDesc" placeholder="Descrição" style="width: 100%; margin-bottom: 10px; padding: 8px;"></textarea>
+    <input type="number" id="prodEstoque" placeholder="Quantidade em Estoque" style="width: 100%; margin-bottom: 10px; padding: 8px;">
+    
+    <button onclick="cadastrarProdutoLoja()" style="width: 100%; padding: 10px; background: #e11d48; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Salvar Produto na Loja
+    </button>
+</section>
 
 <button id="btn-resumo-flutuante" onclick="abrirResumoMobile()">
     <span>📋</span>
@@ -442,6 +456,36 @@
         </div>
     </div>
 
+    <section id="secao-loja" style="display: none;">
+    <h2>Minha Loja</h2>
+    <div id="vitrine-produtos" class="grid-produtos">
+        </div>
+</section>
+
+<style>
+    .grid-produtos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 10px;
+    }
+    .card-produto {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .card-produto h3 { margin: 10px 0; font-size: 1rem; }
+    .card-produto p { color: #e11d48; font-weight: bold; }
+
+
+    
+
+
+    
+</style>
+
     <script>
     const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
@@ -587,6 +631,71 @@
     renderMaoObra();
     renderHistorico();
     renderClientes();
+}
+
+async function cadastrarProdutoLoja() {
+    // Exemplo: assumindo que você terá inputs com estes IDs no seu HTML
+    const nome = document.getElementById('prodNome').value;
+    const preco = document.getElementById('prodPreco').value;
+    const descricao = document.getElementById('prodDesc').value;
+    const estoque = document.getElementById('prodEstoque').value;
+
+    if (!nome || !preco) {
+        mostrarToast("Nome e preço são obrigatórios!");
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .insert([
+            { 
+                user_id: usuarioAtualId, // O ID que você já tem no sistema
+                nome: nome,
+                preco: preco,
+                descricao: descricao,
+                estoque: estoque
+            }
+        ]);
+
+    if (error) {
+        console.error("Erro ao cadastrar:", error);
+        mostrarToast("Erro ao salvar produto.");
+    } else {
+        mostrarToast("Produto cadastrado na Loja!");
+        // Limpar campos após sucesso
+        document.getElementById('prodNome').value = '';
+        document.getElementById('prodPreco').value = '';
+        // Opcional: recarregar a lista de produtos da loja
+        carregarProdutosDaLoja();
+    }
+}
+
+async function carregarProdutosDaLoja() {
+    const container = document.getElementById('vitrine-produtos');
+    container.innerHTML = 'Carregando produtos...';
+
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .select('*')
+        .eq('user_id', usuarioAtualId);
+
+    if (error) {
+        mostrarToast("Erro ao carregar loja.");
+        return;
+    }
+
+    container.innerHTML = ''; // Limpa o carregando
+
+    data.forEach(produto => {
+        const card = document.createElement('div');
+        card.className = 'card-produto';
+        card.innerHTML = `
+            <h3>${produto.nome}</h3>
+            <p>R$ ${produto.preco}</p>
+            <button onclick="adicionarAoCarrinho('${produto.id}')">Adicionar</button>
+        `;
+        container.appendChild(card);
+    });
 }
 
 function abrirResumoMobile() {
