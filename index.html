@@ -215,6 +215,22 @@
 </head>
 <body>
 
+    <nav style="padding: 10px; background: #eee; display: flex; gap: 10px;">
+    <button onclick="mostrarSecao('secao-orcamento')">Orçamentos</button>
+    <button onclick="mostrarSecao('secao-loja'); carregarProdutosDaLoja();">Minha Loja</button>
+</nav>
+
+<script>
+function mostrarSecao(id) {
+    // Esconde todas as seções (ajuste o nome das suas IDs conforme seu código)
+    document.getElementById('secao-loja').style.display = 'none';
+    // document.getElementById('secao-orcamento').style.display = 'none'; // Descomente e ajuste
+    
+    // Mostra apenas a escolhida
+    document.getElementById(id).style.display = 'block';
+}
+</script>
+
     <section id="form-cadastro-produto" style="padding: 20px; background: #f9f9f9; border-radius: 10px; margin-bottom: 20px;">
     <h3>Cadastrar Novo Produto</h3>
     <input type="text" id="prodNome" placeholder="Nome do Produto" style="width: 100%; margin-bottom: 10px; padding: 8px;">
@@ -634,39 +650,28 @@
 }
 
 async function cadastrarProdutoLoja() {
-    // Exemplo: assumindo que você terá inputs com estes IDs no seu HTML
-    const nome = document.getElementById('prodNome').value;
-    const preco = document.getElementById('prodPreco').value;
-    const descricao = document.getElementById('prodDesc').value;
-    const estoque = document.getElementById('prodEstoque').value;
-
-    if (!nome || !preco) {
-        mostrarToast("Nome e preço são obrigatórios!");
-        return;
-    }
+    // ... (seu código atual de pegar valores) ...
 
     const { data, error } = await supabaseClient
         .from('produtos_loja')
-        .insert([
-            { 
-                user_id: usuarioAtualId, // O ID que você já tem no sistema
-                nome: nome,
-                preco: preco,
-                descricao: descricao,
-                estoque: estoque
-            }
-        ]);
+        .insert([{ 
+            user_id: usuarioAtualId, 
+            nome: nome, 
+            preco: preco, 
+            descricao: descricao, 
+            estoque: estoque 
+        }]);
 
     if (error) {
-        console.error("Erro ao cadastrar:", error);
-        mostrarToast("Erro ao salvar produto.");
+        mostrarToast("Erro ao salvar: " + error.message);
     } else {
-        mostrarToast("Produto cadastrado na Loja!");
-        // Limpar campos após sucesso
+        mostrarToast("Produto salvo com sucesso!");
+        // LIMPA OS CAMPOS
         document.getElementById('prodNome').value = '';
         document.getElementById('prodPreco').value = '';
-        // Opcional: recarregar a lista de produtos da loja
-        carregarProdutosDaLoja();
+        
+        // FORÇA O RECARREGAMENTO DA VITRINE IMEDIATAMENTE
+        await carregarProdutosDaLoja(); 
     }
 }
 
