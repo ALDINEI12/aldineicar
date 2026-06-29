@@ -716,12 +716,49 @@ function fecharModal() {
 
 // Atualize sua função de cadastro para fechar o modal ao salvar
 async function cadastrarProdutoLoja() {
-    // ... (seu código de salvamento) ...
-    
-    // Após salvar:
-    mostrarToast("Produto salvo!");
-    fecharModal(); // Fecha a janela
-    await carregarProdutosDaLoja(); 
+    // 1. Buscamos os elementos
+    const inputNome = document.getElementById('prodNome');
+    const inputPreco = document.getElementById('prodPreco');
+    const inputDesc = document.getElementById('prodDesc');
+    const inputEstoque = document.getElementById('prodEstoque');
+
+    // 2. Verificação de existência
+    if (!inputNome || !inputPreco) {
+        console.error("ERRO: Campos do formulário não encontrados no HTML!");
+        alert("Erro no formulário: os campos não foram encontrados.");
+        return;
+    }
+
+    const dados = {
+        user_id: usuarioAtualId,
+        nome: inputNome.value,
+        preco: parseFloat(inputPreco.value),
+        descricao: inputDesc.value,
+        estoque: parseInt(inputEstoque.value) || 0
+    };
+
+    console.log("Dados que serão salvos:", dados);
+
+    // 3. Salvamento
+    const { data, error } = await supabaseClient
+        .from('produtos_loja')
+        .insert([dados]);
+
+    if (error) {
+        console.error("Erro do Supabase:", error);
+        alert("Erro ao salvar no banco: " + error.message);
+    } else {
+        alert("Produto salvo com sucesso!");
+        
+        // Limpar os campos
+        inputNome.value = '';
+        inputPreco.value = '';
+        inputDesc.value = '';
+        inputEstoque.value = '';
+        
+        fecharModal();
+        await carregarProdutosDaLoja();
+    }
 }
 
 async function carregarProdutosDaLoja() {
