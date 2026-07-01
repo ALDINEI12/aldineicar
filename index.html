@@ -2666,7 +2666,7 @@ async function carregarProdutosVitrinePublica(idOficina) {
 }
 
 // ========================================================
-// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR
+// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR (CORRIGIDO)
 // ========================================================
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
@@ -2684,11 +2684,9 @@ function abrirModalCompra(id, nome, preco, estoque) {
         return;
     }
 
-    // Remove duplicados se existirem
     const modalAntigo = document.getElementById('modalCompraProdutoDinamico');
     if (modalAntigo) modalAntigo.remove();
 
-    // Cria o modal em tempo de execução usando as configurações do seu arquivo TXT
     const divModal = document.createElement('div');
     divModal.id = 'modalCompraProdutoDinamico';
     divModal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
@@ -2704,7 +2702,7 @@ function abrirModalCompra(id, nome, preco, estoque) {
             
             <div style="margin-bottom: 14px;">
                 <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
-                <input type="number" id="compraQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+                <input type="number" id="compraQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
             </div>
 
             <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
@@ -2732,6 +2730,7 @@ function abrirModalCompra(id, nome, preco, estoque) {
     document.body.appendChild(divModal);
 }
 
+// FUNÇÃO DE CÁLCULO ATUALIZADA
 function calcularTotalCompraDinamica() {
     const inputQtd = document.getElementById('compraQtd');
     const txtTotal = document.getElementById('compraTotalExibicao');
@@ -2743,6 +2742,10 @@ function calcularTotalCompraDinamica() {
         qtd = estoqueDisponivelSelecionado;
         inputQtd.value = qtd;
     }
+    if (qtd < 1) {
+        qtd = 1;
+        inputQtd.value = 1;
+    }
 
     const total = qtd * precoUnitarioSelecionado;
     txtTotal.innerText = `R$ ${total.toFixed(2)}`;
@@ -2753,11 +2756,13 @@ function fecharModalCompraDinamica() {
     if (modal) modal.remove();
 }
 
+// PROCESSAMENTO COM CAPTURA DE DADOS REVISADA
 async function processarBaixaEstoqueEPix() {
     const inputQtd = document.getElementById('compraQtd');
     const inputNome = document.getElementById('compraNomeCliente');
     const inputTel = document.getElementById('compraTelCliente');
 
+    // Validação corrigida para ler os inputs dinâmicos perfeitamente
     if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
         alert("Por favor, preencha seu nome e telefone para contato!");
         return;
@@ -2777,26 +2782,48 @@ async function processarBaixaEstoqueEPix() {
 
         if (erroBusca) throw new Error("Erro ao conectar à base de dados.");
 
-        let listaMateriais = Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : (Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : []);
+        // Varre materiais ou materials para garantir compatibilidade
+        let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
         let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
 
+        let estoqueAtualizadoOk = false;
         listaMateriais = listaMateriais.map(item => {
             if (item.id === produtoSelecionadoParaCompra) {
                 let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
                 if (estoqueAtual < qtdComprada) {
                     throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
                 }
+                
+                // Atualiza todas as variações possíveis de nome de coluna de estoque
                 item.qtd = estoqueAtual - qtdComprada;
                 if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
                 if (item.hasOwnProperty('estoque')) item.estoque = estoqueAtual - qtdComprada;
+                estoqueAtualizadoOk = true;
             }
             return item;
         });
 
+        // Caso seu sistema use a tabela externa 'produtos_loja', também damos baixa nela
+        const { data: verificarTabelaLoja } = await supabaseClient
+            .from('produtos_loja')
+            .select('estoque')
+            .eq('id', produtoSelecionadoParaCompra)
+            .maybeSingle();
+
+        if (verificarTabelaLoja) {
+            const estoqueLojaAtual = parseInt(verificarTabelaLoja.estoque) || 0;
+            const novoEstoqueLoja = estoqueLojaAtual - qtdComprada;
+            await supabaseClient
+                .from('produtos_loja')
+                .update({ estoque: novoEstoqueLoja >= 0 ? novoEstoqueLoja : 0 })
+                .eq('id', produtoSelecionadoParaCompra);
+        }
+
+        // Gera a nova venda direto no topo do Histórico Administrativo
         const novoRegistroVenda = {
             data: new Date().toLocaleString('pt-BR'),
             status: 'Pago',
-            cliente: { nome: nomeCliente, endereco: 'Compra Direta via Loja', tel: telCliente, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
+            cliente: { nome: nomeCliente, endereco: 'Vitrine Virtual', tel: telCliente, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
             veiculo: { modelo: 'Balcão / Loja', placa: '---', ano: '', cor: '', avaliador: 'Vitrine', tipo_servico: `[VENDA DIRETA]: ${qtdComprada}x ${nomeProdutoSelecionado}` },
             materiais: [{ id: produtoSelecionadoParaCompra, nome: nomeProdutoSelecionado, qtd: qtdComprada, valor: precoUnitarioSelecionado }],
             mao_obra: [],
@@ -2809,6 +2836,7 @@ async function processarBaixaEstoqueEPix() {
         };
         listaHistorico.unshift(novoRegistroVenda);
 
+        // Salva as atualizações no user_data da oficina
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -2820,9 +2848,10 @@ async function processarBaixaEstoqueEPix() {
 
         if (erroUpdate) throw erroUpdate;
 
-        alert(`Perfeito, ${nomeCliente}!\nPedido processado e estoque baixado na ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.\nChave Pix: (Insira aqui sua chave)`);
+        alert(`Perfeito, ${nomeCliente}!\nPedido processado e estoque baixado na ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.\nChave Pix: (Sua Chave Aqui)`);
         fecharModalCompraDinamica();
 
+        // Dá o refresh na tela do cliente para ver o novo estoque menor
         if (typeof carregarProdutosVitrinePublica === 'function') {
             carregarProdutosVitrinePublica(idOficinaDaLojaAtual);
         }
