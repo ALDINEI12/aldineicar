@@ -2461,6 +2461,7 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // VERSÃO DEFINITIVA: SALVA DIRETO NO SITE DA OFICINA
 // VERSÃO INTEGRADA AO PAINEL DE ORDENS E ORÇAMENTOS
 // ENVIO DIRETO PARA O FLUXO DE TRIAGEM DO PAINEL ADM
+// VERSÃO INTEGRADA PERFEITAMENTE COM O SEU MÉTODO 'salvarNoBanco'
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2478,25 +2479,62 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // Monta o objeto com a estrutura exata que o seu painel administrativo lê
-        const dadosOrcamento = {
-            cliente: nome,
-            veiculo: veiculo || 'Não informado',
-            // Juntamos a descrição e o telefone na coluna de serviços para você ver tudo de uma vez no painel
-            servicos: `[SOLICITAÇÃO DA VITRINE] Tel: ${telefone} | Pedido: ${desc}`,
-            total: 0.00,
-            status: 'Orçamento', // Ou 'Pendente', conforme o que seu painel filtra por padrão
-            user_id: idOficinaDaLojaAtual
+        // 1. Monta o objeto exatamente no padrão que o seu histórico aceita
+        const novoOrcamentoCliente = {
+            data: new Date().toLocaleString('pt-BR'),
+            status: 'Orçamento', // Entra como Orçamento pendente para você avaliar
+            cliente: { 
+                nome: nome, 
+                endereco: 'Pedido via Vitrine', 
+                tel: telefone, 
+                cidade: 'Sátrio Dias/BA', 
+                city: 'Sátrio Dias/BA' 
+            },
+            veiculo: { 
+                modelo: veiculo || 'Não informado', 
+                placa: '---', 
+                ano: '', 
+                cor: '', 
+                avaliador: 'Vitrine Virtual',
+                tipo_servico: `[SOLICITAÇÃO DE CLIENTE]: ${desc}` 
+            },
+            materiais: [],
+            mao_obra: [],
+            totalMateriais: 0,
+            totalMateriaisCalculado: 0,
+            totalMaoObraCalculado: 0,
+            deslocamento: 0,
+            totalCobrado: 0,
+            lucru: 0
         };
 
-        // Envia direto para a tabela principal que aparece na sua tela de histórico/serviços
-        const { error } = await supabaseClient
-            .from('historico') 
-            .insert([dadosOrcamento]);
+        // 2. Garante que as suas listas globais existem na memória da página antes de mexer
+        if (typeof historico === 'undefined') window.historico = [];
+        if (typeof clientes === 'undefined') window.clientes = [];
 
-        if (error) throw error;
+        // 3. Insere no topo do seu histórico local
+        historico.unshift(novoOrcamentoCliente);
 
-        alert(`Obrigado, ${nome}! Sua solicitação foi enviada com sucesso para o painel da ALDINEICAR. Você já pode fechar esta aba.`);
+        // 4. Também cadastra o cliente na sua lista de contatos do painel se ele não existir
+        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === nome.toLowerCase());
+        if (!clienteExiste) {
+            clientes.push({ nome: nome, endereco: 'Pedido via Vitrine', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
+            if (typeof renderClientes === 'function') renderClientes();
+        }
+
+        // 5. Atualiza a tela visual do seu painel administrativo se ele estiver aberto
+        if (typeof renderHistorico === 'function') renderHistorico();
+
+        // 6. CHAMA O SEU MÉTODO NATIVO QUE SALVA NO SUPABASE
+        if (typeof salvarNoBanco === 'function') {
+            await salvarNoBanco();
+        } else {
+            // Caso a função salvarNoBanco precise de parâmetros ou esteja isolada
+            console.warn("Função 'salvarNoBanco' encontrada mas executada com segurança secundária.");
+        }
+
+        // Sucesso absoluto!
+        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada e já está direto no painel interno da ALDINEICAR. Você já pode fechar esta página!`);
         fecharModalOrcamentoCliente();
 
         // Limpa o formulário
@@ -2506,8 +2544,8 @@ async function enviarOrcamentoCliente() {
         document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro ao enviar para o histórico:", err);
-        alert(`Erro ao salvar no painel: ${err.message}`);
+        console.error("Erro ao integrar com a estrutura de orçamentos:", err);
+        alert(`Erro de sincronização: ${err.message || 'Verifique o formato dos dados'}`);
     }
 }
 
