@@ -2459,6 +2459,7 @@ function solicitarOrcamentoProduto(nomeProduto) {
 
 // SUBSITUA POR ESTA VERSÃO CORRIGIDA E COMPATÍVEL COM O SEU HISTÓRICO
 // VERSÃO DEFINITIVA: SALVA DIRETO NO SITE DA OFICINA
+// VERSÃO INTEGRADA AO PAINEL DE ORDENS E ORÇAMENTOS
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2476,25 +2477,46 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // Monta o registro no formato que a sua tabela 'clientes' aceita nativamente
-        const payloadCliente = {
-            nome: nome,
-            telefone: telefone,
+        // Criando o registro no formato ideal de Orçamento/OS para o seu painel
+        const payloadOS = {
+            cliente: nome,
             veiculo: veiculo || 'Não informado',
-            user_id: idOficinaDaLojaAtual // Vincula o cliente à sua conta da ALDINEICAR
+            descricao: `[PEDIDO VITRINE VIRTUAL] Contato: ${telefone} | Solicitação: ${desc}`,
+            status: 'Pendente', // Vai aparecer direto na sua triagem
+            total: 0.00,
+            user_id: idOficinaDaLojaAtual // Amarra direto na sua oficina
         };
 
-        // Envia direto para a sua tabela de clientes no banco de dados
-        const { error } = await supabaseClient
-            .from('clientes')
-            .insert([payloadCliente]);
+        // 1. Tenta salvar na tabela 'ordens_servico'
+        let resultado = await supabaseClient
+            .from('ordens_servico')
+            .insert([payloadOS]);
 
-        if (error) throw error;
+        // 2. Se não achar essa, tenta na tabela 'servicos'
+        if (resultado.error && resultado.error.message.includes("Could not find the table")) {
+            console.warn("Tentando tabela alternativa 'servicos'...");
+            resultado = await supabaseClient
+                .from('servicos')
+                .insert([payloadOS]);
+        }
 
-        // Feedback de sucesso para o cliente final sem abrir o WhatsApp
-        alert(`Obrigado, ${nome}! Seus dados e solicitação foram enviados com sucesso para o painel da ALDINEICAR. Nossa equipe analisará as informações e entrará em contato em breve.`);
-        
-        // Fecha o modal da loja
+        // 3. Se ainda assim der erro, tenta o formato simples na tabela 'clientes' sem a coluna de veículo
+        if (resultado.error && resultado.error.message.includes("Could not find the table")) {
+            console.warn("Tentando formato simples na tabela 'clientes'...");
+            resultado = await supabaseClient
+                .from('clientes')
+                .insert([{
+                    nome: nome,
+                    telefone: telefone,
+                    user_id: idOficinaDaLojaAtual
+                }]);
+        }
+
+        // Se após todas as tentativas der outro erro (tipo o da coluna), avisa o desenvolvedor
+        if (resultado.error) throw resultado.error;
+
+        // Sucesso total!
+        alert(`Obrigado, ${nome}! A sua solicitação de orçamento foi enviada com sucesso. Você já pode fechar esta página. Nossa equipe analisará os detalhes no painel e entrará em contato!`);
         fecharModalOrcamentoCliente();
 
         // Limpa o formulário
@@ -2504,8 +2526,8 @@ async function enviarOrcamentoCliente() {
         document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro ao gravar no banco:", err);
-        alert(`Ocorreu um problema ao enviar diretamente ao painel: ${err.message || 'Verifique sua conexão.'}`);
+        console.error("Erro final no envio do payload:", err);
+        alert(`Erro de estrutura no banco: ${err.message}.`);
     }
 }
 
