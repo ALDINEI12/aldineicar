@@ -1715,6 +1715,7 @@ async function editarProduto(id) {
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
+            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO') return;
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
             const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
@@ -2812,8 +2813,11 @@ async function processarBaixaEstoqueEPix() {
 
         let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
         
-        // CRIANDO OU RECUPERANDO A NOVA SEÇÃO EXCLUSIVA DE VENDAS
-        let listaVendas = Array.isArray(dadosAtuais.vendas) ? dadosAtuais.vendas : [];
+        // CORREÇÃO CIRÚRGICA: Se a coluna 'vendas' não existe no banco, nós usaremos uma propriedade 'vendas_diretas' 
+        // salva de forma invisível dentro da sua estrutura existente ou isolamos ela dentro de uma checagem segura.
+        // Para evitar erros de coluna, vamos salvar os dados de vendas dentro do campo 'historico' mas com uma TAG EXCLUSIVA '[AbaVendas]'
+        // Dessa forma o banco aceita na hora (porque a coluna historico já existe) e no passo seguinte nós filtramos para NÃO APARECER nos orçamentos!
+        let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
 
         // 1. Atualiza o estoque na lista de materiais
         listaMateriais = listaMateriais.map(item => {
@@ -2829,7 +2833,7 @@ async function processarBaixaEstoqueEPix() {
             return item;
         });
 
-        // 2. Atualiza a tabela secundária 'produtos_loja' caso exista
+        // 2. Atualiza a tabela secundária 'produtos_loja' caso ela exista
         const { data: verificarTabelaLoja } = await supabaseClient
             .from('produtos_loja')
             .select('estoque')
@@ -2845,35 +2849,37 @@ async function processarBaixaEstoqueEPix() {
                 .eq('id', produtoSelecionadoParaCompra);
         }
 
-        // 3. ESTRUTURA EXCLUSIVA DA NOVA SEÇÃO DE VENDAS (Sem misturar com Orçamentos)
+        // 3. Estrutura da venda adaptada para usar a tabela existente de forma inteligente
         const novoRegistroVenda = {
             id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
-            cliente_nome: nomeCliente,
-            cliente_tel: telCliente,
+            status: 'Concluído',
+            tipo_registro: 'VENDA_DIRETA_BALCAO', // Tag única que usaremos para separar dos Orçamentos
+            cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
+            veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
             quantidade: qtdComprada,
             valor_unitario: precoUnitarioSelecionado,
             total_pago: totalVenda,
-            status: 'Concluído'
+            lucro: totalVenda
         };
         
-        // Coliciona no topo da nova lista de vendas
-        listaVendas.unshift(novoRegistroVenda);
+        // Insere no início do histórico geral do banco
+        listaHistoricoGeral.unshift(novoRegistroVenda);
 
-        // 4. Salva no Supabase (Atualizando materiais e a nova coluna vendas)
+        // 4. Salva no Supabase usando apenas colunas antigas que já funcionam perfeitamente
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
                 materiais: listaMateriais,
-                vendas: listaVendas, // Nova seção salva aqui
+                historico: listaHistoricoGeral, // Usando a coluna existente para evitar o erro do schema cache
                 updated_at: new Date()
             })
             .eq('user_id', idOficinaDaLojaAtual);
 
         if (erroUpdate) throw erroUpdate;
 
-        alert(`Perfeito, ${nomeCliente}!\nSua compra foi registrada na seção exclusiva de Vendas da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
+        alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
         fecharModalCompraDinamica();
 
         if (typeof carregarProdutosVitrinePublica === 'function') {
@@ -2886,25 +2892,27 @@ async function processarBaixaEstoqueEPix() {
     }
 }
 
-
 // FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) return;
 
     try {
-        // Pega o ID do usuário logado (ajuste a variável se o seu sistema usar outro nome, ex: usuarioLogado.id)
-        const idUsuario = supabaseClient.auth.user()?.id || idOficinaDaLojaAtual; 
+        const idUsuario = idOficinaDaLojaAtual; 
 
         const { data: dados, error } = await supabaseClient
             .from('user_data')
-            .select('vendas')
+            .select('historico')
             .eq('user_id', idUsuario)
             .single();
 
         if (error) throw error;
 
-        const vendas = Array.isArray(dados.vendas) ? dados.vendas : [];
+        const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
+        
+        // FILTRA APENAS AS VENDAS DE BALCÃO
+        const vendas = historicoGeral.filter(item => item.tipo_registro === 'VENDA_DIRETA_BALCAO');
+        
         corpoTabela.innerHTML = '';
 
         if (vendas.length === 0) {
@@ -2914,16 +2922,16 @@ async function renderizarListaVendasExclusiva() {
 
         vendas.forEach(venda => {
             corpoTabela.innerHTML += `
-                <tr style="border-bottom: 1px solid #27272a; hover: background: #18181b;">
+                <tr style="border-bottom: 1px solid #27272a;">
                     <td style="padding: 12px 8px; font-weight: 700; color: #a1a1aa;">${venda.id_venda || '---'}</td>
                     <td style="padding: 12px 8px; color: #ffffff;">${venda.data}</td>
                     <td style="padding: 12px 8px; color: #ffffff;">
-                        <span style="display:block; font-weight:600;">${venda.cliente_nome}</span>
-                        <span style="font-size:11px; color:#71717a;">${venda.cliente_tel}</span>
+                        <span style="display:block; font-weight:600;">${venda.cliente?.nome || '---'}</span>
+                        <span style="font-size:11px; color:#71717a;">${venda.cliente?.tel || '---'}</span>
                     </td>
-                    <td style="padding: 12px 8px; color: #22c55e; font-weight:600;">${venda.produto_nome}</td>
-                    <td style="padding: 12px 8px; color: #ffffff;">${venda.quantidade}x</td>
-                    <td style="padding: 12px 8px; color: #ffffff; font-weight:700;">R$ ${parseFloat(venda.total_pago).toFixed(2)}</td>
+                    <td style="padding: 12px 8px; color: #22c55e; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
+                    <td style="padding: 12px 8px; color: #ffffff;">${venda.quantidade || 1}x</td>
+                    <td style="padding: 12px 8px; color: #ffffff; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
                     <td style="padding: 12px 8px;"><span style="background: #14532d; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status}</span></td>
                 </tr>
             `;
