@@ -2954,24 +2954,21 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
-        // Tentativa de pegar o ID do usuário conectado
         let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
 
         if (!idUsuarioLogado && typeof dadosOficina !== 'undefined') {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
-        
-        // Se ainda assim não achar, tenta pegar do Usuário autenticado pelo Supabase
+
+        // Caso as variáveis acima falhem, busca direto do usuário autenticado no painel
         if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idUsuarioLogado = supabaseClient.auth.user().id;
         }
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível capturar o ID do usuário logado para listar as vendas.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível identificar o ID da oficina logada.</td></tr>`;
             return;
         }
-
-        console.log("🔍 ALDINEICAR - Buscando vendas para o ID:", idUsuarioLogado);
 
         const { data: dados, error } = await supabaseClient
             .from('user_data')
@@ -2979,46 +2976,56 @@ async function renderizarListaVendasExclusiva() {
             .eq('user_id', idUsuarioLogado)
             .single();
 
-        if (error) {
-            console.error("Erro Supabase:", error);
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao buscar no Banco: ${error.message} (ID pesquisado: ${idUsuarioLogado})</td></tr>`;
-            return;
-        }
+        if (error) throw error;
 
-        const historicoGeral = (dados && Array.isArray(dados.historico)) ? dados.historico : [];
+        const historicoGeral = Array.isArray(dados?.historico) ? dados.historico : [];
         
-        console.log("📦 Histórico Geral carregado do banco:", historicoGeral);
-
-        // Removido todos os filtros rígidos temporariamente para testar se há qualquer dado!
-        // Isso vai mostrar TUDO o que tem no seu histórico para vermos como a loja gravou.
-        const vendas = historicoGeral; 
+        // FILTRO COMPLETO: Captura qualquer venda direta de balcão ou compras vindas da vitrine/loja virtual
+        const vendas = historicoGeral.filter(item => 
+            item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
+            item.tipo_registro === 'LOJA_VIRTUAL' ||
+            item.tipo_servico === '[VENDA DIRETA]' ||
+            (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
+        );
         
         corpoTabela.innerHTML = '';
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum registro de histórico encontrado para este usuário no banco.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
             return;
         }
 
         vendas.forEach(venda => {
-            const nomeCliente = venda.cliente?.nome || venda.cliente_nome || 'Cliente';
-            const nomeProduto = venda.produto_nome || venda.nome_produto || venda.descricao || 'Item/Serviço';
-            const valorTotal = venda.total_pago || venda.valor_total || venda.total || 0;
-            const tipo = venda.tipo_registro || 'N/A';
+            // Tratamento ultra-seguro para ler o nome do cliente de qualquer formato salvo no histórico
+            let nomeCliente = 'Cliente';
+            if (venda.cliente) {
+                if (typeof venda.cliente === 'object' && venda.cliente.nome) {
+                    nomeCliente = venda.cliente.nome;
+                } else if (typeof venda.cliente === 'string') {
+                    nomeCliente = venda.cliente;
+                }
+            } else if (venda.cliente_nome) {
+                nomeCliente = venda.cliente_nome;
+            }
+
+            // Tratamento seguro para os dados do produto e valores
+            const nomeProduto = venda.produto_nome || venda.nome_produto || 'Produto';
+            const quantidadeItem = venda.quantidade || '1';
+            const valorTotal = venda.total_pago || venda.valor_total || 0;
 
             corpoTabela.innerHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || '---'}</td>
-                    <td style="padding: 12px; color: #0f172a;">${venda.data || '---'}</td>
-                    <td style="padding: 12px; color: #0f172a;">${nomeCliente} <small style="color:#a1a1aa; display:block;">(${tipo})</small></td>
+                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
+                    <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
+                    <td style="padding: 12px; color: #0f172a;">${nomeCliente}</td>
                     <td style="padding: 12px; color: #10b981; font-weight:600;">${nomeProduto}</td>
-                    <td style="padding: 12px; color: #0f172a;">${venda.quantidade || '1'}</td>
+                    <td style="padding: 12px; color: #0f172a;">${quantidadeItem}</td>
                     <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(valorTotal).toFixed(2)}</td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro crítico na busca:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro Crítico: ${err.message}</td></tr>`;
+        console.error("Erro na busca:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao listar: ${err.message}</td></tr>`;
     }
 }
 
