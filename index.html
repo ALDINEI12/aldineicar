@@ -215,49 +215,64 @@
 </head>
 <body>
 
-    <div id="visao-cliente-externo" style="display: none; min-height: 100vh; background-color: #f8fafc; flex-direction: column;">
-    <header style="background: #09090b; color: white; padding: 20px; text-align: center; border-bottom: 2px solid #e11d48;">
-        <h1 id="nome-loja-cliente" style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">🚗 VITRINE VIRTUAL</h1>
-        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Solicite orçamentos de peças e serviços diretamente conosco</p>
+   <div id="visao-cliente-externo" style="display: none; min-height: 100vh; background-color: #09090b; color: #fafafa; flex-direction: column;">
+    <header style="background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">ALDINEI<span style="color: #e11d48;">CAR</span></span>
+            <span style="font-size: 11px; background: #1e1e24; color: #a1a1aa; padding: 2px 8px; border-radius: 20px; font-weight: 600; border: 1px solid #27272a;">Vitrine Oficial</span>
+        </div>
+        <button onclick="abrirModalOrcamentoCliente()" style="background: #e11d48; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;">
+            🛠️ Solicitar Reparo / Orçamento
+        </button>
     </header>
 
-    <main style="max-width: 1200px; width: 100%; margin: 0 auto; padding: 30px 20px; flex: 1;">
-        <div style="margin-bottom: 30px; text-align: center; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-            <h2 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Precisa de um orçamento ou reparo personalizado?</h2>
-            <button onclick="abrirModalOrcamentoCliente()" style="background: #e11d48; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">🛠️ Solicitar Orçamento / Reparo</button>
+    <div style="max-width: 1200px; width: 100%; margin: 25px auto 0 auto; padding: 0 20px;">
+        <div style="background: linear-gradient(135deg, #18181b 0%, #09090b 100%); border: 1px solid #27272a; padding: 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Precisa de Manutenção ou Peças Específicas?</h2>
+                <p style="font-size: 13px; color: #a1a1aa;">Escolha um produto abaixo ou envie os detalhes do seu veículo para nossa equipe.</p>
+            </div>
+            <button onclick="abrirModalOrcamentoCliente()" style="background: transparent; color: #ffffff; border: 1px solid #3f3f46; padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                Iniciar Agendamento
+            </button>
         </div>
+    </div>
 
-        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 20px; border-left: 4px solid #e11d48; padding-left: 10px;">Nossos Produtos & Peças</h3>
+    <main style="max-width: 1200px; width: 100%; margin: 0 auto; padding: 30px 20px; flex: 1;">
+        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 20px; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px;">
+            <span style="width: 4px; height: 16px; background: #e11d48; display: inline-block; border-radius: 2px;"></span>
+            Produtos & Componentes Disponíveis
+        </h3>
         
-        <div id="grid-produtos-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
+        <div id="vitrine-publica-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
             </div>
     </main>
 
-    <footer style="background: #ffffff; text-align: center; padding: 20px; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0;">
-        Sistema de Gestão & Vendas Integrado
+    <footer style="background: #09090b; border-top: 1px solid #1e1e24; text-align: center; padding: 20px; color: #71717a; font-size: 12px; margin-top: 40px;">
+        &copy; 2026 ALDINEICAR. Todos os direitos reservados.
     </footer>
 </div>
 
-<div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-        <h3 style="margin-bottom: 6px; font-size: 18px; font-weight: 700; color: #0f172a;">Solicitar Reparo ou Orçamento</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Insira seus dados para que a nossa equipe entre em contato.</p>
+<div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: #18181b; border: 1px solid #27272a; padding: 30px; border-radius: 12px; width: 95%; max-width: 460px; color: #fafafa;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Solicitar Orçamento / Manutenção</h3>
+        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Preencha os dados básicos abaixo para nossa oficina te retornar.</p>
         
-        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Seu Nome Completo</label>
-        <input type="text" id="cliOrcNome" placeholder="Ex: João Silva" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Nome</label>
+        <input type="text" id="cliOrcNome" placeholder="Ex: Marcos Silva" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
         
-        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Seu Telefone / WhatsApp</label>
-        <input type="text" id="cliOrcTelefone" placeholder="Ex: (11) 99999-9999" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Telefone / WhatsApp</label>
+        <input type="text" id="cliOrcTelefone" placeholder="Ex: (11) 99999-9999" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
 
-        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
-        <input type="text" id="cliOrcVeiculo" placeholder="Ex: Civic 2015" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
+        <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
         
-        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">O que o veículo apresenta ou o que você precisa?</label>
-        <textarea id="cliOrcDescricao" placeholder="Ex: Barulho na suspensão dianteira / Troca de pastilha" style="width: 100%; height: 90px; margin-bottom: 20px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: none;"></textarea>
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
+        <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito que o carro apresenta..." style="width: 100%; height: 90px; margin-bottom: 20px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
         
         <div style="display: flex; gap: 10px;">
-            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Enviar Solicitação</button>
-            <button onclick="fecharModalOrcamentoCliente()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Voltar</button>
+            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Enviar para Oficina</button>
+            <button onclick="fecharModalOrcamentoCliente()" style="flex: 1; padding: 12px; background: #27272a; color: #a1a1aa; border: 1px solid #3f3f46; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Voltar</button>
         </div>
     </div>
 </div>
@@ -2343,74 +2358,80 @@ let idOficinaDaLojaAtual = null;
 
 function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
-    const idLoja = parametrosUrl.get('loja'); // Pega o ?loja=ID_DA_OFICINA
+    const idLoja = parametrosUrl.get('loja');
 
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
         
-        // Cria um estilo CSS para forçar o sumiço da tela de cadastro de empresa
+        // Esconde as telas pretas e modais administrativos antigos usando CSS forçado
         const estiloEsconder = document.createElement('style');
         estiloEsconder.innerHTML = `
-            #loginOverlay { display: none !important; }
-            #appContainer { display: none !important; }
-            #visao-cliente-externo { display: flex !important; flex-direction: column; padding: 20px; min-height: 100vh; background: #f8fafc; }
+            #loginOverlay, #appContainer, .modal, .toast { display: none !important; }
+            #visao-cliente-externo { display: flex !important; }
         `;
         document.head.appendChild(estiloEsconder);
         
-        // Executa a busca dos produtos cadastrados na sua oficina
+        // Busca os produtos
         setTimeout(() => {
             carregarProdutosVitrinePublica(idLoja);
-        }, 300);
+        }, 400);
 
         return true;
     }
     return false;
 }
 
-// Executa a checagem imediatamente ao abrir a página
+// Chamar checagem imediatamente
 verificarModoCliente();
 
-// Busca no banco os produtos cadastrados por aquela oficina sem exigir login
-async function carregarProdutosVitrinePublica(oficinaId) {
-    const grid = document.getElementById('grid-produtos-cliente');
-    if (!grid) return;
 
-    grid.innerHTML = '<p style="color:#64748b;">Carregando vitrine de produtos...</p>';
+// Busca no banco os produtos cadastrados por aquela oficina sem exigir login
+async function carregarProdutosVitrinePublica(idOficina) {
+    const containerVitrine = document.getElementById('vitrine-publica-cliente');
+    if (!containerVitrine) return;
+    
+    containerVitrine.innerHTML = '<p style="color: #a1a1aa;">Carregando peças da oficina...</p>';
 
     try {
-        const { data, error } = await supabaseClient
+        const { data: produtos, error } = await supabaseClient
             .from('produtos_loja')
             .select('*')
-            .eq('user_id', oficinaId)
-            .order('nome', { ascending: true });
+            .eq('user_id', idOficina);
 
         if (error) throw error;
 
-        if (data.length === 0) {
-            grid.innerHTML = '<p style="color:#64748b; grid-column:1/-1; text-align:center; padding:40px;">Esta empresa ainda não postou produtos na vitrine.</p>';
+        containerVitrine.innerHTML = '';
+
+        if (!produtos || produtos.length === 0) {
+            containerVitrine.innerHTML = '<p style="color: #a1a1aa; grid-column: 1/-1; text-align: center; padding: 30px;">Nenhum produto em exposição nesta vitrine no momento.</p>';
             return;
         }
 
-        grid.innerHTML = data.map(prod => {
-            const img = prod.imagem_url || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
-            return `
-                <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                    <img src="${img}" style="width:100%; height:140px; object-fit:cover; border-radius:8px; margin-bottom: 12px;">
-                    <h4 style="font-size: 15px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0;">${prod.nome}</h4>
-                    <p style="font-size: 12px; color: #64748b; margin: 0 0 12px 0; min-height: 34px; line-height: 1.4;">${prod.descricao || 'Disponível sob consulta.'}</p>
-                    <div style="display:flex; justify-content:between; align-items:center; margin-top:auto; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                        <span style="font-weight: 800; color: #e11d48; font-size: 18px; flex: 1;">R$ ${parseFloat(prod.preco).toFixed(2)}</span>
-                        <button onclick="solicitarOrcamentoProduto('${prod.nome}')" style="background: #0f172a; color:white; border:none; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Eu quero</button>
+        produtos.forEach(prod => {
+            // Correção da coluna de imagem para bater com o banco (imagem_url)
+            const urlImagem = prod.imagem_url || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+            
+            containerVitrine.innerHTML += `
+                <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; min-height: 310px;">
+                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;" onerror="this.src='https://via.placeholder.com/150'">
+                    <div style="margin-top: 12px; flex: 1;">
+                        <h4 style="font-size: 15px; color: #ffffff; font-weight: 700; margin: 0;">${prod.nome}</h4>
+                        <p style="font-size: 12px; color: #a1a1aa; margin: 4px 0 0 0; line-height: 1.4;">${prod.descricao || 'Disponível para instalação.'}</p>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; border-top: 1px solid #27272a; padding-top: 12px;">
+                        <span style="font-size: 16px; font-weight: 800; color: #e11d48;">R$ ${parseFloat(prod.preco).toFixed(2)}</span>
+                        <button onclick="solicitarOrcamentoProduto('${prod.nome}')" style="background: #27272a; color: #ffffff; border: 1px solid #3f3f46; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Eu Quero</button>
                     </div>
                 </div>
             `;
-        }).join('');
+        });
 
     } catch (err) {
-        console.error("Erro ao carregar vitrine pública:", err);
-        grid.innerHTML = '<p style="color:#e11d48;">Erro ao conectar com a loja externa.</p>';
+        console.error("Erro vitrine:", err);
+        containerVitrine.innerHTML = '<p style="color: #e11d48;">Erro ao conectar com os produtos.</p>';
     }
 }
+
 
 // Funções de Controle dos Modais do Cliente
 function abrirModalOrcamentoCliente() {
@@ -2423,7 +2444,7 @@ function fecharModalOrcamentoCliente() {
 
 function solicitarOrcamentoProduto(nomeProduto) {
     abrirModalOrcamentoCliente();
-    document.getElementById('cliOrcDescricao').value = `Gostaria de solicitar um orçamento para o produto: ${nomeProduto}`;
+    document.getElementById('cliOrcDescricao').value = `Olá! Gostaria de solicitar o orçamento e instalação para o item: ${nomeProduto}`;
 }
 
 
@@ -2432,54 +2453,45 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // ==========================================
 
 async function enviarOrcamentoCliente() {
-    const nomeCliente = document.getElementById('cliOrcNome').value.trim();
-    const telefoneCliente = document.getElementById('cliOrcTelefone').value.trim();
-    const veiculoCliente = document.getElementById('cliOrcVeiculo').value.trim();
-    const descricaoProblema = document.getElementById('cliOrcDescricao').value.trim();
+    const nome = document.getElementById('cliOrcNome').value.trim();
+    const telefone = document.getElementById('cliOrcTelefone').value.trim();
+    const veiculo = document.getElementById('cliOrcVeiculo').value.trim();
+    const desc = document.getElementById('cliOrcDescricao').value.trim();
 
-    // 1. Validação dos campos do cliente
-    if (!nomeCliente || !telefoneCliente || !descricaoProblema) {
-        alert('Por favor, preencha seu Nome, Telefone e o que precisa para podermos te atender!');
-        return;
-    }
-
-    if (!idOficinaDaLojaAtual) {
-        alert('Erro: ID da oficina não encontrado no link.');
+    if (!nome || !telefone || !desc) {
+        alert('Por favor, preencha Nome, Telefone e a Solicitação!');
         return;
     }
 
     try {
-        // 2. Envia os dados direto para a tabela de histórico/OS da oficina correspondente
-        // Vamos inserir na tabela 'historico' que você já usa no seu sistema
-        const { data, error } = await supabaseClient
+        // Envia respeitando as colunas exatas da tabela do seu sistema
+        const { error } = await supabaseClient
             .from('historico')
             .insert([
                 {
-                    cliente: nomeCliente,
-                    telefone: telefoneCliente, // Garanta que sua tabela 'historico' tenha essa coluna, se não tiver, o Supabase ignora ou avisa
-                    veiculo: veiculoCliente || 'Não informado',
-                    servicos: 'SOLICITAÇÃO DA LOJA VIRTUAL: ' + descricaoProblema,
-                    total: 0.00,
-                    status: 'Orçamento', // Entra como Orçamento no seu painel
-                    user_id: idOficinaDaLojaAtual // Vincula diretamente à sua oficina!
+                    cliente: nome,
+                    veiculo: veiculo || 'Não informado',
+                    servicos: `[SOLICITAÇÃO VITRINE - Contato: ${telefone}]: ${desc}`,
+                    total: 0,
+                    status: 'Orçamento',
+                    user_id: idOficinaDaLojaAtual
                 }
             ]);
 
         if (error) throw error;
 
-        // 3. Mensagem de Sucesso para o Cliente
-        alert(`Obrigado, ${nomeCliente}! Sua solicitação de orçamento foi enviada com sucesso para a nossa equipe. Entraremos em contato em breve!`);
+        alert(`Perfeito, ${nome}! Sua solicitação foi enviada direto para o painel da nossa oficina. Entraremos em contato!`);
+        fecharModalOrcamentoCliente();
         
-        // 4. Limpa o formulário e fecha o modal
+        // Limpa formulário
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
-        fecharModalOrcamentoCliente();
 
     } catch (err) {
-        console.error("Erro ao enviar orçamento:", err);
-        alert('Desculpe, ocorreu um erro ao enviar sua solicitação. Tente novamente.');
+        console.error("Erro salvando OS:", err);
+        alert('Ocorreu um erro ao enviar. Verifique sua conexão.');
     }
 }
 
