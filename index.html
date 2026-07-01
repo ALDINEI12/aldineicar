@@ -388,7 +388,7 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
                 <button onclick="mostrarAba('vendas')">💰 Vendas</button>
-               <button onclick="mostrarAba('vendas') ; renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
+              <button onclick="mostrarSecao('secao-vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -633,7 +633,7 @@ function mostrarSecao(id) {
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
             <div>
                 <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
-                <p style="font-size: 13px; color: #64748b; margin-0: 0;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+                <p style="font-size: 13px; color: #64748b; margin: 0;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
             </div>
             <button onclick="renderizarListaVendasExclusiva()" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
                 🔄 Atualizar Lista
@@ -663,33 +663,8 @@ function mostrarSecao(id) {
     </div>
 </div>
 
-<div id="aba-vendas" style="display:none;">
-    <div style="background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; color: #0f172a;">
-        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
-        
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600;">
-                        <th style="padding: 12px 8px;">ID Venda</th>
-                        <th style="padding: 12px 8px;">Data</th>
-                        <th style="padding: 12px 8px;">Cliente</th>
-                        <th style="padding: 12px 8px;">Produto</th>
-                        <th style="padding: 12px 8px;">Qtd</th>
-                        <th style="padding: 12px 8px;">Total</th>
-                        <th style="padding: 12px 8px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-vendas-corpo">
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+
+
 
 
 
@@ -2955,17 +2930,16 @@ async function processarBaixaEstoqueEPix() {
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) {
-        console.error("Erro: Elemento 'tabela-vendas-corpo' não foi localizado na página.");
+        console.error("Erro: O elemento 'tabela-vendas-corpo' não foi localizado.");
         return;
     }
 
-    // Mensagem visual temporária de carregamento
-    corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">🔄 Buscando vendas no Supabase...</td></tr>`;
+    corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">🔄 Buscando histórico no Supabase...</td></tr>`;
 
     try {
         let idUsuarioLogado = null;
 
-        // Tenta capturar o ID do usuário conectado pelas variáveis globais ou sessão ativa
+        // Captura o ID do usuário conectado pelas variáveis do sistema
         if (typeof dadosOficina !== 'undefined' && dadosOficina) {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
@@ -2980,11 +2954,11 @@ async function renderizarListaVendasExclusiva() {
         }
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Login não identificado. Faça logout e login novamente.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Identificação de usuário não encontrada. Faça login novamente.</td></tr>`;
             return;
         }
 
-        // Faz a requisição na tabela do Supabase
+        // Faz a consulta na tabela do Supabase
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
@@ -3003,7 +2977,6 @@ async function renderizarListaVendasExclusiva() {
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
-        // Limpa definitivamente o indicador de carregamento
         corpoTabela.innerHTML = ''; 
         
         if (vendas.length === 0) {
@@ -3011,7 +2984,7 @@ async function renderizarListaVendasExclusiva() {
             return;
         }
 
-        let acumularLinhasHTML = '';
+        let linhasHTML = '';
 
         vendas.forEach(venda => {
             let nomeCliente = 'Cliente';
@@ -3033,12 +3006,11 @@ async function renderizarListaVendasExclusiva() {
                 valorTotalRaw = parseFloat(valorTotalRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
             }
             const valorTotal = parseFloat(valorTotalRaw) || 0;
-            
             const statusVenda = venda.status || 'Concluído';
 
-            acumularLinhasHTML += `
+            linhasHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
+                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || '---'}</td>
                     <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
                     <td style="padding: 12px 8px; color: #0f172a;">${nomeCliente}</td>
                     <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${nomeProduto}</td>
@@ -3049,7 +3021,7 @@ async function renderizarListaVendasExclusiva() {
             `;
         });
 
-        corpoTabela.innerHTML = acumularLinhasHTML;
+        corpoTabela.innerHTML = linhasHTML;
 
     } catch (err) {
         console.error("Erro na listagem das vendas:", err);
