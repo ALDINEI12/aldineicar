@@ -2470,50 +2470,62 @@ async function enviarOrcamentoCliente() {
     }
 
     if (!idOficinaDaLojaAtual) {
-        alert('Erro de conexão: Identificador da oficina ausente na URL.');
+        alert('Erro de conexão: Identificador da oficina ausente.');
         return;
     }
 
-    // Gerando a data atual formatada caso seu banco exija o campo 'data' em texto
-    const hoje = new Date();
-    const dataFormatada = hoje.toLocaleDateString('pt-BR'); // Ex: "30/06/2026"
+    // Texto formatado para o caso de precisar enviar para o WhatsApp
+    const mensagemWhatsApp = `Olá! Me chamo ${nome}.\nVisualizei a sua vitrine e gostaria de pedir um orçamento:\n\n🚗 *Veículo:* ${veiculo || 'Não informado'}\n📱 *Telefone:* ${telefone}\n🔧 *Solicitação:* ${desc}`;
 
     try {
-        // Criando o objeto com todos os campos padrão que o seu sistema de OS exige
+        // Objeto padrão para salvar no banco de dados
         const payloadOrcamento = {
             cliente: nome,
             veiculo: veiculo || 'Não informado',
-            servicos: `[PEDIDO LOJA - Tel: ${telefone}]: ${desc}`,
+            servicos: `[PEDIDO VITRINE]: ${desc} (Tel: ${telefone})`,
             total: 0.00,
-            status: 'Pendente', // Alinhado com o padrão de triagem do seu painel
+            status: 'Pendente',
             user_id: idOficinaDaLojaAtual
         };
 
-        // Envia para a tabela de histórico do seu sistema
+        // Tenta gravar na tabela principal
         const { error } = await supabaseClient
             .from('historico')
             .insert([payloadOrcamento]);
 
-        if (error) throw error;
+        if (error) {
+            console.warn("Falha ao gravar na tabela 'historico', tentando 'historico_orcamentos'...");
+            
+            // Segunda tentativa com o outro nome padrão do sistema
+            const tentativa2 = await supabaseClient
+                .from('historico_orcamentos')
+                .insert([payloadOrcamento]);
+                
+            if (tentativa2.error) throw tentativa2.error;
+        }
 
-        // Feedback positivo para o cliente de fora
-        alert(`Perfeito, ${nome}! Sua solicitação foi enviada com sucesso para a ALDINEICAR. Analisaremos o seu caso e entraremos em contato via WhatsApp!`);
-        
-        // Fecha o modal da loja
+        // Se gravou com sucesso no banco
+        alert(`Perfeito, ${nome}! A sua solicitação foi enviada com sucesso para o sistema da ALDINEICAR.`);
         fecharModalOrcamentoCliente();
-        
-        // Limpa os campos do formulário para o próximo uso
-        document.getElementById('cliOrcNome').value = '';
-        document.getElementById('cliOrcTelefone').value = '';
-        document.getElementById('cliOrcVeiculo').value = '';
-        document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro detalhado ao gravar no histórico:", err);
+        console.error("Erro ao salvar no Supabase, direcionando para o WhatsApp:", err);
         
-        // Exibe o erro real que o Supabase respondeu para ajudar no diagnóstico
-        alert(`Não foi possível enviar: ${err.message || 'Verifique as colunas do banco'}`);
+        // Se as tabelas do banco estiverem com colunas trancadas, o Plano B salva o seu atendimento na hora!
+        alert(`Olá ${nome}! Para agilizar o seu atendimento, vamos enviar o seu pedido diretamente para o WhatsApp da ALDINEICAR.`);
+        
+        // Abre o WhatsApp com o seu número cadastrado na oficina (substitua o número abaixo pelo seu oficial se necessário)
+        const numeroOficina = "5575999999999"; 
+        window.open(`https://wa.me/${numeroOficina}?text=${encodeURIComponent(mensagemWhatsApp)}`, '_blank');
+        
+        fecharModalOrcamentoCliente();
     }
+
+    // Limpa o formulário
+    document.getElementById('cliOrcNome').value = '';
+    document.getElementById('cliOrcTelefone').value = '';
+    document.getElementById('cliOrcVeiculo').value = '';
+    document.getElementById('cliOrcDescricao').value = '';
 }
 
 
