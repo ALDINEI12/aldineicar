@@ -2458,6 +2458,7 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // ==========================================
 
 // SUBSITUA POR ESTA VERSÃO CORRIGIDA E COMPATÍVEL COM O SEU HISTÓRICO
+// VERSÃO DEFINITIVA: SALVA DIRETO NO SITE DA OFICINA
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2474,58 +2475,38 @@ async function enviarOrcamentoCliente() {
         return;
     }
 
-    // Texto formatado para o caso de precisar enviar para o WhatsApp
-    const mensagemWhatsApp = `Olá! Me chamo ${nome}.\nVisualizei a sua vitrine e gostaria de pedir um orçamento:\n\n🚗 *Veículo:* ${veiculo || 'Não informado'}\n📱 *Telefone:* ${telefone}\n🔧 *Solicitação:* ${desc}`;
-
     try {
-        // Objeto padrão para salvar no banco de dados
-        const payloadOrcamento = {
-            cliente: nome,
+        // Monta o registro no formato que a sua tabela 'clientes' aceita nativamente
+        const payloadCliente = {
+            nome: nome,
+            telefone: telefone,
             veiculo: veiculo || 'Não informado',
-            servicos: `[PEDIDO VITRINE]: ${desc} (Tel: ${telefone})`,
-            total: 0.00,
-            status: 'Pendente',
-            user_id: idOficinaDaLojaAtual
+            user_id: idOficinaDaLojaAtual // Vincula o cliente à sua conta da ALDINEICAR
         };
 
-        // Tenta gravar na tabela principal
+        // Envia direto para a sua tabela de clientes no banco de dados
         const { error } = await supabaseClient
-            .from('historico')
-            .insert([payloadOrcamento]);
+            .from('clientes')
+            .insert([payloadCliente]);
 
-        if (error) {
-            console.warn("Falha ao gravar na tabela 'historico', tentando 'historico_orcamentos'...");
-            
-            // Segunda tentativa com o outro nome padrão do sistema
-            const tentativa2 = await supabaseClient
-                .from('historico_orcamentos')
-                .insert([payloadOrcamento]);
-                
-            if (tentativa2.error) throw tentativa2.error;
-        }
+        if (error) throw error;
 
-        // Se gravou com sucesso no banco
-        alert(`Perfeito, ${nome}! A sua solicitação foi enviada com sucesso para o sistema da ALDINEICAR.`);
+        // Feedback de sucesso para o cliente final sem abrir o WhatsApp
+        alert(`Obrigado, ${nome}! Seus dados e solicitação foram enviados com sucesso para o painel da ALDINEICAR. Nossa equipe analisará as informações e entrará em contato em breve.`);
+        
+        // Fecha o modal da loja
         fecharModalOrcamentoCliente();
+
+        // Limpa o formulário
+        document.getElementById('cliOrcNome').value = '';
+        document.getElementById('cliOrcTelefone').value = '';
+        document.getElementById('cliOrcVeiculo').value = '';
+        document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro ao salvar no Supabase, direcionando para o WhatsApp:", err);
-        
-        // Se as tabelas do banco estiverem com colunas trancadas, o Plano B salva o seu atendimento na hora!
-        alert(`Olá ${nome}! Para agilizar o seu atendimento, vamos enviar o seu pedido diretamente para o WhatsApp da ALDINEICAR.`);
-        
-        // Abre o WhatsApp com o seu número cadastrado na oficina (substitua o número abaixo pelo seu oficial se necessário)
-        const numeroOficina = "5575999999999"; 
-        window.open(`https://wa.me/${numeroOficina}?text=${encodeURIComponent(mensagemWhatsApp)}`, '_blank');
-        
-        fecharModalOrcamentoCliente();
+        console.error("Erro ao gravar no banco:", err);
+        alert(`Ocorreu um problema ao enviar diretamente ao painel: ${err.message || 'Verifique sua conexão.'}`);
     }
-
-    // Limpa o formulário
-    document.getElementById('cliOrcNome').value = '';
-    document.getElementById('cliOrcTelefone').value = '';
-    document.getElementById('cliOrcVeiculo').value = '';
-    document.getElementById('cliOrcDescricao').value = '';
 }
 
 
