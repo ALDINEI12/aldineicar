@@ -2960,13 +2960,12 @@ async function renderizarListaVendasExclusiva() {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
 
-        // Caso as variáveis acima falhem, busca direto do usuário autenticado no painel
         if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idUsuarioLogado = supabaseClient.auth.user().id;
         }
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível identificar o ID da oficina logada.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível carregar o ID da loja.</td></tr>`;
             return;
         }
 
@@ -2980,7 +2979,7 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados?.historico) ? dados.historico : [];
         
-        // FILTRO COMPLETO: Captura qualquer venda direta de balcão ou compras vindas da vitrine/loja virtual
+        // Filtro robusto para capturar todas as variações de vendas registradas
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             item.tipo_registro === 'LOJA_VIRTUAL' ||
@@ -2988,14 +2987,18 @@ async function renderizarListaVendasExclusiva() {
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
-        corpoTabela.innerHTML = '';
+        // Destrói de forma agressiva o texto fixo antigo "Nenhuma venda realizada ainda"
+        corpoTabela.textContent = ''; 
+        
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td></tr>`;
             return;
         }
 
+        let linhasHTML = '';
+
         vendas.forEach(venda => {
-            // Tratamento ultra-seguro para ler o nome do cliente de qualquer formato salvo no histórico
+            // Tratamento ultra-seguro para o Objeto ou String do Cliente
             let nomeCliente = 'Cliente';
             if (venda.cliente) {
                 if (typeof venda.cliente === 'object' && venda.cliente.nome) {
@@ -3007,25 +3010,44 @@ async function renderizarListaVendasExclusiva() {
                 nomeCliente = venda.cliente_nome;
             }
 
-            // Tratamento seguro para os dados do produto e valores
             const nomeProduto = venda.produto_nome || venda.nome_produto || 'Produto';
             const quantidadeItem = venda.quantidade || '1';
-            const valorTotal = venda.total_pago || venda.valor_total || 0;
+            
+            // Tratamento contra strings monetárias ("R$ 50,00") que quebram o .toFixed(2)
+            let valorTotalRaw = venda.total_pago || venda.valor_total || 0;
+            if (typeof valorTotalRaw === 'string') {
+                valorTotalRaw = parseFloat(valorTotalRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+            }
+            const valorTotal = parseFloat(valorTotalRaw) || 0;
+            
+            const statusVenda = venda.status || 'Concluído';
 
-            corpoTabela.innerHTML += `
+            // Define a cor do Badge de Status
+            let corBadgeBg = '#ecfdf5';
+            let corBadgeTexto = '#059669';
+            if (statusVenda.toLowerCase().includes('pendente')) {
+                corBadgeBg = '#fffbeb';
+                corBadgeTexto = '#d97706';
+            }
+
+            linhasHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
-                    <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
-                    <td style="padding: 12px; color: #0f172a;">${nomeCliente}</td>
-                    <td style="padding: 12px; color: #10b981; font-weight:600;">${nomeProduto}</td>
-                    <td style="padding: 12px; color: #0f172a;">${quantidadeItem}</td>
-                    <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(valorTotal).toFixed(2)}</td>
+                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${nomeCliente}</td>
+                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${nomeProduto}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${quantidadeItem}</td>
+                    <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
+                    <td style="padding: 12px 8px;"><span style="background: ${corBadgeBg}; color: ${corBadgeTexto}; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">${statusVenda}</span></td>
                 </tr>
             `;
         });
+
+        corpoTabela.innerHTML = linhasHTML;
+
     } catch (err) {
-        console.error("Erro na busca:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao listar: ${err.message}</td></tr>`;
+        console.error("Erro na renderização das vendas:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar: ${err.message}</td></tr>`;
     }
 }
 
