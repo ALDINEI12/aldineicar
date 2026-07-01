@@ -2460,6 +2460,7 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // SUBSITUA POR ESTA VERSÃO CORRIGIDA E COMPATÍVEL COM O SEU HISTÓRICO
 // VERSÃO DEFINITIVA: SALVA DIRETO NO SITE DA OFICINA
 // VERSÃO INTEGRADA AO PAINEL DE ORDENS E ORÇAMENTOS
+// ENVIO DIRETO PARA O FLUXO DE TRIAGEM DO PAINEL ADM
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2477,46 +2478,25 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // Criando o registro no formato ideal de Orçamento/OS para o seu painel
-        const payloadOS = {
+        // Monta o objeto com a estrutura exata que o seu painel administrativo lê
+        const dadosOrcamento = {
             cliente: nome,
             veiculo: veiculo || 'Não informado',
-            descricao: `[PEDIDO VITRINE VIRTUAL] Contato: ${telefone} | Solicitação: ${desc}`,
-            status: 'Pendente', // Vai aparecer direto na sua triagem
+            // Juntamos a descrição e o telefone na coluna de serviços para você ver tudo de uma vez no painel
+            servicos: `[SOLICITAÇÃO DA VITRINE] Tel: ${telefone} | Pedido: ${desc}`,
             total: 0.00,
-            user_id: idOficinaDaLojaAtual // Amarra direto na sua oficina
+            status: 'Orçamento', // Ou 'Pendente', conforme o que seu painel filtra por padrão
+            user_id: idOficinaDaLojaAtual
         };
 
-        // 1. Tenta salvar na tabela 'ordens_servico'
-        let resultado = await supabaseClient
-            .from('ordens_servico')
-            .insert([payloadOS]);
+        // Envia direto para a tabela principal que aparece na sua tela de histórico/serviços
+        const { error } = await supabaseClient
+            .from('historico') 
+            .insert([dadosOrcamento]);
 
-        // 2. Se não achar essa, tenta na tabela 'servicos'
-        if (resultado.error && resultado.error.message.includes("Could not find the table")) {
-            console.warn("Tentando tabela alternativa 'servicos'...");
-            resultado = await supabaseClient
-                .from('servicos')
-                .insert([payloadOS]);
-        }
+        if (error) throw error;
 
-        // 3. Se ainda assim der erro, tenta o formato simples na tabela 'clientes' sem a coluna de veículo
-        if (resultado.error && resultado.error.message.includes("Could not find the table")) {
-            console.warn("Tentando formato simples na tabela 'clientes'...");
-            resultado = await supabaseClient
-                .from('clientes')
-                .insert([{
-                    nome: nome,
-                    telefone: telefone,
-                    user_id: idOficinaDaLojaAtual
-                }]);
-        }
-
-        // Se após todas as tentativas der outro erro (tipo o da coluna), avisa o desenvolvedor
-        if (resultado.error) throw resultado.error;
-
-        // Sucesso total!
-        alert(`Obrigado, ${nome}! A sua solicitação de orçamento foi enviada com sucesso. Você já pode fechar esta página. Nossa equipe analisará os detalhes no painel e entrará em contato!`);
+        alert(`Obrigado, ${nome}! Sua solicitação foi enviada com sucesso para o painel da ALDINEICAR. Você já pode fechar esta aba.`);
         fecharModalOrcamentoCliente();
 
         // Limpa o formulário
@@ -2526,8 +2506,8 @@ async function enviarOrcamentoCliente() {
         document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro final no envio do payload:", err);
-        alert(`Erro de estrutura no banco: ${err.message}.`);
+        console.error("Erro ao enviar para o histórico:", err);
+        alert(`Erro ao salvar no painel: ${err.message}`);
     }
 }
 
