@@ -306,6 +306,7 @@ function mostrarSecao(id) {
         </div>
     </div>
 
+
     <div id="appContainer">
         <header>
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -568,6 +569,19 @@ function mostrarSecao(id) {
 </div>
 
 
+<div id="visao-cliente-externo" style="display: none;">
+    <header style="background: #09090b; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 22px;">
+        🛍️ VITRINE VIRTUAL - SOLICITAR ORÇAMENTO
+    </header>
+    
+    <div style="max-width: 1200px; margin: 30px auto; width: 100%; padding: 0 15px;">
+        <h2 style="margin-bottom: 20px; color: #0f172a;">Produtos e Serviços Disponíveis:</h2>
+        <div id="vitrine-publica-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
+            </div>
+    </div>
+</div>
+
+
 </section>
 
 <style>
@@ -586,6 +600,9 @@ function mostrarSecao(id) {
     }
     .card-produto h3 { margin: 10px 0; font-size: 1rem; }
     .card-produto p { color: #e11d48; font-weight: bold; }
+
+
+    
 
 
     
@@ -2322,56 +2339,36 @@ function renderCategoriasETelas() {
 }
 
 
-// ==========================================
-// FUNÇÕES DO PASSO 3: MODO CLIENTE EXTERNO
-// ==========================================
-
-// Variável global para armazenar o ID da oficina dona da loja que o cliente abriu
 let idOficinaDaLojaAtual = null;
 
-// Esta função verifica automaticamente a URL assim que a página carrega
-// SUBSTITUA A FUNÇÃO DO PASSO 3 POR ESTA ATUALIZADA:
-
-async function verificarModoCliente() {
+function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
     const idLoja = parametrosUrl.get('loja'); // Pega o ?loja=ID_DA_OFICINA
 
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
         
-        // 1. ESCONDE TUDO QUE FOR DA TELA DE LOGIN / CADASTRO DE EMPRESA
-        // Aqui estamos tentando pegar todos os IDs comuns de telas de login para garantir que suma
-        const conteineresParaEsconder = [
-            'login-container', 
-            'secao-login', 
-            'container-login', 
-            'modal-auth', 
-            'cadastro-empresa'
-        ];
+        // Cria um estilo CSS para forçar o sumiço da tela de cadastro de empresa
+        const estiloEsconder = document.createElement('style');
+        estiloEsconder.innerHTML = `
+            #loginOverlay { display: none !important; }
+            #appContainer { display: none !important; }
+            #visao-cliente-externo { display: flex !important; flex-direction: column; padding: 20px; min-height: 100vh; background: #f8fafc; }
+        `;
+        document.head.appendChild(estiloEsconder);
         
-        conteineresParaEsconder.forEach(id => {
-            const elemento = document.getElementById(id);
-            if (elemento) elemento.style.display = 'none';
-        });
+        // Executa a busca dos produtos cadastrados na sua oficina
+        setTimeout(() => {
+            carregarProdutosVitrinePublica(idLoja);
+        }, 300);
 
-        // Caso seu login use uma classe CSS em vez de ID, vamos esconder também:
-        const caixasLogin = document.querySelectorAll('.login-box, .container-login, .auth-container');
-        caixasLogin.forEach(el => el.style.display = 'none');
-
-        // Se houver uma estrutura principal do painel administrativo aberta por padrão, esconde também
-        const layoutAdmin = document.getElementById('layout-principal') || document.querySelector('.app-container');
-        if (layoutAdmin) layoutAdmin.style.display = 'none';
-        
-        // 2. EXIBE A VITRINE EXCLUSIVA DO CLIENTE EXTERNO
-        const visaoCliente = document.getElementById('visao-cliente-externo');
-        if (visaoCliente) {
-            visaoCliente.style.display = 'flex';
-        }
-        
-        // 3. CARREGA OS PRODUTOS PÚBLICOS DA SUA OFICINA
-        await carregarProdutosVitrinePublica(idLoja);
+        return true;
     }
+    return false;
 }
+
+// Executa a checagem imediatamente ao abrir a página
+verificarModoCliente();
 
 // Busca no banco os produtos cadastrados por aquela oficina sem exigir login
 async function carregarProdutosVitrinePublica(oficinaId) {
@@ -2483,6 +2480,44 @@ async function enviarOrcamentoCliente() {
     } catch (err) {
         console.error("Erro ao enviar orçamento:", err);
         alert('Desculpe, ocorreu um erro ao enviar sua solicitação. Tente novamente.');
+    }
+}
+
+
+async function carregarProdutosVitrinePublica(idOficina) {
+    try {
+        // Busca os produtos criados na tabela da sua loja vinculados ao seu ID
+        const { data: produtos, error } = await supabaseClient
+            .from('produtos_loja') // Garanta que o nome da tabela está correto com o que criou
+            .select('*')
+            .eq('user_id', idOficina);
+
+        if (error) throw error;
+
+        const containerVitrine = document.getElementById('vitrine-publica-cliente');
+        if (!containerVitrine) return;
+        
+        containerVitrine.innerHTML = '';
+
+        if (!produtos || produtos.length === 0) {
+            containerVitrine.innerHTML = '<p style="color: #64748b; font-weight: 500;">Nenhum produto cadastrado nesta oficina até o momento.</p>';
+            return;
+        }
+
+        produtos.forEach(prod => {
+            containerVitrine.innerHTML += `
+                <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                    <img src="${prod.img_url || 'https://via.placeholder.com/150'}" style="width: 100%; height: 140px; object-fit: contain; border-radius: 8px; margin-bottom: 12px;">
+                    <h3 style="font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 6px;">${prod.nome}</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">${prod.descricao || ''}</p>
+                    <div style="font-size: 18px; color: #e11d48; font-weight: 800; margin-bottom: 12px;">R$ ${parseFloat(prod.preco).toFixed(2)}</div>
+                    <button onclick="alert('Funcionalidade de orçamento para este item em breve!')" style="background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Solicitar Orçamento</button>
+                </div>
+            `;
+        });
+
+    } catch (err) {
+        console.error("Erro ao carregar vitrine:", err);
     }
 }
 
