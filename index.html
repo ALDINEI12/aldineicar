@@ -2955,23 +2955,23 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
-        // CORREÇÃO: Pegamos o ID diretamente do objeto que já existe no seu sistema
-        // Verifique no seu console: se 'dadosOficina' não existir, tente 'dadosUsuario' ou 'usuarioLogado'
-        let idUsuarioLogado = null;
-        
-        if (typeof dadosOficina !== 'undefined' && dadosOficina.user_id) {
+        // 1. Tenta pegar o ID da sessão ativa do Supabase (Login real do Administrador)
+        const session = supabaseClient.auth.session();
+        let idUsuarioLogado = session ? session.user.id : null;
+
+        // 2. Se não estiver na sessão, tenta pegar do objeto global que você usa
+        if (!idUsuarioLogado && typeof dadosOficina !== 'undefined' && dadosOficina.user_id) {
             idUsuarioLogado = dadosOficina.user_id;
-        } else if (typeof idOficinaDaLojaAtual !== 'undefined') {
-            idUsuarioLogado = idOficinaDaLojaAtual;
         }
 
+        // 3. SE AINDA FOR NULO, tentamos o localStorage (seu sistema guarda lá!)
         if (!idUsuarioLogado) {
-            // Tenta uma última alternativa: ler do localStorage se o sistema salva lá
             idUsuarioLogado = localStorage.getItem('user_id') || localStorage.getItem('idOficina');
         }
 
+        // SE CHEGOU AQUI E AINDA É NULO, travamos com uma mensagem clara
         if (!idUsuarioLogado) {
-            throw new Error("Não foi possível identificar o ID no objeto dadosOficina.");
+            throw new Error("Você precisa estar logado no sistema para ver as vendas.");
         }
 
         const { data: dados, error } = await supabaseClient
@@ -2984,7 +2984,7 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
         
-        // Filtra as vendas
+        // Filtra pelo padrão de vendas
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
@@ -3002,15 +3002,15 @@ async function renderizarListaVendasExclusiva() {
                     <td style="padding: 12px; color: #64748b;">${venda.id_venda || '---'}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
-                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || venda.tipo_servico || 'Produto'}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.quantidade || '1'}</td>
                     <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro detalhado na busca:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar vendas.</td></tr>`;
+        console.error("Erro na busca de vendas:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">${err.message}</td></tr>`;
     }
 }
 
