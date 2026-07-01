@@ -628,15 +628,22 @@ function mostrarSecao(id) {
         </div>
 </div>
 
-<div id="secao-vendas" style="display: none; padding: 20px;">
-    <div style="background: #111113; border: 1px solid #27272a; padding: 20px; border-radius: 8px; color: white;">
-        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #ffffff;">💰 Histórico de Vendas Diretas</h2>
-        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+<div id="secao-vendas" style="display:none;">
+    <div style="background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; color: #0f172a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <div>
+                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
+                <p style="font-size: 13px; color: #64748b; margin-0: 0;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+            </div>
+            <button onclick="renderizarListaVendasExclusiva()" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                🔄 Atualizar Lista
+            </button>
+        </div>
         
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
                 <thead>
-                    <tr style="border-bottom: 2px solid #27272a; color: #a1a1aa;">
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600;">
                         <th style="padding: 12px 8px;">ID Venda</th>
                         <th style="padding: 12px 8px;">Data</th>
                         <th style="padding: 12px 8px;">Cliente</th>
@@ -648,7 +655,7 @@ function mostrarSecao(id) {
                 </thead>
                 <tbody id="tabela-vendas-corpo">
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px; color: #71717a;">Nenhuma venda realizada ainda.</td>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Clique em "Vendas de Produtos" para carregar...</td>
                     </tr>
                 </tbody>
             </table>
@@ -2947,11 +2954,18 @@ async function processarBaixaEstoqueEPix() {
 
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
-    if (!corpoTabela) return;
+    if (!corpoTabela) {
+        console.error("Erro: Elemento 'tabela-vendas-corpo' não foi localizado na página.");
+        return;
+    }
+
+    // Mensagem visual temporária de carregamento
+    corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">🔄 Buscando vendas no Supabase...</td></tr>`;
 
     try {
         let idUsuarioLogado = null;
 
+        // Tenta capturar o ID do usuário conectado pelas variáveis globais ou sessão ativa
         if (typeof dadosOficina !== 'undefined' && dadosOficina) {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
@@ -2961,12 +2975,16 @@ async function renderizarListaVendasExclusiva() {
         if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idUsuarioLogado = supabaseClient.auth.user().id;
         }
+        if (!idUsuarioLogado && supabaseClient.auth.session && supabaseClient.auth.session()) {
+            idUsuarioLogado = supabaseClient.auth.session().user?.id;
+        }
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível identificar o ID do usuário conectado.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Login não identificado. Faça logout e login novamente.</td></tr>`;
             return;
         }
 
+        // Faz a requisição na tabela do Supabase
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
@@ -2977,7 +2995,7 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados?.historico) ? dados.historico : [];
         
-        // Filtro aprimorado para ler qualquer tipo de venda ou tags antigas
+        // Filtra os registros que correspondem a vendas balcão ou vendas da vitrine
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             item.tipo_registro === 'LOJA_VIRTUAL' ||
@@ -2985,8 +3003,8 @@ async function renderizarListaVendasExclusiva() {
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
-        // Força a limpeza do texto fixo antigo do HTML
-        corpoTabela.textContent = ''; 
+        // Limpa definitivamente o indicador de carregamento
+        corpoTabela.innerHTML = ''; 
         
         if (vendas.length === 0) {
             corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
@@ -3035,7 +3053,7 @@ async function renderizarListaVendasExclusiva() {
 
     } catch (err) {
         console.error("Erro na listagem das vendas:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar: ${err.message}</td></tr>`;
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar dados: ${err.message}</td></tr>`;
     }
 }
 
