@@ -2426,7 +2426,10 @@ async function carregarProdutosVitrinePublica(idOficina) {
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; border-top: 1px solid #27272a; padding-top: 12px;">
                         <span style="font-size: 16px; font-weight: 800; color: #e11d48;">R$ ${parseFloat(prod.preco).toFixed(2)}</span>
-                        <button onclick="solicitarOrcamentoProduto('${prod.nome}')" style="background: #27272a; color: #ffffff; border: 1px solid #3f3f46; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Eu Quero</button>
+                        // SUBSTITUA POR ESTE:
+<button onclick="console.log('Botão acionado com sucesso para o produto ID:', '${prod.id}'); abrirModalCompra('${prod.id}', '${prod.nome}', '${prod.preco}', '${prod.qtd || prod.quantidade || 0}')" style="background: #22c55e; color: #ffffff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;">
+    🛒 Comprar Agora
+</button>
                     </div>
                 </div>
             `;
@@ -2622,6 +2625,179 @@ async function carregarProdutosVitrinePublica(idOficina) {
     } catch (err) {
         console.error("Erro vitrine:", err);
         containerVitrine.innerHTML = '<p style="color: #e11d48;">Erro ao conectar com os produtos.</p>';
+    }
+}
+
+// ==========================================
+// OPERAÇÃO DE VENDAS DIRETAS (VITRINE)
+// ==========================================
+let produtoSelecionadoParaCompra = null;
+let precoUnitarioSelecionado = 0;
+let estoqueDisponivelSelecionado = 0;
+let nomeProdutoSelecionado = "";
+
+function abrirModalCompra(id, nome, preco, estoque) {
+    produtoSelecionadoParaCompra = id;
+    precoUnitarioSelecionado = parseFloat(preco) || 0;
+    estoqueDisponivelSelecionado = parseInt(estoque) || 0;
+    nomeProdutoSelecionado = nome;
+
+    if (estoqueDisponivelSelecionado <= 0) {
+        alert("Desculpe, este produto está esgotado no momento!");
+        return;
+    }
+
+    const modalAntigo = document.getElementById('modalCompraProdutoDinamico');
+    if (modalAntigo) modalAntigo.remove();
+
+    const divModal = document.createElement('div');
+    divModal.id = 'modalCompraProdutoDinamico';
+    divModal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
+    
+    divModal.innerHTML = `
+        <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:420px; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 1px solid #2c2c2e; color: #ffffff; font-family: sans-serif;">
+            <h3 style="margin-top:0; color:#ffffff; font-size: 18px; font-weight: 700;">Finalizar Compra</h3>
+            <p style="font-weight:700; color:#22c55e; margin-top: 8px; font-size: 16px;">${nome}</p>
+            <p style="font-size:13px; color:#22c55e; margin-top: 2px;">Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
+            <p style="font-size:12px; color:#a1a1aa; margin-top: 2px;">Disponível no Estoque: ${estoqueDisponivelSelecionado} un.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #2c2c2e; margin: 16px 0;">
+            
+            <div style="margin-bottom: 14px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
+                <input type="number" id="compraQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+            </div>
+
+            <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
+                <span id="compraTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
+                <input type="text" id="compraNomeCliente" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
+                <input type="text" id="compraTelCliente" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="fecharModalCompraDinamica()" style="background:#3a3a3c; color:#ffffff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size: 13px; cursor:pointer;">Cancelar</button>
+                <button onclick="processarBaixaEstoqueEPix()" style="background:#22c55e; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; font-size: 13px; cursor:pointer;">Pagar via PIX</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(divModal);
+}
+
+function calcularTotalCompraDinamica() {
+    const inputQtd = document.getElementById('compraQtd');
+    const txtTotal = document.getElementById('compraTotalExibicao');
+    if (!inputQtd || !txtTotal) return;
+
+    let qtd = parseInt(inputQtd.value) || 1;
+    if (qtd > estoqueDisponivelSelecionado) {
+        alert(`Quantidade máxima em estoque: ${estoqueDisponivelSelecionado}`);
+        qtd = estoqueDisponivelSelecionado;
+        inputQtd.value = qtd;
+    }
+
+    const total = qtd * precoUnitarioSelecionado;
+    txtTotal.innerText = `R$ ${total.toFixed(2)}`;
+}
+
+function fecharModalCompraDinamica() {
+    const modal = document.getElementById('modalCompraProdutoDinamico');
+    if (modal) modal.remove();
+}
+
+async function processarBaixaEstoqueEPix() {
+    const inputQtd = document.getElementById('compraQtd');
+    const inputNome = document.getElementById('compraNomeCliente');
+    const inputTel = document.getElementById('compraTelCliente');
+
+    if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
+        alert("Por favor, preencha seu nome e telefone para contato!");
+        return;
+    }
+
+    const qtdComprada = parseInt(inputQtd.value) || 1;
+    const nomeCliente = inputNome.value.trim();
+    const telCliente = inputTel.value.trim();
+    const totalVenda = qtdComprada * precoUnitarioSelecionado;
+
+    try {
+        // Busca os dados da oficina atual baseando-se no ID da loja ativa
+        const { data: dadosAtuais, error: erroBusca } = await supabaseClient
+            .from('user_data')
+            .select('*')
+            .eq('user_id', idOficinaDaLojaAtual)
+            .single();
+
+        if (erroBusca) throw new Error("Não foi possível conectar ao banco de dados.");
+
+        let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : [];
+        let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
+
+        // Atualiza o estoque na array de materiais
+        listaMateriais = listaMateriais.map(item => {
+            if (item.id === produtoSelecionadoParaCompra) {
+                let estoqueAtual = parseInt(item.qtd || item.quantidade || 0);
+                if (estoqueAtual < qtdComprada) {
+                    throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
+                }
+                item.qtd = estoqueAtual - qtdComprada;
+                if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
+            }
+            return item;
+        });
+
+        // Adiciona a venda como uma movimentação concluída no histórico
+        const novoRegistroVenda = {
+            data: new Date().toLocaleString('pt-BR'),
+            status: 'Pago',
+            cliente: { nome: nomeCliente, endereco: 'Compra Direta via Vitrine', tel: telCliente, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
+            veiculo: { modelo: 'Venda de Balcão', placa: '---', ano: '', cor: '', avaliador: 'Vitrine Virtual', tipo_servico: `[COMPRA VITRINE]: ${qtdComprada}x ${nomeProdutoSelecionado}` },
+            materiais: [{ id: produtoSelecionadoParaCompra, nome: nomeProdutoSelecionado, qtd: qtdComprada, valor: precoUnitarioSelecionado }],
+            mao_obra: [],
+            totalMateriais: totalVenda,
+            totalMateriaisCalculado: totalVenda,
+            totalMaoObraCalculado: 0,
+            deslocamento: 0,
+            totalCobrado: totalVenda,
+            lucro: totalVenda
+        };
+        listaHistorico.unshift(novoRegistroVenda);
+
+        // Envia as modificações de volta ao Supabase
+        const { error: erroUpdate } = await supabaseClient
+            .from('user_data')
+            .update({
+                materiais: listaMateriais,
+                historico: listaHistorico,
+                updated_at: new Date()
+            })
+            .eq('user_id', idOficinaDaLojaAtual);
+
+        if (erroUpdate) throw erroUpdate;
+
+        alert(`Pedido Confirmado, ${nomeCliente}!\nEstoque atualizado no sistema ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.\nChave Pix: INSIRA_AQUI_SEU_PIX`);
+        
+        fecharModalCompraDinamica();
+
+        // Recarrega a lista se a função existir para refletir as alterações de estoque na hora
+        if (typeof carregarProdutosVitrinePublica === 'function') {
+            carregarProdutosVitrinePublica(idOficinaDaLojaAtual);
+        } else if (typeof carregarProdutosDaLoja === 'function') {
+            carregarProdutosDaLoja(idOficinaDaLojaAtual);
+        }
+
+    } catch (err) {
+        console.error("Erro na transação:", err);
+        alert(`Erro ao processar compra: ${err.message}`);
     }
 }
 
