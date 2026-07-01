@@ -2851,26 +2851,37 @@ async function processarBaixaEstoqueEPix() {
     const totalVenda = qtdComprada * precoUnitarioSelecionado;
 
     try {
+        // Tenta descobrir o ID do dono da loja por todas as vias possíveis
         let idDonoVenda = null;
-        if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
+        
+        if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
+            idDonoVenda = idOficinaDaLojaAtual;
+        } else if (typeof dadosOficina !== 'undefined' && dadosOficina) {
+            idDonoVenda = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
+        } else if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idDonoVenda = supabaseClient.auth.user().id;
         } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
             idDonoVenda = supabaseClient.auth.session().user?.id;
-        } else {
-            idDonoVenda = idOficinaDaLojaAtual;
+        }
+
+        // Se ainda assim não achar, tenta pegar de algum parâmetro na URL do site (?id=...)
+        if (!idDonoVenda) {
+            const urlParams = new URLSearchParams(window.location.search);
+            idDonoVenda = urlParams.get('id') || urlParams.get('user_id');
         }
 
         if (!idDonoVenda) {
-            throw new Error("Não foi possível identificar o ID da oficina.");
+            throw new Error("Não foi possível identificar o ID do proprietário desta loja para registrar a venda.");
         }
 
+        // Busca o registro atual do usuário no banco
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
             .eq('user_id', idDonoVenda)
             .single();
 
-        if (erroBusca) throw new Error("Erro ao conectar à base de dados.");
+        if (erroBusca) throw new Error("Erro ao conectar à base de dados da oficina.");
 
         let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
         let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
@@ -2889,26 +2900,10 @@ async function processarBaixaEstoqueEPix() {
             return item;
         });
 
-        // 2. Atualiza a tabela secundária 'produtos_loja' caso ela exista
-        const { data: verificarTabelaLoja } = await supabaseClient
-            .from('produtos_loja')
-            .select('estoque')
-            .eq('id', produtoSelecionadoParaCompra)
-            .maybeSingle();
-
-        if (verificarTabelaLoja) {
-            const estoqueLojaAtual = parseInt(verificarTabelaLoja.estoque) || 0;
-            const novoEstoqueLoja = estoqueLojaAtual - qtdComprada;
-            await supabaseClient
-                .from('produtos_loja')
-                .update({ estoque: novoEstoqueLoja >= 0 ? novoEstoqueLoja : 0 })
-                .eq('id', produtoSelecionadoParaCompra);
-        }
-
-        // 3. Estrutura da venda com a TAG identificadora limpa e padronizada
+        // 2. Estrutura da venda padronizada com a tag limpa
         const novoRegistroVenda = {
             id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
-            data: new Date().toLocaleString('pt-BR'),
+            data: new Date().toLocaleDateString('pt-BR'),
             status: 'Concluído',
             tipo_registro: 'VENDA_DIRETA_BALCAO', 
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
@@ -2922,7 +2917,7 @@ async function processarBaixaEstoqueEPix() {
         
         listaHistoricoGeral.unshift(novoRegistroVenda);
 
-        // 4. Grava de volta no Supabase
+        // 3. Grava de volta no Supabase
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -2937,11 +2932,11 @@ async function processarBaixaEstoqueEPix() {
         alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
         fecharModalCompraDinamica();
 
-        // Aguarda 400 milissegundos para forçar o refresh após a gravação completa no banco de dados ser propagada
+        // Recarrega as listagens locais após um pequeno delay para o banco propagar
         setTimeout(() => {
             if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
             if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
-        }, 400);
+        }, 500);
 
     } catch (err) {
         console.error(err);
@@ -2949,23 +2944,26 @@ async function processarBaixaEstoqueEPix() {
     }
 }
 
+
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) return;
 
     try {
-        let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
+        let idUsuarioLogado = null;
 
-        if (!idUsuarioLogado && typeof dadosOficina !== 'undefined') {
+        if (typeof dadosOficina !== 'undefined' && dadosOficina) {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
-
+        if (!idUsuarioLogado && typeof idOficinaDaLojaAtual !== 'undefined') {
+            idUsuarioLogado = idOficinaDaLojaAtual;
+        }
         if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idUsuarioLogado = supabaseClient.auth.user().id;
         }
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível carregar o ID da loja.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: Não foi possível identificar o ID do usuário conectado.</td></tr>`;
             return;
         }
 
@@ -2979,7 +2977,7 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados?.historico) ? dados.historico : [];
         
-        // Filtro robusto para capturar todas as variações de vendas registradas
+        // Filtro aprimorado para ler qualquer tipo de venda ou tags antigas
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             item.tipo_registro === 'LOJA_VIRTUAL' ||
@@ -2987,18 +2985,17 @@ async function renderizarListaVendasExclusiva() {
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
-        // Destrói de forma agressiva o texto fixo antigo "Nenhuma venda realizada ainda"
+        // Força a limpeza do texto fixo antigo do HTML
         corpoTabela.textContent = ''; 
         
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
             return;
         }
 
-        let linhasHTML = '';
+        let acumularLinhasHTML = '';
 
         vendas.forEach(venda => {
-            // Tratamento ultra-seguro para o Objeto ou String do Cliente
             let nomeCliente = 'Cliente';
             if (venda.cliente) {
                 if (typeof venda.cliente === 'object' && venda.cliente.nome) {
@@ -3013,7 +3010,6 @@ async function renderizarListaVendasExclusiva() {
             const nomeProduto = venda.produto_nome || venda.nome_produto || 'Produto';
             const quantidadeItem = venda.quantidade || '1';
             
-            // Tratamento contra strings monetárias ("R$ 50,00") que quebram o .toFixed(2)
             let valorTotalRaw = venda.total_pago || venda.valor_total || 0;
             if (typeof valorTotalRaw === 'string') {
                 valorTotalRaw = parseFloat(valorTotalRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
@@ -3022,15 +3018,7 @@ async function renderizarListaVendasExclusiva() {
             
             const statusVenda = venda.status || 'Concluído';
 
-            // Define a cor do Badge de Status
-            let corBadgeBg = '#ecfdf5';
-            let corBadgeTexto = '#059669';
-            if (statusVenda.toLowerCase().includes('pendente')) {
-                corBadgeBg = '#fffbeb';
-                corBadgeTexto = '#d97706';
-            }
-
-            linhasHTML += `
+            acumularLinhasHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
                     <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
                     <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
@@ -3038,15 +3026,15 @@ async function renderizarListaVendasExclusiva() {
                     <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${nomeProduto}</td>
                     <td style="padding: 12px 8px; color: #0f172a;">${quantidadeItem}</td>
                     <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: ${corBadgeBg}; color: ${corBadgeTexto}; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">${statusVenda}</span></td>
+                    <td style="padding: 12px 8px;"><span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">${statusVenda}</span></td>
                 </tr>
             `;
         });
 
-        corpoTabela.innerHTML = linhasHTML;
+        corpoTabela.innerHTML = acumularLinhasHTML;
 
     } catch (err) {
-        console.error("Erro na renderização das vendas:", err);
+        console.error("Erro na listagem das vendas:", err);
         corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar: ${err.message}</td></tr>`;
     }
 }
