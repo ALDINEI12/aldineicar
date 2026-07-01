@@ -2934,20 +2934,9 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
-        // DETECTOR MULTICADAS DE ID LOGADO (Garante o funcionamento interno no painel adm)
-        let idUsuarioLogado = null;
-        
-        if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
+        let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
+        if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idUsuarioLogado = supabaseClient.auth.user().id;
-        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
-            idUsuarioLogado = supabaseClient.auth.session().user?.id;
-        } else if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
-            idUsuarioLogado = idOficinaDaLojaAtual;
-        }
-
-        if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Não foi possível identificar sua conta logada.</td></tr>`;
-            return;
         }
 
         const { data: dados, error } = await supabaseClient
@@ -2960,35 +2949,36 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
         
-        // Filtra apenas as vendas diretas de balcão
-        const vendas = historicoGeral.filter(item => item.tipo_registro === 'VENDA_DIRETA_BALCAO');
+        // AQUI ESTÁ O SEGREDO: Filtramos procurando pela tag exata que definimos
+        const vendas = historicoGeral.filter(item => 
+            item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
+            item.tipo_registro === 'VENDA_DIRETA' || 
+            (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
+        );
         
         corpoTabela.innerHTML = '';
 
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
             return;
         }
 
         vendas.forEach(venda => {
             corpoTabela.innerHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px 8px; font-weight: 700; color: #64748b;">${venda.id_venda || '---'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">
-                        <span style="display:block; font-weight:600;">${venda.cliente?.nome || '---'}</span>
-                        <span style="font-size:11px; color:#64748b;">${venda.cliente?.tel || '---'}</span>
-                    </td>
-                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.quantidade || 1}x</td>
+                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || '---'}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
+                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${venda.produto_nome || venda.tipo_servico || 'Produto'}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.quantidade || '1'}</td>
                     <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status || 'Concluído'}</span></td>
+                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Concluído</span></td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro ao carregar lista de vendas:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar as vendas da sua oficina.</td></tr>`;
+        console.error("Erro detalhado:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar vendas.</td></tr>`;
     }
 }
 
