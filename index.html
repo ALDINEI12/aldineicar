@@ -2829,20 +2829,29 @@ async function processarBaixaEstoqueEPix() {
     const totalVenda = qtdComprada * precoUnitarioSelecionado;
 
     try {
+        // DESCUBRE O ID ALVO CORRETO: Se houver usuário logado no painel, usa ele; senão usa o da vitrine pública
+        let idDonoVenda = null;
+        if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
+            idDonoVenda = supabaseClient.auth.user().id;
+        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
+            idDonoVenda = supabaseClient.auth.session().user?.id;
+        } else {
+            idDonoVenda = idOficinaDaLojaAtual;
+        }
+
+        if (!idDonoVenda) {
+            throw new Error("Não foi possível identificar o ID da oficina.");
+        }
+
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
-            .eq('user_id', idOficinaDaLojaAtual)
+            .eq('user_id', idDonoVenda)
             .single();
 
         if (erroBusca) throw new Error("Erro ao conectar à base de dados.");
 
         let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
-        
-        // CORREÇÃO CIRÚRGICA: Se a coluna 'vendas' não existe no banco, nós usaremos uma propriedade 'vendas_diretas' 
-        // salva de forma invisível dentro da sua estrutura existente ou isolamos ela dentro de uma checagem segura.
-        // Para evitar erros de coluna, vamos salvar os dados de vendas dentro do campo 'historico' mas com uma TAG EXCLUSIVA '[AbaVendas]'
-        // Dessa forma o banco aceita na hora (porque a coluna historico já existe) e no passo seguinte nós filtramos para NÃO APARECER nos orçamentos!
         let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
 
         // 1. Atualiza o estoque na lista de materiais
@@ -2875,12 +2884,12 @@ async function processarBaixaEstoqueEPix() {
                 .eq('id', produtoSelecionadoParaCompra);
         }
 
-        // 3. Estrutura da venda adaptada para usar a tabela existente de forma inteligente
+        // 3. Estrutura da venda com a TAG identificadora limpa e padronizada
         const novoRegistroVenda = {
             id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
             status: 'Concluído',
-            tipo_registro: 'VENDA_DIRETA_BALCAO', // Tag única que usaremos para separar dos Orçamentos
+            tipo_registro: 'VENDA_DIRETA_BALCAO', // Garante que a listagem vai ler essa tag exata
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
             veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
@@ -2890,33 +2899,33 @@ async function processarBaixaEstoqueEPix() {
             lucro: totalVenda
         };
         
-        // Insere no início do histórico geral do banco
         listaHistoricoGeral.unshift(novoRegistroVenda);
 
-        // 4. Salva no Supabase usando apenas colunas antigas que já funcionam perfeitamente
+        // 4. Grava de volta no Supabase
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
                 materiais: listaMateriais,
-                historico: listaHistoricoGeral, // Usando a coluna existente para evitar o erro do schema cache
+                historico: listaHistoricoGeral,
                 updated_at: new Date()
             })
-            .eq('user_id', idOficinaDaLojaAtual);
+            .eq('user_id', idDonoVenda);
 
         if (erroUpdate) throw erroUpdate;
 
         alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
         fecharModalCompraDinamica();
 
-        if (typeof carregarProdutosVitrinePublica === 'function') {
-            carregarProdutosVitrinePublica(idOficinaDaLojaAtual);
-        }
+        // Dá refresh nas telas se elas existirem no escopo atual
+        if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
+        if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
 
     } catch (err) {
         console.error(err);
         alert(`Não foi possível concluir: ${err.message}`);
     }
 }
+
 
 // FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
 // FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
@@ -2925,19 +2934,33 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
-        const idUsuario = idOficinaDaLojaAtual; 
+        // DETECTOR MULTICADAS DE ID LOGADO (Garante o funcionamento interno no painel adm)
+        let idUsuarioLogado = null;
+        
+        if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
+            idUsuarioLogado = supabaseClient.auth.user().id;
+        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
+            idUsuarioLogado = supabaseClient.auth.session().user?.id;
+        } else if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
+            idUsuarioLogado = idOficinaDaLojaAtual;
+        }
+
+        if (!idUsuarioLogado) {
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Não foi possível identificar sua conta logada.</td></tr>`;
+            return;
+        }
 
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
-            .eq('user_id', idUsuario)
+            .eq('user_id', idUsuarioLogado)
             .single();
 
         if (error) throw error;
 
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
         
-        // Filtra apenas o que for venda direta de balcão
+        // Filtra apenas as vendas diretas de balcão
         const vendas = historicoGeral.filter(item => item.tipo_registro === 'VENDA_DIRETA_BALCAO');
         
         corpoTabela.innerHTML = '';
@@ -2959,15 +2982,16 @@ async function renderizarListaVendasExclusiva() {
                     <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
                     <td style="padding: 12px 8px; color: #0f172a;">${venda.quantidade || 1}x</td>
                     <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status}</span></td>
+                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status || 'Concluído'}</span></td>
                 </tr>
             `;
         });
     } catch (err) {
         console.error("Erro ao carregar lista de vendas:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar as vendas.</td></tr>`;
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar as vendas da sua oficina.</td></tr>`;
     }
 }
+
 
 </script>
 </body>
