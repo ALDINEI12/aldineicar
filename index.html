@@ -2953,31 +2953,32 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
-        // 1. Tenta encontrar o ID do usuário de todas as formas possíveis
-        // O seu objeto dadosOficina tem várias propriedades, vamos buscar o 'user_id' ou 'id'
-        const idEncontrado = 
-            (typeof dadosOficina !== 'undefined' ? (dadosOficina.user_id || dadosOficina.id) : null) ||
-            (typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null) ||
-            localStorage.getItem('user_id') || 
-            localStorage.getItem('idOficina');
+        // A VARIAVEL GLOBAL 'idOficinaDaLojaAtual' É A QUE O SEU SISTEMA USA.
+        // Vamos usá-la diretamente.
+        let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
 
-        if (!idEncontrado) {
-            throw new Error("Não foi possível detectar o ID da oficina. O sistema não encontrou o user_id.");
+        // Se por acaso ela estiver nula, vamos tentar capturar do objeto dadosOficina
+        if (!idUsuarioLogado && typeof dadosOficina !== 'undefined') {
+            idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
 
-        console.log("ID da oficina detectado para busca:", idEncontrado);
+        if (!idUsuarioLogado) {
+            throw new Error("O sistema não conseguiu carregar o ID da loja (idOficinaDaLojaAtual está nulo).");
+        }
 
-        // 2. Busca no Supabase usando o ID detectado
+        console.log("Buscando vendas para o ID:", idUsuarioLogado);
+
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
-            .eq('user_id', idEncontrado)
+            .eq('user_id', idUsuarioLogado)
             .single();
 
         if (error) throw error;
 
-        // 3. Renderização
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
+        
+        // Filtro robusto para pegar qualquer venda registrada no histórico
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
@@ -2985,7 +2986,7 @@ async function renderizarListaVendasExclusiva() {
         
         corpoTabela.innerHTML = '';
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
             return;
         }
 
@@ -2995,15 +2996,15 @@ async function renderizarListaVendasExclusiva() {
                     <td style="padding: 12px; color: #64748b;">${venda.id_venda || '---'}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
-                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || venda.tipo_servico || 'Produto'}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.quantidade || '1'}</td>
                     <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro final na busca:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">${err.message}</td></tr>`;
+        console.error("Erro na busca:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: ${err.message}</td></tr>`;
     }
 }
 
