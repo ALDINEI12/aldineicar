@@ -571,7 +571,7 @@ function mostrarSecao(id) {
                 <option value="Acessórios">Acessórios</option>
             </select>
             <button class="btn-green" onclick="salvarMaterial()">Salvar</button>
-            <button class="btn-primary" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="fecharModalEspecifico('modal')">Cancelar</button>
         </div>
     </div>
 
@@ -1647,6 +1647,7 @@ async function editarProduto(id) {
         render(); fecharModal();
         document.getElementById('nomeMaterial').value = '';
         document.getElementById('valorMaterial').value = '';
+        fecharModalEspecifico('modal');
         await salvarNoBanco();
     }
 
@@ -3007,6 +3008,14 @@ async function renderizarListaVendasExclusiva() {
         corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: ${err.message}</td></tr>`;
     }
 }
+
+function fecharModalEspecifico(idModal) {
+    const modal = document.getElementById(idModal);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 
 </script>
 </body>
