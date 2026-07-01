@@ -584,17 +584,7 @@ function mostrarSecao(id) {
 </div>
 
 
-<div id="visao-cliente-externo" style="display: none;">
-    <header style="background: #09090b; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 22px;">
-        🛍️ VITRINE VIRTUAL - SOLICITAR ORÇAMENTO
-    </header>
-    
-    <div style="max-width: 1200px; margin: 30px auto; width: 100%; padding: 0 15px;">
-        <h2 style="margin-bottom: 20px; color: #0f172a;">Produtos e Serviços Disponíveis:</h2>
-        <div id="vitrine-publica-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
-            </div>
-    </div>
-</div>
+
 
 
 </section>
@@ -2496,40 +2486,53 @@ async function enviarOrcamentoCliente() {
 }
 
 
+// SUBSTITUA POR ESTA VERSÃO CORRIGIDA (SEM O LOOP DO PLACEHOLDER)
 async function carregarProdutosVitrinePublica(idOficina) {
+    const containerVitrine = document.getElementById('vitrine-publica-cliente');
+    if (!containerVitrine) return;
+    
+    containerVitrine.innerHTML = '<p style="color: #a1a1aa;">Carregando peças da oficina...</p>';
+
     try {
-        // Busca os produtos criados na tabela da sua loja vinculados ao seu ID
         const { data: produtos, error } = await supabaseClient
-            .from('produtos_loja') // Garanta que o nome da tabela está correto com o que criou
+            .from('produtos_loja')
             .select('*')
             .eq('user_id', idOficina);
 
         if (error) throw error;
 
-        const containerVitrine = document.getElementById('vitrine-publica-cliente');
-        if (!containerVitrine) return;
-        
         containerVitrine.innerHTML = '';
 
         if (!produtos || produtos.length === 0) {
-            containerVitrine.innerHTML = '<p style="color: #64748b; font-weight: 500;">Nenhum produto cadastrado nesta oficina até o momento.</p>';
+            containerVitrine.innerHTML = '<p style="color: #a1a1aa; grid-column: 1/-1; text-align: center; padding: 30px;">Nenhum produto em exposição nesta vitrine no momento.</p>';
             return;
         }
 
+        // Imagem reserva caso o produto não tenha foto cadastrada
+        const imagemPadraoSegura = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+
         produtos.forEach(prod => {
+            const urlImagem = prod.imagem_url || imagemPadraoSegura;
+            
             containerVitrine.innerHTML += `
-                <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                    <img src="${prod.img_url || 'https://via.placeholder.com/150'}" style="width: 100%; height: 140px; object-fit: contain; border-radius: 8px; margin-bottom: 12px;">
-                    <h3 style="font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 6px;">${prod.nome}</h3>
-                    <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">${prod.descricao || ''}</p>
-                    <div style="font-size: 18px; color: #e11d48; font-weight: 800; margin-bottom: 12px;">R$ ${parseFloat(prod.preco).toFixed(2)}</div>
-                    <button onclick="alert('Funcionalidade de orçamento para este item em breve!')" style="background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Solicitar Orçamento</button>
+                <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; min-height: 310px;">
+                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;" 
+                         onerror="this.onerror=null; this.src='${imagemPadraoSegura}';">
+                    <div style="margin-top: 12px; flex: 1;">
+                        <h4 style="font-size: 15px; color: #ffffff; font-weight: 700; margin: 0;">${prod.nome}</h4>
+                        <p style="font-size: 12px; color: #a1a1aa; margin: 4px 0 0 0; line-height: 1.4;">${prod.descricao || 'Disponível para instalação.'}</p>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; border-top: 1px solid #27272a; padding-top: 12px;">
+                        <span style="font-size: 16px; font-weight: 800; color: #e11d48;">R$ ${parseFloat(prod.preco).toFixed(2)}</span>
+                        <button onclick="solicitarOrcamentoProduto('${prod.nome}')" style="background: #27272a; color: #ffffff; border: 1px solid #3f3f46; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Eu Quero</button>
+                    </div>
                 </div>
             `;
         });
 
     } catch (err) {
-        console.error("Erro ao carregar vitrine:", err);
+        console.error("Erro vitrine:", err);
+        containerVitrine.innerHTML = '<p style="color: #e11d48;">Erro ao conectar com os produtos.</p>';
     }
 }
 
