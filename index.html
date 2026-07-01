@@ -316,12 +316,20 @@
 
 <script>
 function mostrarSecao(id) {
-    // Esconde todas as seções (ajuste o nome das suas IDs conforme seu código)
-    document.getElementById('secao-loja').style.display = 'none';
-    // document.getElementById('secao-orcamento').style.display = 'none'; // Descomente e ajuste
-    
-    // Mostra apenas a escolhida
-    document.getElementById(id).style.display = 'block';
+    // Esconde todas as seções (lista os IDs das seções existentes)
+    const secoes = ['secao-loja', 'secao-vendas', 'secao-historico']; 
+    secoes.forEach(secaoId => {
+        const elemento = document.getElementById(secaoId);
+        if (elemento) elemento.style.display = 'none';
+    });
+
+    // Mostra a seção escolhida
+    const alvo = document.getElementById(id);
+    if (alvo) {
+        alvo.style.display = 'block';
+    } else {
+        console.error("Seção não encontrada: " + id);
+    }
 }
 </script>
 
@@ -379,7 +387,8 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
-                <button onclick="mostrarAba('vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
+                <button onclick="mostrarAba('vendas')">💰 Vendas</button>
+               <button onclick="mostrarAba('vendas') ; renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -1921,22 +1930,34 @@ async function editarProduto(id) {
         mostrarAba('materiais');
     }
 
-    function mostrarAba(nome) {
-    // Esconde todas as abas existentes
+   function mostrarAba(nome) {
+    // 1. Esconde todas as abas
     document.getElementById('aba-materiais').style.display = 'none';
     document.getElementById('aba-clientes').style.display = 'none';
     document.getElementById('aba-historico').style.display = 'none';
     document.getElementById('aba-maoobra').style.display = 'none';
-    document.getElementById('aba-loja').style.display = 'none'; // Adicionado
+    document.getElementById('aba-loja').style.display = 'none';
+    
+    // NOVA LINHA: Adicionamos a aba de vendas na lista de ocultação
+    const abaVendas = document.getElementById('aba-vendas');
+    if (abaVendas) abaVendas.style.display = 'none';
 
-    // Mostra a aba selecionada
+    // 2. Mostra a aba selecionada
     if (nome === 'materiais') document.getElementById('aba-materiais').style.display = 'block';
     if (nome === 'clientes') document.getElementById('aba-clientes').style.display = 'block';
     if (nome === 'historico') document.getElementById('aba-historico').style.display = 'block';
     if (nome === 'maoobra') document.getElementById('aba-maoobra').style.display = 'block';
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
-        carregarProdutosDaLoja(); // Carrega os produtos ao abrir
+        carregarProdutosDaLoja();
+    }
+    
+    // NOVA LINHA: Lógica para mostrar a aba de vendas e carregar os dados
+    if (nome === 'vendas') {
+        if (abaVendas) {
+            abaVendas.style.display = 'block';
+            renderizarListaVendasExclusiva(); // Carrega os dados ao abrir
+        }
     }
 }
 
