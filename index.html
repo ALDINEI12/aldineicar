@@ -2330,6 +2330,8 @@ function renderCategoriasETelas() {
 let idOficinaDaLojaAtual = null;
 
 // Esta função verifica automaticamente a URL assim que a página carrega
+// SUBSTITUA A FUNÇÃO DO PASSO 3 POR ESTA ATUALIZADA:
+
 async function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
     const idLoja = parametrosUrl.get('loja'); // Pega o ?loja=ID_DA_OFICINA
@@ -2337,15 +2339,36 @@ async function verificarModoCliente() {
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
         
-        // Oculta a tela administrativa/login inteira se houver contêineres globais
-        // Altere 'tela-login' para o ID da sua div de autenticação real se necessário
-        const divLogin = document.getElementById('login-container') || document.querySelector('.login-box') || document.getElementById('secao-login');
-        if (divLogin) divLogin.style.display = 'none';
+        // 1. ESCONDE TUDO QUE FOR DA TELA DE LOGIN / CADASTRO DE EMPRESA
+        // Aqui estamos tentando pegar todos os IDs comuns de telas de login para garantir que suma
+        const conteineresParaEsconder = [
+            'login-container', 
+            'secao-login', 
+            'container-login', 
+            'modal-auth', 
+            'cadastro-empresa'
+        ];
         
-        // Exibe a vitrine do cliente
-        document.getElementById('visao-cliente-externo').style.display = 'flex';
+        conteineresParaEsconder.forEach(id => {
+            const elemento = document.getElementById(id);
+            if (elemento) elemento.style.display = 'none';
+        });
+
+        // Caso seu login use uma classe CSS em vez de ID, vamos esconder também:
+        const caixasLogin = document.querySelectorAll('.login-box, .container-login, .auth-container');
+        caixasLogin.forEach(el => el.style.display = 'none');
+
+        // Se houver uma estrutura principal do painel administrativo aberta por padrão, esconde também
+        const layoutAdmin = document.getElementById('layout-principal') || document.querySelector('.app-container');
+        if (layoutAdmin) layoutAdmin.style.display = 'none';
         
-        // Carrega os produtos daquela oficina específica
+        // 2. EXIBE A VITRINE EXCLUSIVA DO CLIENTE EXTERNO
+        const visaoCliente = document.getElementById('visao-cliente-externo');
+        if (visaoCliente) {
+            visaoCliente.style.display = 'flex';
+        }
+        
+        // 3. CARREGA OS PRODUTOS PÚBLICOS DA SUA OFICINA
         await carregarProdutosVitrinePublica(idLoja);
     }
 }
