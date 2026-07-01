@@ -387,7 +387,6 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
-                <button onclick="mostrarAba('vendas')">💰 Vendas</button>
               <button onclick="mostrarSecao('secao-vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
@@ -2937,24 +2936,15 @@ async function renderizarListaVendasExclusiva() {
     corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">🔄 Buscando histórico no Supabase...</td></tr>`;
 
     try {
-        let idUsuarioLogado = null;
-
-        // Captura o ID do usuário conectado pelas variáveis do sistema
-        if (typeof dadosOficina !== 'undefined' && dadosOficina) {
-            idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
-        }
-        if (!idUsuarioLogado && typeof idOficinaDaLojaAtual !== 'undefined') {
-            idUsuarioLogado = idOficinaDaLojaAtual;
-        }
-        if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
-            idUsuarioLogado = supabaseClient.auth.user().id;
-        }
-        if (!idUsuarioLogado && supabaseClient.auth.session && supabaseClient.auth.session()) {
-            idUsuarioLogado = supabaseClient.auth.session().user?.id;
-        }
+        // Captura a sessão ativa diretamente do Supabase para garantir precisão absoluta
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        
+        if (sessionError) throw sessionError;
+        
+        const idUsuarioLogado = session?.user?.id;
 
         if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Identificação de usuário não encontrada. Faça login novamente.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Identificação de usuário não encontrada. Certifique-se de que está logado.</td></tr>`;
             return;
         }
 
