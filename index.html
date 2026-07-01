@@ -2406,6 +2406,63 @@ function solicitarOrcamentoProduto(nomeProduto) {
     document.getElementById('cliOrcDescricao').value = `Gostaria de solicitar um orçamento para o produto: ${nomeProduto}`;
 }
 
+
+// ==========================================
+// FUNÇÕES DO PASSO 4: ENVIO DO PEDIDO PARA O PAINEL
+// ==========================================
+
+async function enviarOrcamentoCliente() {
+    const nomeCliente = document.getElementById('cliOrcNome').value.trim();
+    const telefoneCliente = document.getElementById('cliOrcTelefone').value.trim();
+    const veiculoCliente = document.getElementById('cliOrcVeiculo').value.trim();
+    const descricaoProblema = document.getElementById('cliOrcDescricao').value.trim();
+
+    // 1. Validação dos campos do cliente
+    if (!nomeCliente || !telefoneCliente || !descricaoProblema) {
+        alert('Por favor, preencha seu Nome, Telefone e o que precisa para podermos te atender!');
+        return;
+    }
+
+    if (!idOficinaDaLojaAtual) {
+        alert('Erro: ID da oficina não encontrado no link.');
+        return;
+    }
+
+    try {
+        // 2. Envia os dados direto para a tabela de histórico/OS da oficina correspondente
+        // Vamos inserir na tabela 'historico' que você já usa no seu sistema
+        const { data, error } = await supabaseClient
+            .from('historico')
+            .insert([
+                {
+                    cliente: nomeCliente,
+                    telefone: telefoneCliente, // Garanta que sua tabela 'historico' tenha essa coluna, se não tiver, o Supabase ignora ou avisa
+                    veiculo: veiculoCliente || 'Não informado',
+                    servicos: 'SOLICITAÇÃO DA LOJA VIRTUAL: ' + descricaoProblema,
+                    total: 0.00,
+                    status: 'Orçamento', // Entra como Orçamento no seu painel
+                    user_id: idOficinaDaLojaAtual // Vincula diretamente à sua oficina!
+                }
+            ]);
+
+        if (error) throw error;
+
+        // 3. Mensagem de Sucesso para o Cliente
+        alert(`Obrigado, ${nomeCliente}! Sua solicitação de orçamento foi enviada com sucesso para a nossa equipe. Entraremos em contato em breve!`);
+        
+        // 4. Limpa o formulário e fecha o modal
+        document.getElementById('cliOrcNome').value = '';
+        document.getElementById('cliOrcTelefone').value = '';
+        document.getElementById('cliOrcVeiculo').value = '';
+        document.getElementById('cliOrcDescricao').value = '';
+        fecharModalOrcamentoCliente();
+
+    } catch (err) {
+        console.error("Erro ao enviar orçamento:", err);
+        alert('Desculpe, ocorreu um erro ao enviar sua solicitação. Tente novamente.');
+    }
+}
+
 </script>
 </body>
 </html>
