@@ -2666,7 +2666,7 @@ async function carregarProdutosVitrinePublica(idOficina) {
 }
 
 // ========================================================
-// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR (CORRIGIDO)
+// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR (IDs BLINDADOS)
 // ========================================================
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
@@ -2702,22 +2702,22 @@ function abrirModalCompra(id, nome, preco, estoque) {
             
             <div style="margin-bottom: 14px;">
                 <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
-                <input type="number" id="compraQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+                <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
             </div>
 
             <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
-                <span id="compraTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
+                <span id="vendaTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
             </div>
 
             <div style="margin-bottom: 12px;">
                 <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
-                <input type="text" id="compraNomeCliente" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+                <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
-                <input type="text" id="compraTelCliente" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+                <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
             </div>
 
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -2730,10 +2730,9 @@ function abrirModalCompra(id, nome, preco, estoque) {
     document.body.appendChild(divModal);
 }
 
-// FUNÇÃO DE CÁLCULO ATUALIZADA
 function calcularTotalCompraDinamica() {
-    const inputQtd = document.getElementById('compraQtd');
-    const txtTotal = document.getElementById('compraTotalExibicao');
+    const inputQtd = document.getElementById('vendaQtd');
+    const txtTotal = document.getElementById('vendaTotalExibicao');
     if (!inputQtd || !txtTotal) return;
 
     let qtd = parseInt(inputQtd.value) || 1;
@@ -2756,13 +2755,11 @@ function fecharModalCompraDinamica() {
     if (modal) modal.remove();
 }
 
-// PROCESSAMENTO COM CAPTURA DE DADOS REVISADA
 async function processarBaixaEstoqueEPix() {
-    const inputQtd = document.getElementById('compraQtd');
-    const inputNome = document.getElementById('compraNomeCliente');
-    const inputTel = document.getElementById('compraTelCliente');
+    const inputQtd = document.getElementById('vendaQtd');
+    const inputNome = document.getElementById('vendaNome');
+    const inputTel = document.getElementById('vendaTel');
 
-    // Validação corrigida para ler os inputs dinâmicos perfeitamente
     if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
         alert("Por favor, preencha seu nome e telefone para contato!");
         return;
@@ -2782,28 +2779,22 @@ async function processarBaixaEstoqueEPix() {
 
         if (erroBusca) throw new Error("Erro ao conectar à base de dados.");
 
-        // Varre materiais ou materials para garantir compatibilidade
         let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
         let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
 
-        let estoqueAtualizadoOk = false;
         listaMateriais = listaMateriais.map(item => {
             if (item.id === produtoSelecionadoParaCompra) {
                 let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
                 if (estoqueAtual < qtdComprada) {
                     throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
                 }
-                
-                // Atualiza todas as variações possíveis de nome de coluna de estoque
                 item.qtd = estoqueAtual - qtdComprada;
                 if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
                 if (item.hasOwnProperty('estoque')) item.estoque = estoqueAtual - qtdComprada;
-                estoqueAtualizadoOk = true;
             }
             return item;
         });
 
-        // Caso seu sistema use a tabela externa 'produtos_loja', também damos baixa nela
         const { data: verificarTabelaLoja } = await supabaseClient
             .from('produtos_loja')
             .select('estoque')
@@ -2819,7 +2810,6 @@ async function processarBaixaEstoqueEPix() {
                 .eq('id', produtoSelecionadoParaCompra);
         }
 
-        // Gera a nova venda direto no topo do Histórico Administrativo
         const novoRegistroVenda = {
             data: new Date().toLocaleString('pt-BR'),
             status: 'Pago',
@@ -2836,7 +2826,6 @@ async function processarBaixaEstoqueEPix() {
         };
         listaHistorico.unshift(novoRegistroVenda);
 
-        // Salva as atualizações no user_data da oficina
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -2851,7 +2840,6 @@ async function processarBaixaEstoqueEPix() {
         alert(`Perfeito, ${nomeCliente}!\nPedido processado e estoque baixado na ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.\nChave Pix: (Sua Chave Aqui)`);
         fecharModalCompraDinamica();
 
-        // Dá o refresh na tela do cliente para ver o novo estoque menor
         if (typeof carregarProdutosVitrinePublica === 'function') {
             carregarProdutosVitrinePublica(idOficinaDaLojaAtual);
         }
