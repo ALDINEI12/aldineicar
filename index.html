@@ -2666,30 +2666,19 @@ let estoqueDisponivelSelecionado = 0;
 
 // Função chamada quando o cliente clica no botão do produto na vitrine
 function abrirModalCompra(id, nome, preco, estoque) {
+    console.log("Botão clicado para o produto:", nome);
+    
+    // Guarda as variáveis globais
     produtoSelecionadoParaCompra = id;
     precoUnitarioSelecionado = parseFloat(preco);
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
 
-    // Vincula os campos de texto internos do modal
-    const txtNome = document.getElementById('compraProdutoNome');
-    const txtPreco = document.getElementById('compraProdutoPreco');
-    const txtDisponivel = document.getElementById('compraProdutoDisponivel');
+    // Força a abertura tentando os dois IDs possíveis por segurança
+    const modal1 = document.getElementById('modalCompraProduto');
+    const modal2 = document.getElementById('modal-compra-produto');
     
-    if(txtNome) txtNome.innerText = nome;
-    if(txtPreco) txtPreco.innerText = `Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}`;
-    if(txtDisponivel) txtDisponivel.innerText = `Disponível no Estoque: ${estoqueDisponivelSelecionado} un.`;
-
-    // Reseta o input de quantidade para 1 sempre que abrir
-    const inputQtd = document.getElementById('compraQtd');
-    if (inputQtd) inputQtd.value = 1;
-
-    // EXIBE O MODAL USANDO O ID EXATO DO SEU HTML
-    const modal = document.getElementById('modalCompraProduto');
-    if (modal) {
-        modal.style.display = 'flex';
-    } else {
-        console.error("Modal 'modalCompraProduto' não foi encontrado no HTML.");
-    }
+    if (modal1) modal1.style.display = 'flex';
+    if (modal2) modal2.style.display = 'flex';
 }
 
 function fecharModalCompra() {
