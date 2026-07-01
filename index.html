@@ -2462,6 +2462,8 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // VERSÃO INTEGRADA AO PAINEL DE ORDENS E ORÇAMENTOS
 // ENVIO DIRETO PARA O FLUXO DE TRIAGEM DO PAINEL ADM
 // VERSÃO INTEGRADA PERFEITAMENTE COM O SEU MÉTODO 'salvarNoBanco'
+// VERSÃO DEFINITIVA: INJETA O PEDIDO DIRETO NA SUA LINHA DO 'USER_DATA'
+
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2479,24 +2481,37 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // 1. Monta o objeto exatamente no padrão que o seu histórico aceita
+        // 1. Busca os dados atuais da oficina diretamente na tabela 'user_data'
+        const { data: dadosAtuais, error: erroBusca } = await supabaseClient
+            .from('user_data')
+            .select('*')
+            .eq('user_id', idOficinaDaLojaAtual)
+            .single();
+
+        if (erroBusca) throw new Error("Não foi possível localizar os dados da oficina no banco.");
+
+        // 2. Extrai ou inicializa as listas existentes do seu banco de dados
+        let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
+        let listaClientes = Array.isArray(dadosAtuais.clientes) ? dadosAtuais.clientes : [];
+
+        // 3. Monta o objeto do novo orçamento no padrão exato do seu sistema
         const novoOrcamentoCliente = {
             data: new Date().toLocaleString('pt-BR'),
-            status: 'Orçamento', // Entra como Orçamento pendente para você avaliar
+            status: 'Orçamento',
             cliente: { 
                 nome: nome, 
-                endereco: 'Pedido via Vitrine', 
+                endereco: 'Pedido via Vitrine Virtual', 
                 tel: telefone, 
                 cidade: 'Sátrio Dias/BA', 
                 city: 'Sátrio Dias/BA' 
             },
             veiculo: { 
-                modelo: veiculo || 'Não informado', 
+                modelo: veiculo || '---', 
                 placa: '---', 
                 ano: '', 
                 cor: '', 
                 avaliador: 'Vitrine Virtual',
-                tipo_servico: `[SOLICITAÇÃO DE CLIENTE]: ${desc}` 
+                tipo_servico: `[SOLICITAÇÃO VITRINE]: ${desc}` 
             },
             materiais: [],
             mao_obra: [],
@@ -2505,49 +2520,59 @@ async function enviarOrcamentoCliente() {
             totalMaoObraCalculado: 0,
             deslocamento: 0,
             totalCobrado: 0,
-            lucru: 0
+            lucro: 0
         };
 
-        // 2. Garante que as suas listas globais existem na memória da página antes de mexer
-        if (typeof historico === 'undefined') window.historico = [];
-        if (typeof clientes === 'undefined') window.clientes = [];
+        // 4. Injeta o novo pedido no início do histórico do banco
+        listaHistorico.unshift(novoOrcamentoCliente);
 
-        // 3. Insere no topo do seu histórico local
-        historico.unshift(novoOrcamentoCliente);
-
-        // 4. Também cadastra o cliente na sua lista de contatos do painel se ele não existir
-        const clienteExiste = clientes.some(c => c.nome.toLowerCase() === nome.toLowerCase());
+        // 5. Verifica e adiciona o contato na lista de clientes se não existir
+        const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
         if (!clienteExiste) {
-            clientes.push({ nome: nome, endereco: 'Pedido via Vitrine', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
-            if (typeof renderClientes === 'function') renderClientes();
+            listaClientes.push({ 
+                nome: nome, 
+                endereco: 'Pedido via Vitrine Virtual', 
+                tel: telefone, 
+                city: 'Sátrio Dias/BA', 
+                cidade: 'Sátrio Dias/BA' 
+            });
         }
 
-        // 5. Atualiza a tela visual do seu painel administrativo se ele estiver aberto
-        if (typeof renderHistorico === 'function') renderHistorico();
+        // 6. Atualiza a linha existente no Supabase mesclando os novos dados
+        const { error: erroUpdate } = await supabaseClient
+            .from('user_data')
+            .update({
+                historico: listaHistorico,
+                clientes: listaClientes,
+                updated_at: new Date()
+            })
+            .eq('user_id', idOficinaDaLojaAtual);
 
-        // 6. CHAMA O SEU MÉTODO NATIVO QUE SALVA NO SUPABASE
-        if (typeof salvarNoBanco === 'function') {
-            await salvarNoBanco();
-        } else {
-            // Caso a função salvarNoBanco precise de parâmetros ou esteja isolada
-            console.warn("Função 'salvarNoBanco' encontrada mas executada com segurança secundária.");
-        }
+        if (erroUpdate) throw erroUpdate;
 
-        // Sucesso absoluto!
-        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada e já está direto no painel interno da ALDINEICAR. Você já pode fechar esta página!`);
+        // 7. Feedback de sucesso e limpeza
+        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada com sucesso para a ALDINEICAR. Você já pode fechar esta página!`);
         fecharModalOrcamentoCliente();
 
-        // Limpa o formulário
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
 
+        // Se você por acaso estiver com o painel ADM aberto na mesma máquina, atualiza visualmente
+        if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
+            historico.unshift(novoOrcamentoCliente);
+            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Pedido via Vitrine Virtual', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
+            if (typeof renderHistorico === 'function') renderHistorico();
+            if (typeof renderClientes === 'function') renderClientes();
+        }
+
     } catch (err) {
-        console.error("Erro ao integrar com a estrutura de orçamentos:", err);
-        alert(`Erro de sincronização: ${err.message || 'Verifique o formato dos dados'}`);
+        console.error("Erro na sincronização independente:", err);
+        alert(`Erro ao salvar no painel da oficina: ${err.message || 'Verifique as permissões da tabela user_data'}`);
     }
 }
+
 
 
 // SUBSTITUA POR ESTA VERSÃO CORRIGIDA (SEM O LOOP DO PLACEHOLDER)
