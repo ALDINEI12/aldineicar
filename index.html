@@ -2955,11 +2955,27 @@ async function renderizarListaVendasExclusiva() {
     if (!corpoTabela) return;
 
     try {
+        // 1. TENTA PEGAR O ID DA VARIAVEL GLOBAL
         let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
-        if (!idUsuarioLogado && typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
-            idUsuarioLogado = supabaseClient.auth.user().id;
+
+        // 2. SE A VARIAVEL GLOBAL FOR NULA, TENTA PEGAR DO SUPABASE AUTH (Login do adm)
+        if (!idUsuarioLogado) {
+            const user = supabaseClient.auth.user ? supabaseClient.auth.user() : null;
+            if (user) idUsuarioLogado = user.id;
         }
 
+        // 3. SE AINDA ASSIM FOR NULO, BUSCA NO LOCALSTORAGE (Onde o sistema costuma guardar o ID)
+        if (!idUsuarioLogado) {
+            idUsuarioLogado = localStorage.getItem('idOficina'); 
+        }
+
+        if (!idUsuarioLogado) {
+            console.error("Erro: ID da oficina não encontrado em lugar nenhum.");
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro: ID não identificado. Tente fazer login novamente.</td></tr>`;
+            return;
+        }
+
+        // AGORA SIM A BUSCA VAI FUNCIONAR COM UM ID VÁLIDO
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
@@ -2970,39 +2986,36 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
         
-        // AQUI ESTÁ O SEGREDO: Filtramos procurando pela tag exata que definimos
+        // Filtra pelo padrão de vendas
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
-            item.tipo_registro === 'VENDA_DIRETA' || 
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
         corpoTabela.innerHTML = '';
 
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada.</td></tr>`;
             return;
         }
 
         vendas.forEach(venda => {
             corpoTabela.innerHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || '---'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
-                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${venda.produto_nome || venda.tipo_servico || 'Produto'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.quantidade || '1'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Concluído</span></td>
+                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || '---'}</td>
+                    <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
+                    <td style="padding: 12px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
+                    <td style="padding: 12px; color: #0f172a;">${venda.quantidade || '1'}</td>
+                    <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
+                    <td style="padding: 12px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Concluído</span></td>
                 </tr>
             `;
         });
     } catch (err) {
-        console.error("Erro detalhado:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar vendas.</td></tr>`;
+        console.error("Erro ao carregar vendas:", err);
     }
 }
-
 
 </script>
 </body>
