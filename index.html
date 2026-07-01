@@ -2606,14 +2606,14 @@ async function enviarOrcamentoCliente() {
 
 // SUBSTITUA POR ESTA VERSÃO CORRIGIDA (SEM O LOOP DO PLACEHOLDER)
 // SUBSTITUA A FUNÇÃO carregarProdutosVitrinePublica NO SEU index.html POR ESTA:
+
 async function carregarProdutosVitrinePublica(idOficina) {
     const containerVitrine = document.getElementById('vitrine-publica-cliente');
     if (!containerVitrine) return;
 
-    containerVitrine.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #a1a1aa; padding: 20px;">Carregando produtos do banco de dados...</p>';
+    containerVitrine.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #a1a1aa; padding: 20px;">Carregando produtos...</p>';
 
     try {
-        // Faz a busca na tabela usando o ID correto do dono do produto
         const { data: produtos, error } = await supabaseClient
             .from('produtos_loja')
             .select('*')
@@ -2623,12 +2623,7 @@ async function carregarProdutosVitrinePublica(idOficina) {
         containerVitrine.innerHTML = '';
 
         if (!produtos || produtos.length === 0) {
-            containerVitrine.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #a1a1aa;">
-                    <p style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Nenhum produto em exposição.</p>
-                    <p style="font-size: 13px; color: #71717a;">Verifique se você cadastrou os produtos usando este mesmo usuário no painel administrativo.</p>
-                </div>
-            `;
+            containerVitrine.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: #a1a1aa; padding: 20px;">Nenhum produto em exposição.</p>';
             return;
         }
 
@@ -2639,15 +2634,14 @@ async function carregarProdutosVitrinePublica(idOficina) {
 
             containerVitrine.innerHTML += `
                 <div class="card" style="background: #18181b; border: 1px solid #27272a; padding: 16px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; min-height: 310px;">
-                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;" 
-                         onerror="this.onerror=null; this.src='${imagemPadraoSegura}';">
+                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;" onerror="this.onerror=null; this.src='${imagemPadraoSegura}';">
                     <div style="margin-top: 12px; flex: 1;">
                         <h4 style="font-size: 15px; color: #ffffff; font-weight: 700; margin: 0;">${prod.nome}</h4>
                         <p style="font-size: 12px; color: #a1a1aa; margin: 4px 0 0 0; line-height: 1.4;">${prod.descricao || 'Disponível para instalação.'}</p>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; border-top: 1px solid #27272a; padding-top: 12px;">
                         <span style="font-size: 16px; font-weight: 800; color: #e11d48;">R$ ${parseFloat(prod.preco).toFixed(2)}</span>
-                        <button onclick="abrirModalCompra('${prod.id}', '${prod.nome}', '${prod.preco}', '${prod.estoque || 0}')" style="background: #28a745; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;">
+                        <button onclick="abrirModalCompra('${prod.id}', '${prod.nome}', '${prod.preco}', '${prod.estoque || 0}')" style="background: #28a745; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">
                             Comprar Agora
                         </button>
                     </div>
@@ -2660,25 +2654,42 @@ async function carregarProdutosVitrinePublica(idOficina) {
     }
 }
 
+
+// VARIÁVEIS GLOBAIS DE COMPRA - DEIXAR SOLTAS NO SCRIPT
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 
-// Função chamada quando o cliente clica no botão do produto na vitrine
 function abrirModalCompra(id, nome, preco, estoque) {
-    console.log("Botão clicado para o produto:", nome);
+    console.log("Botão acionado com sucesso para o produto ID:", id);
     
-    // Guarda as variáveis globais
     produtoSelecionadoParaCompra = id;
-    precoUnitarioSelecionado = parseFloat(preco);
+    precoUnitarioSelecionado = parseFloat(preco) || 0;
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
 
-    // Força a abertura tentando os dois IDs possíveis por segurança
-    const modal1 = document.getElementById('modalCompraProduto');
-    const modal2 = document.getElementById('modal-compra-produto');
-    
-    if (modal1) modal1.style.display = 'flex';
-    if (modal2) modal2.style.display = 'flex';
+    // Atualiza os textos internos do Modal
+    if (document.getElementById('compraProdutoNome')) {
+        document.getElementById('compraProdutoNome').innerText = nome;
+    }
+    if (document.getElementById('compraProdutoPreco')) {
+        document.getElementById('compraProdutoPreco').innerText = `Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}`;
+    }
+    if (document.getElementById('compraProdutoDisponivel')) {
+        document.getElementById('compraProdutoDisponivel').innerText = `Estoque disponível: ${estoqueDisponivelSelecionado} un.`;
+    }
+
+    // Reseta a quantidade para 1
+    const inputQtd = document.getElementById('compraQtd');
+    if (inputQtd) {
+        inputQtd.value = 1;
+        inputQtd.max = estoqueDisponivelSelecionado;
+    }
+
+    calcularTotalCompra();
+
+    // Força a exibição do modal na tela
+    const modal = document.getElementById('modalCompraProduto');
+    if (modal) modal.style.display = 'flex';
 }
 
 function fecharModalCompra() {
@@ -2687,18 +2698,21 @@ function fecharModalCompra() {
 }
 
 function calcularTotalCompra() {
-    const qtd = parseInt(document.getElementById('compraQtd').value) || 1;
-    
-    // Validação para não deixar comprar mais do que tem no estoque
+    const inputQtd = document.getElementById('compraQtd');
+    if (!inputQtd) return;
+
+    let qtd = parseInt(inputQtd.value) || 1;
+
     if (qtd > estoqueDisponivelSelecionado) {
-        alert(`Quantidade máxima permitida para este produto: ${estoqueDisponivelSelecionado}`);
-        document.getElementById('compraQtd').value = estoqueDisponivelSelecionado;
-        calcularTotalCompra();
-        return;
+        alert(`Quantidade máxima em estoque: ${estoqueDisponivelSelecionado}`);
+        qtd = estoqueDisponivelSelecionado;
+        inputQtd.value = qtd;
     }
 
     const total = qtd * precoUnitarioSelecionado;
-    document.getElementById('compraTotalExibicao').innerText = `R$ ${total.toFixed(2)}`;
+    if (document.getElementById('compraTotalExibicao')) {
+        document.getElementById('compraTotalExibicao').innerText = `R$ ${total.toFixed(2)}`;
+    }
 }
 
 // FUNÇÃO PRINCIPAL: DEBITA DO ESTOQUE E GERA A COBRANÇA
