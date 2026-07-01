@@ -379,9 +379,7 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
-                <button onclick="alternarSecao('secao-vendas'); renderizarListaVendasExclusiva();" style="padding: 10px 16px; background: #1e1e24; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 4px;">
-    💰 Vendas de Produtos
-</button>
+                <button onclick="mostrarAba('vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -642,6 +640,34 @@ function mostrarSecao(id) {
                 <tbody id="tabela-vendas-corpo">
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 20px; color: #71717a;">Nenhuma venda realizada ainda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="aba-vendas" style="display:none;">
+    <div style="background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; color: #0f172a;">
+        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600;">
+                        <th style="padding: 12px 8px;">ID Venda</th>
+                        <th style="padding: 12px 8px;">Data</th>
+                        <th style="padding: 12px 8px;">Cliente</th>
+                        <th style="padding: 12px 8px;">Produto</th>
+                        <th style="padding: 12px 8px;">Qtd</th>
+                        <th style="padding: 12px 8px;">Total</th>
+                        <th style="padding: 12px 8px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vendas-corpo">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td>
                     </tr>
                 </tbody>
             </table>
@@ -2893,6 +2919,7 @@ async function processarBaixaEstoqueEPix() {
 }
 
 // FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
+// FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) return;
@@ -2910,29 +2937,29 @@ async function renderizarListaVendasExclusiva() {
 
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
         
-        // FILTRA APENAS AS VENDAS DE BALCÃO
+        // Filtra apenas o que for venda direta de balcão
         const vendas = historicoGeral.filter(item => item.tipo_registro === 'VENDA_DIRETA_BALCAO');
         
         corpoTabela.innerHTML = '';
 
         if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #71717a;">Nenhuma venda realizada ainda.</td></tr>`;
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda realizada ainda.</td></tr>`;
             return;
         }
 
         vendas.forEach(venda => {
             corpoTabela.innerHTML += `
-                <tr style="border-bottom: 1px solid #27272a;">
-                    <td style="padding: 12px 8px; font-weight: 700; color: #a1a1aa;">${venda.id_venda || '---'}</td>
-                    <td style="padding: 12px 8px; color: #ffffff;">${venda.data}</td>
-                    <td style="padding: 12px 8px; color: #ffffff;">
+                <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
+                    <td style="padding: 12px 8px; font-weight: 700; color: #64748b;">${venda.id_venda || '---'}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">
                         <span style="display:block; font-weight:600;">${venda.cliente?.nome || '---'}</span>
-                        <span style="font-size:11px; color:#71717a;">${venda.cliente?.tel || '---'}</span>
+                        <span style="font-size:11px; color:#64748b;">${venda.cliente?.tel || '---'}</span>
                     </td>
-                    <td style="padding: 12px 8px; color: #22c55e; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
-                    <td style="padding: 12px 8px; color: #ffffff;">${venda.quantidade || 1}x</td>
-                    <td style="padding: 12px 8px; color: #ffffff; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: #14532d; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status}</span></td>
+                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
+                    <td style="padding: 12px 8px; color: #0f172a;">${venda.quantidade || 1}x</td>
+                    <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
+                    <td style="padding: 12px 8px;"><span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status}</span></td>
                 </tr>
             `;
         });
