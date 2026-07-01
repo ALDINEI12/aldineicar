@@ -2457,6 +2457,7 @@ function solicitarOrcamentoProduto(nomeProduto) {
 // FUNÇÕES DO PASSO 4: ENVIO DO PEDIDO PARA O PAINEL
 // ==========================================
 
+// SUBSITUA POR ESTA VERSÃO CORRIGIDA E COMPATÍVEL COM O SEU HISTÓRICO
 async function enviarOrcamentoCliente() {
     const nome = document.getElementById('cliOrcNome').value.trim();
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
@@ -2464,39 +2465,54 @@ async function enviarOrcamentoCliente() {
     const desc = document.getElementById('cliOrcDescricao').value.trim();
 
     if (!nome || !telefone || !desc) {
-        alert('Por favor, preencha Nome, Telefone e a Solicitação!');
+        alert('Por favor, preencha Nome, Telefone e a sua Solicitação!');
         return;
     }
 
+    if (!idOficinaDaLojaAtual) {
+        alert('Erro de conexão: Identificador da oficina ausente na URL.');
+        return;
+    }
+
+    // Gerando a data atual formatada caso seu banco exija o campo 'data' em texto
+    const hoje = new Date();
+    const dataFormatada = hoje.toLocaleDateString('pt-BR'); // Ex: "30/06/2026"
+
     try {
-        // Envia respeitando as colunas exatas da tabela do seu sistema
+        // Criando o objeto com todos os campos padrão que o seu sistema de OS exige
+        const payloadOrcamento = {
+            cliente: nome,
+            veiculo: veiculo || 'Não informado',
+            servicos: `[PEDIDO LOJA - Tel: ${telefone}]: ${desc}`,
+            total: 0.00,
+            status: 'Pendente', // Alinhado com o padrão de triagem do seu painel
+            user_id: idOficinaDaLojaAtual
+        };
+
+        // Envia para a tabela de histórico do seu sistema
         const { error } = await supabaseClient
             .from('historico')
-            .insert([
-                {
-                    cliente: nome,
-                    veiculo: veiculo || 'Não informado',
-                    servicos: `[SOLICITAÇÃO VITRINE - Contato: ${telefone}]: ${desc}`,
-                    total: 0,
-                    status: 'Orçamento',
-                    user_id: idOficinaDaLojaAtual
-                }
-            ]);
+            .insert([payloadOrcamento]);
 
         if (error) throw error;
 
-        alert(`Perfeito, ${nome}! Sua solicitação foi enviada direto para o painel da nossa oficina. Entraremos em contato!`);
+        // Feedback positivo para o cliente de fora
+        alert(`Perfeito, ${nome}! Sua solicitação foi enviada com sucesso para a ALDINEICAR. Analisaremos o seu caso e entraremos em contato via WhatsApp!`);
+        
+        // Fecha o modal da loja
         fecharModalOrcamentoCliente();
         
-        // Limpa formulário
+        // Limpa os campos do formulário para o próximo uso
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
 
     } catch (err) {
-        console.error("Erro salvando OS:", err);
-        alert('Ocorreu um erro ao enviar. Verifique sua conexão.');
+        console.error("Erro detalhado ao gravar no histórico:", err);
+        
+        // Exibe o erro real que o Supabase respondeu para ajudar no diagnóstico
+        alert(`Não foi possível enviar: ${err.message || 'Verifique as colunas do banco'}`);
     }
 }
 
