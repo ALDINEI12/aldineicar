@@ -379,6 +379,9 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
+                <button onclick="alternarSecao('secao-vendas'); renderizarListaVendasExclusiva();" style="padding: 10px 16px; background: #1e1e24; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 4px;">
+    💰 Vendas de Produtos
+</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -616,6 +619,34 @@ function mostrarSecao(id) {
     
     <div id="vitrine-produtos" class="grid-produtos">
         </div>
+</div>
+
+<div id="secao-vendas" style="display: none; padding: 20px;">
+    <div style="background: #111113; border: 1px solid #27272a; padding: 20px; border-radius: 8px; color: white;">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #ffffff;">💰 Histórico de Vendas Diretas</h2>
+        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #27272a; color: #a1a1aa;">
+                        <th style="padding: 12px 8px;">ID Venda</th>
+                        <th style="padding: 12px 8px;">Data</th>
+                        <th style="padding: 12px 8px;">Cliente</th>
+                        <th style="padding: 12px 8px;">Produto</th>
+                        <th style="padding: 12px 8px;">Qtd</th>
+                        <th style="padding: 12px 8px;">Total</th>
+                        <th style="padding: 12px 8px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vendas-corpo">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #71717a;">Nenhuma venda realizada ainda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 
@@ -2780,8 +2811,11 @@ async function processarBaixaEstoqueEPix() {
         if (erroBusca) throw new Error("Erro ao conectar à base de dados.");
 
         let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
-        let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
+        
+        // CRIANDO OU RECUPERANDO A NOVA SEÇÃO EXCLUSIVA DE VENDAS
+        let listaVendas = Array.isArray(dadosAtuais.vendas) ? dadosAtuais.vendas : [];
 
+        // 1. Atualiza o estoque na lista de materiais
         listaMateriais = listaMateriais.map(item => {
             if (item.id === produtoSelecionadoParaCompra) {
                 let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
@@ -2795,6 +2829,7 @@ async function processarBaixaEstoqueEPix() {
             return item;
         });
 
+        // 2. Atualiza a tabela secundária 'produtos_loja' caso exista
         const { data: verificarTabelaLoja } = await supabaseClient
             .from('produtos_loja')
             .select('estoque')
@@ -2810,34 +2845,35 @@ async function processarBaixaEstoqueEPix() {
                 .eq('id', produtoSelecionadoParaCompra);
         }
 
+        // 3. ESTRUTURA EXCLUSIVA DA NOVA SEÇÃO DE VENDAS (Sem misturar com Orçamentos)
         const novoRegistroVenda = {
+            id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
-            status: 'Pago',
-            cliente: { nome: nomeCliente, endereco: 'Vitrine Virtual', tel: telCliente, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
-            veiculo: { modelo: 'Balcão / Loja', placa: '---', ano: '', cor: '', avaliador: 'Vitrine', tipo_servico: `[VENDA DIRETA]: ${qtdComprada}x ${nomeProdutoSelecionado}` },
-            materiais: [{ id: produtoSelecionadoParaCompra, nome: nomeProdutoSelecionado, qtd: qtdComprada, valor: precoUnitarioSelecionado }],
-            mao_obra: [],
-            totalMateriais: totalVenda,
-            totalMateriaisCalculado: totalVenda,
-            totalMaoObraCalculado: 0,
-            deslocamento: 0,
-            totalCobrado: totalVenda,
-            lucro: totalVenda
+            cliente_nome: nomeCliente,
+            cliente_tel: telCliente,
+            produto_nome: nomeProdutoSelecionado,
+            quantidade: qtdComprada,
+            valor_unitario: precoUnitarioSelecionado,
+            total_pago: totalVenda,
+            status: 'Concluído'
         };
-        listaHistorico.unshift(novoRegistroVenda);
+        
+        // Coliciona no topo da nova lista de vendas
+        listaVendas.unshift(novoRegistroVenda);
 
+        // 4. Salva no Supabase (Atualizando materiais e a nova coluna vendas)
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
                 materiais: listaMateriais,
-                historico: listaHistorico,
+                vendas: listaVendas, // Nova seção salva aqui
                 updated_at: new Date()
             })
             .eq('user_id', idOficinaDaLojaAtual);
 
         if (erroUpdate) throw erroUpdate;
 
-        alert(`Perfeito, ${nomeCliente}!\nPedido processado e estoque baixado na ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.\nChave Pix: (Sua Chave Aqui)`);
+        alert(`Perfeito, ${nomeCliente}!\nSua compra foi registrada na seção exclusiva de Vendas da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
         fecharModalCompraDinamica();
 
         if (typeof carregarProdutosVitrinePublica === 'function') {
@@ -2847,6 +2883,54 @@ async function processarBaixaEstoqueEPix() {
     } catch (err) {
         console.error(err);
         alert(`Não foi possível concluir: ${err.message}`);
+    }
+}
+
+
+// FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
+async function renderizarListaVendasExclusiva() {
+    const corpoTabela = document.getElementById('tabela-vendas-corpo');
+    if (!corpoTabela) return;
+
+    try {
+        // Pega o ID do usuário logado (ajuste a variável se o seu sistema usar outro nome, ex: usuarioLogado.id)
+        const idUsuario = supabaseClient.auth.user()?.id || idOficinaDaLojaAtual; 
+
+        const { data: dados, error } = await supabaseClient
+            .from('user_data')
+            .select('vendas')
+            .eq('user_id', idUsuario)
+            .single();
+
+        if (error) throw error;
+
+        const vendas = Array.isArray(dados.vendas) ? dados.vendas : [];
+        corpoTabela.innerHTML = '';
+
+        if (vendas.length === 0) {
+            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #71717a;">Nenhuma venda realizada ainda.</td></tr>`;
+            return;
+        }
+
+        vendas.forEach(venda => {
+            corpoTabela.innerHTML += `
+                <tr style="border-bottom: 1px solid #27272a; hover: background: #18181b;">
+                    <td style="padding: 12px 8px; font-weight: 700; color: #a1a1aa;">${venda.id_venda || '---'}</td>
+                    <td style="padding: 12px 8px; color: #ffffff;">${venda.data}</td>
+                    <td style="padding: 12px 8px; color: #ffffff;">
+                        <span style="display:block; font-weight:600;">${venda.cliente_nome}</span>
+                        <span style="font-size:11px; color:#71717a;">${venda.cliente_tel}</span>
+                    </td>
+                    <td style="padding: 12px 8px; color: #22c55e; font-weight:600;">${venda.produto_nome}</td>
+                    <td style="padding: 12px 8px; color: #ffffff;">${venda.quantidade}x</td>
+                    <td style="padding: 12px 8px; color: #ffffff; font-weight:700;">R$ ${parseFloat(venda.total_pago).toFixed(2)}</td>
+                    <td style="padding: 12px 8px;"><span style="background: #14532d; color: #4ade80; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">${venda.status}</span></td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error("Erro ao carregar lista de vendas:", err);
+        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar as vendas.</td></tr>`;
     }
 }
 
