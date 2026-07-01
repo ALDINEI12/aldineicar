@@ -1591,30 +1591,36 @@ let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 
 // Função chamada quando o cliente clica no botão do produto na vitrine
-function abrirModalCompra(idProduto, nome, preco, estoque) {
-    produtoSelecionadoParaCompra = idProduto;
-    precoUnitarioSelecionado = parseFloat(preco) || 0;
+function abrirModalCompra(id, nome, preco, estoque) {
+    produtoSelecionadoParaCompra = id;
+    precoUnitarioSelecionado = parseFloat(preco);
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
 
-    if (estoqueDisponivelSelecionado <= 0) {
-        alert("Desculpe, este produto está esgotado no momento!");
-        return;
-    }
-
-    document.getElementById('compraProdutoNome').innerText = nome;
-    document.getElementById('compraProdutoPreco').innerText = `Valor Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}`;
-    document.getElementById('compraProdutoDisponivel').innerText = `Estoque disponível: ${estoqueDisponivelSelecionado} un.`;
+    // Vincula os campos de texto internos do modal
+    const txtNome = document.getElementById('compraProdutoNome');
+    const txtPreco = document.getElementById('compraProdutoPreco');
+    const txtDisponivel = document.getElementById('compraProdutoDisponivel');
     
-    const inputQtd = document.getElementById('compraQtd');
-    inputQtd.value = 1;
-    inputQtd.max = estoqueDisponivelSelecionado; // Limita o máximo ao que tem no estoque
+    if(txtNome) txtNome.innerText = nome;
+    if(txtPreco) txtPreco.innerText = `Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}`;
+    if(txtDisponivel) txtDisponivel.innerText = `Disponível no Estoque: ${estoqueDisponivelSelecionado} un.`;
 
-    calcularTotalCompra();
-    document.getElementById('modalCompraProduto').style.display = 'flex';
+    // Reseta o input de quantidade para 1 sempre que abrir
+    const inputQtd = document.getElementById('compraQtd');
+    if (inputQtd) inputQtd.value = 1;
+
+    // EXIBE O MODAL USANDO O ID EXATO DO SEU HTML
+    const modal = document.getElementById('modalCompraProduto');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        console.error("Modal 'modalCompraProduto' não foi encontrado no HTML.");
+    }
 }
 
 function fecharModalCompra() {
-    document.getElementById('modalCompraProduto').style.display = 'none';
+    const modal = document.getElementById('modalCompraProduto');
+    if (modal) modal.style.display = 'none';
 }
 
 function calcularTotalCompra() {
