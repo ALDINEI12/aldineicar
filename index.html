@@ -2948,43 +2948,36 @@ async function processarBaixaEstoqueEPix() {
 }
 
 
-// FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
-// FUNÇÃO PARA RENDERIZAR AS VENDAS NA TELA DO ADMINISTRADOR
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) return;
 
     try {
-        // 1. Tenta pegar o ID da sessão ativa do Supabase (Login real do Administrador)
-        const session = supabaseClient.auth.session();
-        let idUsuarioLogado = session ? session.user.id : null;
+        // 1. Tenta encontrar o ID do usuário de todas as formas possíveis
+        // O seu objeto dadosOficina tem várias propriedades, vamos buscar o 'user_id' ou 'id'
+        const idEncontrado = 
+            (typeof dadosOficina !== 'undefined' ? (dadosOficina.user_id || dadosOficina.id) : null) ||
+            (typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null) ||
+            localStorage.getItem('user_id') || 
+            localStorage.getItem('idOficina');
 
-        // 2. Se não estiver na sessão, tenta pegar do objeto global que você usa
-        if (!idUsuarioLogado && typeof dadosOficina !== 'undefined' && dadosOficina.user_id) {
-            idUsuarioLogado = dadosOficina.user_id;
+        if (!idEncontrado) {
+            throw new Error("Não foi possível detectar o ID da oficina. O sistema não encontrou o user_id.");
         }
 
-        // 3. SE AINDA FOR NULO, tentamos o localStorage (seu sistema guarda lá!)
-        if (!idUsuarioLogado) {
-            idUsuarioLogado = localStorage.getItem('user_id') || localStorage.getItem('idOficina');
-        }
+        console.log("ID da oficina detectado para busca:", idEncontrado);
 
-        // SE CHEGOU AQUI E AINDA É NULO, travamos com uma mensagem clara
-        if (!idUsuarioLogado) {
-            throw new Error("Você precisa estar logado no sistema para ver as vendas.");
-        }
-
+        // 2. Busca no Supabase usando o ID detectado
         const { data: dados, error } = await supabaseClient
             .from('user_data')
             .select('historico')
-            .eq('user_id', idUsuarioLogado)
+            .eq('user_id', idEncontrado)
             .single();
 
         if (error) throw error;
 
+        // 3. Renderização
         const historicoGeral = Array.isArray(dados.historico) ? dados.historico : [];
-        
-        // Filtra pelo padrão de vendas
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
@@ -3009,7 +3002,7 @@ async function renderizarListaVendasExclusiva() {
             `;
         });
     } catch (err) {
-        console.error("Erro na busca de vendas:", err);
+        console.error("Erro final na busca:", err);
         corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">${err.message}</td></tr>`;
     }
 }
