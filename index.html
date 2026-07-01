@@ -2346,6 +2346,15 @@ function renderCategoriasETelas() {
 
 let idOficinaDaLojaAtual = null;
 
+// Interceptador global: Para QUALQUER loop de imagem quebrada na página inteira
+window.addEventListener('error', function(e) {
+    if (e.target.tagName === 'IMG') {
+        console.warn('Imagem bloqueada ou quebrada evitada:', e.target.src);
+        e.target.src = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+        e.preventDefault();
+    }
+}, true);
+
 function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
     const idLoja = parametrosUrl.get('loja');
@@ -2353,7 +2362,7 @@ function verificarModoCliente() {
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
         
-        // Esconde as telas pretas e modais administrativos antigos usando CSS forçado
+        // Esconde as telas antigas para o cliente não ver o login de empresa
         const estiloEsconder = document.createElement('style');
         estiloEsconder.innerHTML = `
             #loginOverlay, #appContainer, .modal, .toast { display: none !important; }
@@ -2361,17 +2370,17 @@ function verificarModoCliente() {
         `;
         document.head.appendChild(estiloEsconder);
         
-        // Busca os produtos
+        // Chama os produtos com segurança
         setTimeout(() => {
             carregarProdutosVitrinePublica(idLoja);
-        }, 400);
+        }, 500);
 
         return true;
     }
     return false;
 }
 
-// Chamar checagem imediatamente
+// Inicializa a checagem
 verificarModoCliente();
 
 
@@ -2380,9 +2389,10 @@ async function carregarProdutosVitrinePublica(idOficina) {
     const containerVitrine = document.getElementById('vitrine-publica-cliente');
     if (!containerVitrine) return;
     
-    containerVitrine.innerHTML = '<p style="color: #a1a1aa;">Carregando peças da oficina...</p>';
+    containerVitrine.innerHTML = '<p style="color: #a1a1aa;">Buscando peças no banco de dados...</p>';
 
     try {
+        // Faz a busca na tabela usando o ID correto do dono do produto
         const { data: produtos, error } = await supabaseClient
             .from('produtos_loja')
             .select('*')
@@ -2393,17 +2403,23 @@ async function carregarProdutosVitrinePublica(idOficina) {
         containerVitrine.innerHTML = '';
 
         if (!produtos || produtos.length === 0) {
-            containerVitrine.innerHTML = '<p style="color: #a1a1aa; grid-column: 1/-1; text-align: center; padding: 30px;">Nenhum produto em exposição nesta vitrine no momento.</p>';
+            containerVitrine.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #a1a1aa;">
+                    <p style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Nenhum produto em exposição.</p>
+                    <p style="font-size: 13px; color: #71717a;">Verifique se você cadastrou os produtos usando este mesmo usuário no painel administrativo.</p>
+                </div>
+            `;
             return;
         }
 
+        const imagemPadrao = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+
         produtos.forEach(prod => {
-            // Correção da coluna de imagem para bater com o banco (imagem_url)
-            const urlImagem = prod.imagem_url || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+            const urlImagem = prod.imagem_url || imagemPadrao;
             
             containerVitrine.innerHTML += `
                 <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; min-height: 310px;">
-                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;" onerror="this.src='https://via.placeholder.com/150'">
+                    <img src="${urlImagem}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 6px; background: #09090b;">
                     <div style="margin-top: 12px; flex: 1;">
                         <h4 style="font-size: 15px; color: #ffffff; font-weight: 700; margin: 0;">${prod.nome}</h4>
                         <p style="font-size: 12px; color: #a1a1aa; margin: 4px 0 0 0; line-height: 1.4;">${prod.descricao || 'Disponível para instalação.'}</p>
@@ -2417,11 +2433,10 @@ async function carregarProdutosVitrinePublica(idOficina) {
         });
 
     } catch (err) {
-        console.error("Erro vitrine:", err);
-        containerVitrine.innerHTML = '<p style="color: #e11d48;">Erro ao conectar com os produtos.</p>';
+        console.error("Erro completo na requisição:", err);
+        containerVitrine.innerHTML = '<p style="color: #e11d48; text-align: center; grid-column:1/-1;">Erro ao carregar os dados dos produtos.</p>';
     }
 }
-
 
 // Funções de Controle dos Modais do Cliente
 function abrirModalOrcamentoCliente() {
