@@ -2851,7 +2851,6 @@ async function processarBaixaEstoqueEPix() {
     const totalVenda = qtdComprada * precoUnitarioSelecionado;
 
     try {
-        // DESCUBRE O ID ALVO CORRETO: Se houver usuário logado no painel, usa ele; senão usa o da vitrine pública
         let idDonoVenda = null;
         if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
             idDonoVenda = supabaseClient.auth.user().id;
@@ -2911,7 +2910,7 @@ async function processarBaixaEstoqueEPix() {
             id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
             status: 'Concluído',
-            tipo_registro: 'VENDA_DIRETA_BALCAO', // Garante que a listagem vai ler essa tag exata
+            tipo_registro: 'VENDA_DIRETA_BALCAO', 
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
             veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
@@ -2938,9 +2937,11 @@ async function processarBaixaEstoqueEPix() {
         alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
         fecharModalCompraDinamica();
 
-        // Dá refresh nas telas se elas existirem no escopo atual
-        if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
-        if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
+        // Aguarda 400 milissegundos para forçar o refresh após a gravação completa no banco de dados ser propagada
+        setTimeout(() => {
+            if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
+            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
+        }, 400);
 
     } catch (err) {
         console.error(err);
@@ -2948,17 +2949,13 @@ async function processarBaixaEstoqueEPix() {
     }
 }
 
-
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) return;
 
     try {
-        // A VARIAVEL GLOBAL 'idOficinaDaLojaAtual' É A QUE O SEU SISTEMA USA.
-        // Vamos usá-la diretamente.
         let idUsuarioLogado = typeof idOficinaDaLojaAtual !== 'undefined' ? idOficinaDaLojaAtual : null;
 
-        // Se por acaso ela estiver nula, vamos tentar capturar do objeto dadosOficina
         if (!idUsuarioLogado && typeof dadosOficina !== 'undefined') {
             idUsuarioLogado = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
         }
@@ -2982,6 +2979,8 @@ async function renderizarListaVendasExclusiva() {
         // Filtro robusto para pegar qualquer venda registrada no histórico
         const vendas = historicoGeral.filter(item => 
             item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
+            item.tipo_registro === 'LOJA_VIRTUAL' ||
+            item.tipo_servico === '[VENDA DIRETA]' ||
             (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
         );
         
@@ -2992,14 +2991,19 @@ async function renderizarListaVendasExclusiva() {
         }
 
         vendas.forEach(venda => {
+            // Mapeamento correto e seguro para ler o nome do cliente de objetos aninhados ou propriedades diretas
+            const nomeCliente = venda.cliente?.nome || venda.cliente_nome || 'Cliente da Loja';
+            const nomeProduto = venda.produto_nome || venda.nome_produto || 'Produto';
+            const valorTotal = venda.total_pago || venda.valor_total || 0;
+
             corpoTabela.innerHTML += `
                 <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || '---'}</td>
+                    <td style="padding: 12px; color: #64748b;">${venda.id_venda || venda.id || '---'}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.data || ''}</td>
-                    <td style="padding: 12px; color: #0f172a;">${venda.cliente?.nome || 'Cliente'}</td>
-                    <td style="padding: 12px; color: #10b981; font-weight:600;">${venda.produto_nome || 'Produto'}</td>
+                    <td style="padding: 12px; color: #0f172a;">${nomeCliente}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight:600;">${nomeProduto}</td>
                     <td style="padding: 12px; color: #0f172a;">${venda.quantidade || '1'}</td>
-                    <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(venda.total_pago || 0).toFixed(2)}</td>
+                    <td style="padding: 12px; color: #0f172a; font-weight:700;">R$ ${parseFloat(valorTotal).toFixed(2)}</td>
                 </tr>
             `;
         });
