@@ -198,3 +198,21 @@
 }
 
 
+.grid-produtos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 10px;
+    }
+    .card-produto {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .card-produto h3 { margin: 10px 0; font-size: 1rem; }
+    .card-produto p { color: #e11d48; font-weight: bold; }
+
+
+    
