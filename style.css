@@ -1,445 +1,798 @@
- 
-        :root {
-            --bg-principal: #0f172a;
-            --bg-card: #1e293b;
-            --cor-borda: #334155;
-            --texto-principal: #f8fafc;
-            --texto-secundario: #94a3b8;
-            --azul-destaque: #38bdf8;
-            --azul-hover: #0284c7;
-            --verde-sucesso: #22c55e;
-            --vermelho-erro: #ef4444;
-            --laranja-alerta: #f97316;
-            --fonte: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+/* ==========================================================================
+   ALDINEICAR - VARIÁVEIS DE COR (IDENTICAS À IMAGEM image_fe7ce6.png)
+   ========================================================================== */
+:root {
+    --bg-principal: #131926;       /* Fundo geral escuro azulado da imagem */
+    --bg-card: #1b2333;            /* Fundo dos painéis, cards e resumo */
+    --cor-borda: #242f41;          /* Divisores sutis entre elementos */
+    --texto-principal: #ffffff;    /* Texto branco puro */
+    --texto-secundario: #8a99ad;   /* Cinza azulado para labels e subtextos */
+    --azul-selecao: #1e293b;       /* Fundo do botão ativo na sidebar */
+    
+    /* Cores de Feedback e Status */
+    --verde-sucesso: #10b981;
+    --verde-hover: #059669;
+    --vermelho-erro: #ef4444;
+    --vermelho-hover: #dc2626;
+    --laranja-alerta: #f59e0b;
+    --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+/* ==========================================================================
+   CONFIGURAÇÕES GERAIS
+   ========================================================================== */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: var(--fonte); 
+}
 
-        body {
-            background-color: var(--bg-principal);
-            color: var(--texto-principal);
-            font-family: var(--fonte);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+body { 
+    background-color: var(--bg-principal); 
+    color: var(--texto-principal); 
+    -webkit-font-smoothing: antialiased; 
+}
 
-        /* BARRA LATERAL (SIDEBAR) */
-        .sidebar {
-            width: 260px;
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--cor-borda);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
+/* ==========================================================================
+   HEADER / TOPO DO SISTEMA
+   ========================================================================== */
+header { 
+    background: #09090b; 
+    color: white; 
+    padding: 0 28px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    height: 72px; 
+    border-bottom: 1px solid var(--cor-borda); 
+}
 
-        .sidebar-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--cor-borda);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+.logo-container { 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+}
 
-        .sidebar-header i {
-            color: var(--azul-destaque);
-            font-size: 1.5rem;
-        }
+.logo-img { 
+    height: 42px; 
+    width: auto; 
+    object-fit: contain; 
+}
 
-        .sidebar-header h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
+.search { 
+    width: 35%; 
+    padding: 12px 18px; 
+    border-radius: 12px; 
+    border: 1px solid var(--cor-borda); 
+    background: #141b27; 
+    color: white; 
+    font-size: 14px; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+}
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 16px 0;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
+.search::placeholder { 
+    color: var(--texto-secundario); 
+}
 
-        .sidebar-item {
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            color: var(--texto-secundario);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
+.search:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+    background: #141b27; 
+    box-shadow: 0 0 0 1px #3b82f6; 
+}
 
-        .sidebar-item:hover, .sidebar-item.active {
-            color: var(--texto-principal);
-            background-color: rgba(56, 189, 248, 0.1);
-            border-left: 4px solid var(--azul-destaque);
-            padding-left: 20px;
-        }
+/* ==========================================================================
+   ESTRUTURA DE LAYOUT PRINCIPAL
+   ========================================================================== */
+.container { 
+    display: flex; 
+    min-height: calc(100vh - 72px); 
+}
 
-        .sidebar-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 1.1rem;
-        }
+/* Menu Lateral - Integrado e Escuro como na Imagem */
+.sidebar { 
+    width: 260px; 
+    background: #18202e; 
+    padding: 32px 0 20px 0; 
+    border-right: 1px solid var(--cor-borda); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+    flex-shrink: 0;
+}
 
-        .sidebar-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--cor-borda);
-        }
+/* Logo Aldineicar no topo da Sidebar (Igual ao print) */
+.sidebar-logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--texto-principal);
+    letter-spacing: 0.5px;
+    padding: 0 24px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
 
-        .btn-logout {
-            width: 100%;
-            padding: 10px;
-            background: transparent;
-            border: 1px solid var(--cor-borda);
-            color: var(--vermelho-erro);
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
+.sidebar h2 { 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    margin-bottom: 16px; 
+    color: var(--texto-secundario); 
+    padding-left: 24px; 
+    font-weight: 700; 
+}
 
-        .btn-logout:hover {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: var(--vermelho-erro);
-        }
+.sidebar button { 
+    width: calc(100% - 16px); 
+    margin: 0 8px;
+    padding: 12px 16px; 
+    background: transparent; 
+    color: var(--texto-secundario); 
+    border: none; 
+    border-radius: 8px; 
+    font-size: 15px; 
+    font-weight: 500; 
+    cursor: pointer; 
+    text-align: left; 
+    transition: all 0.15s ease; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
 
-        /* CONTEÚDO PRINCIPAL */
-        .conteudo-principal {
-            margin-left: 260px;
-            flex-grow: 1;
-            padding: 40px;
-            max-width: calc(100vw - 260px);
-            display: flex;
-            gap: 30px;
-        }
+.sidebar button:hover { 
+    background: rgba(255, 255, 255, 0.02); 
+    color: var(--texto-principal); 
+}
 
-        .area-painel {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
+/* Estado Ativo do Menu da Imagem */
+.sidebar button.active { 
+    background: var(--azul-selecao); 
+    color: var(--texto-principal); 
+    font-weight: 600; 
+}
 
-        .secao-tela {
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
+/* Botão Sair Premium na Base da Sidebar */
+.sidebar .btn-logout { 
+    background: transparent; 
+    color: var(--vermelho-erro); 
+    border: 1px solid rgba(239, 68, 68, 0.3); 
+    text-align: center; 
+    font-weight: 600; 
+    margin-top: auto; 
+    justify-content: center; 
+    width: calc(100% - 32px);
+    margin-left: 16px;
+    margin-right: 16px;
+}
 
-        .secao-tela.active {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
+.sidebar .btn-logout:hover { 
+    background: var(--vermelho-erro); 
+    color: white; 
+    border-color: var(--vermelho-hover);
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+/* Área de Conteúdo Principal */
+.content { 
+    flex: 1; 
+    padding: 40px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 32px; 
+    max-width: 1440px; 
+    margin: 0 auto; 
+    width: 100%; 
+}
 
-        /* CABEÇALHO DA TELA */
-        .topo-tela {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--cor-borda);
-            padding-bottom: 16px;
-        }
+.main-layout { 
+    display: flex; 
+    gap: 36px; 
+    align-items: flex-start; 
+}
 
-        .topo-tela h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-        }
+.aba-container { 
+    flex: 1; 
+}
 
-        /* CARDS / CONTÊNERS */
-        .card-sistema {
-            background-color: var(--bg-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            padding: 24px;
-        }
+/* ==========================================================================
+   BOTÕES GERAIS E INTERAÇÕES
+   ========================================================================== */
+.top-actions { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+}
 
-        /* COMPONENTES DE FORMULÁRIO */
-        .grupo-campo {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
+.top-actions button { 
+    padding: 12px 24px; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+}
 
-        .grupo-campo label {
-            font-size: 0.875rem;
-            color: var(--texto-secundario);
-            font-weight: 500;
-        }
+.top-actions button:hover { 
+    transform: translateY(-1px); 
+}
 
-        .campo-input, .campo-select, .campo-textarea {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--bg-principal);
-            border: 1px solid var(--cor-borda);
-            border-radius: 8px;
-            color: var(--texto-principal);
-            font-family: var(--fonte);
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
+.btn-primary { 
+    background: #3b82f6; 
+    color: white; 
+}
 
-        .campo-input:focus, .campo-select:focus, .campo-textarea:focus {
-            outline: none;
-            border-color: var(--azul-destaque);
-        }
+.btn-primary:hover { 
+    background: #2563eb; 
+}
 
-        /* BOTÕES */
-        .btn-acao {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s;
-        }
+.btn-green { 
+    background: var(--verde-sucesso); 
+    color: white; 
+}
 
-        .btn-primario { background-color: var(--azul-destaque); color: var(--bg-principal); }
-        .btn-primario:hover { background-color: var(--azul-hover); }
-        .btn-sucesso { background-color: var(--verde-sucesso); color: white; }
-        .btn-sucesso:hover { background-color: #16a34a; }
-        .btn-perigo { background-color: var(--vermelho-erro); color: white; }
-        .btn-perigo:hover { background-color: #dc2626; }
+.btn-green:hover { 
+    background: var(--verde-hover); 
+}
 
-        /* PAINEL DE RESUMO (DIREITA) */
-        .resumo {
-            width: 320px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+/* Botão de Adicionar Serviço dentro da OS */
+.add-servico-btn { 
+    width: 100%; 
+    padding: 14px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    background: rgba(16, 185, 129, 0.1); 
+    color: var(--verde-sucesso); 
+    border: 1px solid rgba(16, 185, 129, 0.2); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+}
 
-        .card-metricas {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            padding: 20px;
-        }
+.add-servico-btn:hover { 
+    background: var(--verde-sucesso); 
+    color: white;
+}
 
-        .card-metricas .icone {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
+/* Botão do WhatsApp Customizado */
+button[onclick*="enviarWhatsApp"] { 
+    background: #075e54 !important; 
+    color: white !important; 
+    font-weight: 700; 
+    border-radius: 8px; 
+    transition: 0.2s; 
+}
 
-        .card-metricas.entrada .icone { background-color: rgba(34, 197, 94, 0.1); color: var(--verde-sucesso); }
-        .card-metricas.saida .icone { background-color: rgba(239, 68, 68, 0.1); color: var(--vermelho-erro); }
-        .card-metricas.balanco .icone { background-color: rgba(56, 189, 248, 0.1); color: var(--azul-destaque); }
+button[onclick*="enviarWhatsApp"]:hover { 
+    background: #128c7e !important; 
+}
 
-        .card-metricas .info p { font-size: 0.85rem; color: var(--texto-secundario); }
-        .card-metricas .info h3 { font-size: 1.35rem; font-weight: 700; margin-top: 2px; }
+/* ==========================================================================
+   GRID DE CARDS (VITRINE / PRODUTOS)
+   ========================================================================== */
+.cards { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    gap: 24px; 
+}
 
-        /* TABELAS */
-        .container-tabela {
-            overflow-x: auto;
-            width: 100%;
-        }
+.card { 
+    background: var(--bg-card); 
+    border-radius: 12px; 
+    padding: 24px; 
+    border: 1px solid var(--cor-borda); 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    min-height: 180px; 
+}
 
-        .tabela-sistema {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
+.card:hover { 
+    border-color: #3b82f6; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); 
+}
 
-        .tabela-sistema th, .tabela-sistema td {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--cor-borda);
-        }
+.card h3 { 
+    font-size: 14px; 
+    color: var(--texto-principal); 
+    font-weight: 600; 
+    line-height: 1.5; 
+    margin-bottom: 8px; 
+}
 
-        .tabela-sistema th {
-            background-color: rgba(255, 255, 255, 0.02);
-            color: var(--texto-secundario);
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.preco { 
+    color: var(--texto-principal); 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 12px 0; 
+    letter-spacing: -0.5px; 
+}
 
-        .tabela-sistema tr:hover td {
-            background-color: rgba(255, 255, 255, 0.01);
-        }
+.controls { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: var(--bg-principal); 
+    padding: 4px; 
+    border-radius: 30px; 
+    margin-top: auto; 
+    border: 1px solid var(--cor-borda); 
+}
 
-        /* VITRINE / LOJA INTERNA */
-        .loja-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            margin-top: 16px;
-        }
+.controls button { 
+    width: 32px; 
+    height: 32px; 
+    border: none; 
+    border-radius: 50%; 
+    font-size: 16px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: all 0.1s ease; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
 
-        .card-produto {
-            background-color: var(--bg-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s;
-        }
+.controls button:active { 
+    transform: scale(0.9); 
+}
 
-        .card-produto:hover {
-            transform: translateY(-4px);
-        }
+.btn-plus { 
+    background: #3b82f6; 
+    color: white; 
+}
 
-        .card-produto-img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            background-color: #0f172a;
-        }
+.btn-plus:hover { 
+    background: #2563eb; 
+}
 
-        .card-produto-corpo {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
+.btn-minus { 
+    background: var(--bg-card); 
+    color: var(--texto-secundario); 
+    border: 1px solid var(--cor-borda) !important; 
+}
 
-        .card-produto-tag {
-            align-self: flex-start;
-            background-color: rgba(56, 189, 248, 0.1);
-            color: var(--azul-destaque);
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+.btn-minus:hover { 
+    background: var(--bg-principal); 
+    color: var(--texto-principal); 
+}
 
-        .card-produto-titulo { font-size: 1rem; font-weight: 600; }
-        .card-produto-preco { font-size: 1.15rem; font-weight: 700; color: var(--verde-sucesso); }
-        .card-produto-estoque { font-size: 0.8rem; color: var(--texto-secundario); }
+.qtd { 
+    font-size: 14px; 
+    font-weight: 700; 
+    color: var(--texto-principal); 
+    padding: 0 6px; 
+}
 
-        /* MODAIS */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+/* ==========================================================================
+   PAINEL DE INDICADORES (LADO DIREITO DA IMAGEM image_fe7ce6.png)
+   ========================================================================== */
+.painel-indicadores {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 320px;
+    flex-shrink: 0;
+}
 
-        .modal-conteudo {
-            background-color: var(--bg-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 24px;
-            position: relative;
-            animation: modalSlide 0.3s ease;
-        }
+.card-indicador {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px 24px;
+    border: 1px solid var(--cor-borda);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
 
-        @keyframes modalSlide {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+.card-indicador .icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
 
-        .fechar-modal {
-            position: absolute;
-            top: 16px; right: 16px;
-            background: transparent;
-            border: none;
-            color: var(--texto-secundario);
-            font-size: 1.25rem;
-            cursor: pointer;
-        }
+.card-indicador .icon-receitas { background: rgba(16, 185, 129, 0.1); color: var(--verde-sucesso); }
+.card-indicador .icon-despesas { background: rgba(239, 68, 68, 0.1); color: var(--vermelho-erro); }
+.card-indicador .icon-saldo { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
 
-        /* TELAS DE AUTENTICAÇÃO */
-        .tela-auth {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-principal);
-            position: fixed;
-            top: 0; left: 0;
-            z-index: 999;
-        }
+.card-indicador .info { display: flex; flex-direction: column; }
+.card-indicador .info .label { font-size: 12px; color: var(--texto-secundario); font-weight: 500; }
+.card-indicador .info .valor { font-size: 20px; font-weight: 700; color: var(--texto-principal); margin-top: 4px; }
 
-        .container-auth {
-            background-color: var(--bg-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+/* ==========================================================================
+   PAINEL LATERAL DE RESUMO DE ORÇAMENTO (PRESERVAÇÃO DO :HAS)
+   ========================================================================== */
+.resumo { 
+    width: 380px; 
+    background: var(--bg-card); 
+    padding: 32px; 
+    border-radius: 16px; 
+    border: 1px solid var(--cor-borda); 
+    position: sticky; 
+    top: 32px; 
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3); 
+}
 
-        /* BOTÃO FLUTUANTE MOBILE */
-        #btn-resumo-flutuante {
-            display: none;
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background-color: var(--azul-destaque);
-            color: var(--bg-principal);
-            border: none;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 90;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-        }
+.resumo h2 { 
+    font-size: 16px; 
+    font-weight: 700; 
+    margin-bottom: 24px; 
+    color: var(--texto-principal); 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 1px solid var(--cor-borda); 
+    padding-bottom: 14px; 
+}
 
-        /* RESPONSIVIDADE (TABLETS E SMARTPHONES) */
-        @media (max-width: 992px) {
-            body { flex-direction: column; }
-            .sidebar {
-                width: 100%; height: auto; position: static;
-                border-right: none; border-bottom: 1px solid var(--cor-borda);
-            }
-            .sidebar-header { padding: 16px; justify-content: center; }
-            .sidebar-menu { display: flex; padding: 0; overflow-x: auto; }
-            .sidebar-item { padding: 14px 20px; flex-shrink: 0; border-left: none; }
-            .sidebar-item:hover, .sidebar-item.active {
-                border-left: none; border-bottom: 3px solid var(--azul-destaque); padding-left: 20px;
-            }
-            .sidebar-footer { display: none; }
-            .conteudo-principal { margin-left: 0; max-width: 100vw; padding: 20px; flex-direction: column; }
-            .resumo { display: none; width: 100%; }
-            #btn-resumo-flutuante { display: flex; }
-        }
+.resumo div { 
+    margin-bottom: 18px; 
+    font-size: 13px; 
+    color: var(--texto-secundario); 
+    font-weight: 600; 
+}
+
+.resumo input { 
+    width: 100%; 
+    padding: 11px 14px; 
+    margin-top: 6px; 
+    border: 1px solid var(--cor-borda); 
+    border-radius: 8px; 
+    font-size: 14px; 
+    color: var(--texto-principal); 
+    transition: all 0.15s ease; 
+    background: var(--bg-principal); 
+    font-weight: 500; 
+}
+
+.resumo input:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+    background: var(--bg-principal); 
+}
+
+/* Regras com :has para estilização condicional de inputs */
+.resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
+    background: var(--bg-principal); 
+    border: 1px solid var(--cor-borda); 
+    padding: 12px 16px; 
+    border-radius: 10px; 
+    margin-top: 10px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-size: 13px; 
+    color: var(--texto-secundario);
+}
+
+.resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
+    background: #0d131f; 
+    color: white; 
+    padding: 20px; 
+    border-radius: 12px; 
+    margin-top: 24px; 
+    border: 1px solid var(--cor-borda); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input {
+    background: var(--bg-card); 
+    border: 1px solid var(--cor-borda); 
+    color: white; 
+    font-size: 22px; 
+    font-weight: 700; 
+    letter-spacing: -0.5px; 
+    padding: 12px; 
+    margin-top: 8px; 
+    text-align: center; 
+    border-radius: 8px;
+}
+
+.resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus {
+    border-color: #3b82f6;
+}
+
+.resumo button { 
+    width: 100%; 
+    padding: 14px; 
+    margin-top: 12px; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: 700; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+}
+
+/* ==========================================================================
+   INPUTS DE LOGÍSTICA, FILTROS E LISTAS
+   ========================================================================== */
+.row-inputs-logistica { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+    margin-top: 15px; 
+}
+
+.row-inputs-logistica .form-group { 
+    flex: 1; 
+}
+
+.row-inputs-logistica .form-group label { 
+    display: block; 
+    font-size: 12px; 
+    font-weight: bold; 
+    color: var(--texto-secundario); 
+    margin-bottom: 5px;
+}
+
+.row-inputs-logistica .form-group input { 
+    width: 100%; 
+    padding: 10px; 
+    border-radius: 8px; 
+    border: 1px solid var(--cor-borda);
+    background-color: var(--bg-principal);
+    color: var(--texto-principal);
+}
+
+.cliente-item { 
+    background: var(--bg-card); 
+    padding: 24px; 
+    border-radius: 12px; 
+    margin-bottom: 16px; 
+    border: 1px solid var(--cor-borda); 
+    color: var(--texto-principal); 
+}
+
+.categorias-materiais { 
+    display: flex; 
+    gap: 6px; 
+    margin-bottom: 24px; 
+    flex-wrap: wrap; 
+}
+
+.categorias-materiais button { 
+    padding: 8px 16px; 
+    border: none; 
+    border-radius: 20px; 
+    background: var(--bg-card); 
+    color: var(--texto-secundario); 
+    font-weight: 600; 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+    border: 1px solid var(--cor-borda); 
+}
+
+.categorias-materiais button:hover { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: var(--texto-principal); 
+}
+
+.categorias-materiais button.active { 
+    background: #3b82f6; 
+    color: white; 
+    border-color: #3b82f6;
+}
+
+/* ==========================================================================
+   MODAIS, CICLO DE VIDA DA OS E ALERTAS (TOAST)
+   ========================================================================== */
+.modal { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(9, 9, 11, 0.7); 
+    backdrop-filter: blur(4px); 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 999; 
+}
+
+.modal-content { 
+    background: #09090b; 
+    padding: 32px; 
+    border-radius: 12px; 
+    width: 90%; 
+    max-width: 420px; 
+    color: white; 
+    max-height: 85vh; 
+    overflow-y: auto; 
+    border: 1px solid var(--cor-borda); 
+}
+
+.modal-content h3 { 
+    font-size: 16px; 
+    margin-bottom: 16px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    color: #fff; 
+}
+
+.modal-content input, .modal-content select { 
+    width: 100%; 
+    padding: 12px; 
+    margin: 6px 0 16px 0; 
+    border: 1px solid #27272a; 
+    border-radius: 8px; 
+    color: white; 
+    background: #141416; 
+    font-size: 14px; 
+}
+
+.modal-content input:focus, .modal-content select:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+}
+
+.modal-content button { 
+    width: 100%; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 8px; 
+    margin-top: 6px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    cursor: pointer; 
+}
+
+/* Status das Ordens de Serviço */
+.badge-status { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: inline-block; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+.status-orcamento { background: #475569; color: #f8fafc; }
+.status-execucao { background: #1e40af; color: #dbeafe; }
+.status-pronto { background: #15803d; color: #dcfce7; }
+.status-pago { background: #854d0e; color: #fef08a; }
+
+.select-status-inline { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid var(--cor-borda); 
+    font-size: 13px; 
+    background: var(--bg-principal); 
+    font-weight: 600; 
+    cursor: pointer; 
+    color: var(--texto-principal); 
+    outline: none; 
+}
+.select-status-inline:focus { border-color: #3b82f6; }
+
+/* Notificações Toast */
+#toast-container { 
+    position: fixed; 
+    bottom: 24px; 
+    right: 24px; 
+    z-index: 10000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    pointer-events: none; 
+}
+
+.toast { 
+    pointer-events: auto; 
+    min-width: 280px; 
+    max-width: 380px; 
+    padding: 14px 20px; 
+    border-radius: 8px; 
+    color: white; 
+    font-size: 14px; 
+    font-weight: 600; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    transform: translateY(20px); 
+    opacity: 0; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.toast.toast-ativo { transform: translateY(0); opacity: 1; }
+.toast-sucesso { background-color: var(--verde-sucesso); border-left: 5px solid var(--verde-hover); }
+.toast-erro { background-color: var(--vermelho-erro); border-left: 5px solid var(--vermelho-hover); }
+.toast-aviso { background-color: var(--laranja-alerta); border-left: 5px solid #d97706; }
+
+/* Botão Flutuante Mobile */
+#btn-resumo-flutuante {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    display: none; 
+}
+
+/* ==========================================================================
+   DESIGN RESPONSIVO (MOBILE SEM PERDAS)
+   ========================================================================== */
+@media(max-width:992px){
+    header { height: auto; padding: 16px; flex-direction: column; gap: 12px; align-items: stretch; }
+    .search { width: 100%; padding: 11px 14px; font-size: 14px; }
+    .logo-container { justify-content: center; }
+    
+    .container { flex-direction:column; min-height: auto; }
+    
+    .sidebar { 
+        width:100%; 
+        display:flex; 
+        flex-direction: row; 
+        gap:6px; 
+        overflow-x:auto; 
+        padding: 12px; 
+        height: auto; 
+        border-right: none; 
+        border-bottom: 1px solid var(--cor-borda); 
+        background: #18202e; 
+        scrollbar-width: none; 
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .sidebar-logo, .sidebar h2 { display: none; }
+    .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: var(--bg-principal); white-space: nowrap; flex-shrink: 0; margin: 0; }
+    
+    .sidebar .btn-logout { 
+        margin-top: 0 !important; 
+        min-width: 80px !important; 
+        padding: 10px !important;
+        font-size: 13px !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .content { padding: 16px; gap: 20px; }
+    .main-layout { flex-direction: column; gap: 20px; width: 100%; }
+    
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .card { padding: 16px; border-radius: 12px; min-height: 150px; }
+    .card h3 { font-size: 13px; }
+    .preco { font-size: 16px; margin: 4px 0; }
+    .controls button { width: 28px; height: 28px; font-size: 14px; }
+    
+    .top-actions { gap: 8px; }
+    .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
+
+    #btn-resumo-flutuante { display: flex; align-items: center; justify-content: center; }
+    
+    .resumo {
+        display: none; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2000;
+        overflow-y: auto;
+        border-radius: 0;
+        padding: 20px;
+        background: var(--bg-card);
+    }
+}
