@@ -444,27 +444,36 @@ function mostrarSecao(id) {
             </button>
         </div>
         
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600;">
-                        <th style="padding: 12px 8px;">ID Venda</th>
-                        <th style="padding: 12px 8px;">Data</th>
-                        <th style="padding: 12px 8px;">Cliente</th>
-                        <th style="padding: 12px 8px;">Produto</th>
-                        <th style="padding: 12px 8px;">Qtd</th>
-                        <th style="padding: 12px 8px;">Total</th>
-                        <th style="padding: 12px 8px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-vendas-corpo">
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Clique em "Vendas de Produtos" para carregar...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <!-- Seção de Vendas -->
+<section id="secao-vendas" class="painel-secao">
+    <div class="header-secao">
+        <h2>Controle de Vendas</h2>
+        <button onclick="abrirModalVendas()">+ Nova Venda</button>
     </div>
+
+    <section id="secao-vendas" class="painel-secao">
+    <div class="header-secao">
+        <h2>Controle de Vendas</h2>
+    </div>
+
+    <div class="tabela-container">
+        <table id="tabela-vendas">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Cliente</th>
+                    <th>Produto</th>
+                    <th>Qtd</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-vendas-corpo">
+            </tbody>
+        </table>
+    </div>
+</section>
 </div>
 
 

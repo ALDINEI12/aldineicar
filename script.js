@@ -6,6 +6,12 @@
  const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    const formatarData = (dataStr) => {
+    if (!dataStr) return '--/--/----';
+    // Se a data já estiver no formato brasileiro, retorna ela. 
+    // Se for ISO (YYYY-MM-DD), você pode converter aqui:
+    return dataStr; 
+};
 
     let usuarioAtualId = null;
     let materiais = [];
@@ -1692,6 +1698,12 @@ window.addEventListener('online', async () => {
         console.log("Conexão restabelecida! Verificando sincronização pendente...");
         await carregarDadosDoUsuario(usuarioAtualId);
     }
+
+    // Exemplo: após o login bem-sucedido ou carregamento da página
+window.addEventListener('load', () => {
+    // ... seu código de carregamento de usuário
+    renderizarListaVendasExclusiva(); // <-- Chame aqui!
+});
 });
 
 function renderCategoriasETelas() {
@@ -2328,6 +2340,22 @@ function fecharModalEspecifico(idModal) {
     if (modal) {
         modal.style.display = 'none';
     }
+}
+
+function renderizarVendas(vendas) {
+    const lista = document.getElementById('lista-vendas');
+    lista.innerHTML = ''; // Limpa a lista antes de atualizar
+
+    vendas.forEach(venda => {
+        lista.innerHTML += `
+            <tr>
+                <td>${venda.data}</td>
+                <td>${venda.item}</td>
+                <td>R$ ${venda.valor}</td>
+                <td>${venda.status}</td>
+            </tr>
+        `;
+    });
 }
 
 
