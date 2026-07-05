@@ -1,3 +1,8 @@
+ 
+
+
+ 
+ 
  const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -2324,3 +2329,5 @@ function fecharModalEspecifico(idModal) {
         modal.style.display = 'none';
     }
 }
+
+
