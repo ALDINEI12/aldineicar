@@ -1,55 +1,108 @@
 /* ==========================================================================
-   ALDINEICAR - PALETA DE CORES IDENTICA À IMAGEM
+   ALDINEICAR - VARIÁVEIS DE COR (IDENTICAS À IMAGEM image_fe7ce6.png)
    ========================================================================== */
 :root {
-    --bg-principal: #131926;       /* Fundo geral escuro azulado */
-    --bg-card: #1b2333;            /* Fundo dos painéis e blocos */
-    --cor-borda: #242f41;          /* Divisores sutis */
-    --texto-principal: #ffffff;
-    --texto-secundario: #8a99ad;   /* Cinza azulado das labels */
-    
-    /* Cores de Destaque */
+    --bg-principal: #131926;       /* Fundo geral escuro azulado da imagem */
+    --bg-card: #1b2333;            /* Fundo dos painéis, cards e resumo */
+    --cor-borda: #242f41;          /* Divisores sutis entre elementos */
+    --texto-principal: #ffffff;    /* Texto branco puro */
+    --texto-secundario: #8a99ad;   /* Cinza azulado para labels e subtextos */
     --azul-selecao: #1e293b;       /* Fundo do botão ativo na sidebar */
+    
+    /* Cores de Feedback e Status */
     --verde-sucesso: #10b981;
+    --verde-hover: #059669;
     --vermelho-erro: #ef4444;
+    --vermelho-hover: #dc2626;
     --laranja-alerta: #f59e0b;
     --fonte: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: var(--fonte);
+/* ==========================================================================
+   CONFIGURAÇÕES GERAIS
+   ========================================================================== */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: var(--fonte); 
 }
 
-body {
-    background-color: var(--bg-principal);
-    color: var(--texto-principal);
-    -webkit-font-smoothing: antialiased;
+body { 
+    background-color: var(--bg-principal); 
+    color: var(--texto-principal); 
+    -webkit-font-smoothing: antialiased; 
 }
 
 /* ==========================================================================
-   ESTRUTURA DE LAYOUT (SIDEBAR INTEGRADA E CONTEÚDO)
+   HEADER / TOPO DO SISTEMA
    ========================================================================== */
-.container {
-    display: flex;
-    min-height: 100vh;
+header { 
+    background: #09090b; 
+    color: white; 
+    padding: 0 28px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    height: 72px; 
+    border-bottom: 1px solid var(--cor-borda); 
 }
 
-/* Menu Lateral Premium (Estilo image_fe7ce6.png) */
-.sidebar {
-    width: 260px;
-    background: #18202e;
-    padding: 32px 0 20px 0;
-    border-right: 1px solid var(--cor-borda);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.logo-container { 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+}
+
+.logo-img { 
+    height: 42px; 
+    width: auto; 
+    object-fit: contain; 
+}
+
+.search { 
+    width: 35%; 
+    padding: 12px 18px; 
+    border-radius: 12px; 
+    border: 1px solid var(--cor-borda); 
+    background: #141b27; 
+    color: white; 
+    font-size: 14px; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.search::placeholder { 
+    color: var(--texto-secundario); 
+}
+
+.search:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+    background: #141b27; 
+    box-shadow: 0 0 0 1px #3b82f6; 
+}
+
+/* ==========================================================================
+   ESTRUTURA DE LAYOUT PRINCIPAL
+   ========================================================================== */
+.container { 
+    display: flex; 
+    min-height: calc(100vh - 72px); 
+}
+
+/* Menu Lateral - Integrado e Escuro como na Imagem */
+.sidebar { 
+    width: 260px; 
+    background: #18202e; 
+    padding: 32px 0 20px 0; 
+    border-right: 1px solid var(--cor-borda); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
     flex-shrink: 0;
 }
 
-/* Logo Aldineicar no topo da Sidebar */
+/* Logo Aldineicar no topo da Sidebar (Igual ao print) */
 .sidebar-logo {
     font-size: 20px;
     font-weight: 800;
@@ -60,97 +113,269 @@ body {
     text-transform: uppercase;
 }
 
-.sidebar h2 {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 16px;
-    color: var(--texto-secundario);
-    padding-left: 24px;
-    font-weight: 700;
+.sidebar h2 { 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    margin-bottom: 16px; 
+    color: var(--texto-secundario); 
+    padding-left: 24px; 
+    font-weight: 700; 
 }
 
-.sidebar button {
-    width: calc(100% - 16px);
+.sidebar button { 
+    width: calc(100% - 16px); 
     margin: 0 8px;
-    padding: 12px 16px;
-    background: transparent;
-    color: var(--texto-secundario);
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    padding: 12px 16px; 
+    background: transparent; 
+    color: var(--texto-secundario); 
+    border: none; 
+    border-radius: 8px; 
+    font-size: 15px; 
+    font-weight: 500; 
+    cursor: pointer; 
+    text-align: left; 
+    transition: all 0.15s ease; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
 }
 
-.sidebar button:hover {
-    background: rgba(255, 255, 255, 0.02);
-    color: var(--texto-principal);
+.sidebar button:hover { 
+    background: rgba(255, 255, 255, 0.02); 
+    color: var(--texto-principal); 
 }
 
-/* Item Ativo com o visual da imagem */
-.sidebar button.active {
-    background: var(--azul-selecao);
-    color: var(--texto-principal);
-    font-weight: 600;
+/* Estado Ativo do Menu da Imagem */
+.sidebar button.active { 
+    background: var(--azul-selecao); 
+    color: var(--texto-principal); 
+    font-weight: 600; 
 }
 
-/* Botão Sair Estilizado na Base */
-.sidebar .btn-logout {
-    background: transparent;
-    color: var(--vermelho-erro);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    text-align: center;
-    font-weight: 600;
-    margin-top: auto;
-    justify-content: center;
+/* Botão Sair Premium na Base da Sidebar */
+.sidebar .btn-logout { 
+    background: transparent; 
+    color: var(--vermelho-erro); 
+    border: 1px solid rgba(239, 68, 68, 0.3); 
+    text-align: center; 
+    font-weight: 600; 
+    margin-top: auto; 
+    justify-content: center; 
     width: calc(100% - 32px);
     margin-left: 16px;
     margin-right: 16px;
 }
 
-.sidebar .btn-logout:hover {
-    background: var(--vermelho-erro);
-    color: white;
+.sidebar .btn-logout:hover { 
+    background: var(--vermelho-erro); 
+    color: white; 
+    border-color: var(--vermelho-hover);
 }
 
 /* Área de Conteúdo Principal */
-.content {
-    flex: 1;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    max-width: 1440px;
-    margin: 0;
-    width: 100%;
+.content { 
+    flex: 1; 
+    padding: 40px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 32px; 
+    max-width: 1440px; 
+    margin: 0 auto; 
+    width: 100%; 
 }
 
-.content h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--texto-principal);
-    margin-bottom: 8px;
+.main-layout { 
+    display: flex; 
+    gap: 36px; 
+    align-items: flex-start; 
 }
 
-.main-layout {
-    display: flex;
-    gap: 28px;
-    align-items: flex-start;
-    width: 100%;
-}
-
-.aba-container {
-    flex: 1;
+.aba-container { 
+    flex: 1; 
 }
 
 /* ==========================================================================
-   GRID DE CARDS FINANCEIROS (LADO DIREITO DA IMAGEM)
+   BOTÕES GERAIS E INTERAÇÕES
+   ========================================================================== */
+.top-actions { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+}
+
+.top-actions button { 
+    padding: 12px 24px; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.top-actions button:hover { 
+    transform: translateY(-1px); 
+}
+
+.btn-primary { 
+    background: #3b82f6; 
+    color: white; 
+}
+
+.btn-primary:hover { 
+    background: #2563eb; 
+}
+
+.btn-green { 
+    background: var(--verde-sucesso); 
+    color: white; 
+}
+
+.btn-green:hover { 
+    background: var(--verde-hover); 
+}
+
+/* Botão de Adicionar Serviço dentro da OS */
+.add-servico-btn { 
+    width: 100%; 
+    padding: 14px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    background: rgba(16, 185, 129, 0.1); 
+    color: var(--verde-sucesso); 
+    border: 1px solid rgba(16, 185, 129, 0.2); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+}
+
+.add-servico-btn:hover { 
+    background: var(--verde-sucesso); 
+    color: white;
+}
+
+/* Botão do WhatsApp Customizado */
+button[onclick*="enviarWhatsApp"] { 
+    background: #075e54 !important; 
+    color: white !important; 
+    font-weight: 700; 
+    border-radius: 8px; 
+    transition: 0.2s; 
+}
+
+button[onclick*="enviarWhatsApp"]:hover { 
+    background: #128c7e !important; 
+}
+
+/* ==========================================================================
+   GRID DE CARDS (VITRINE / PRODUTOS)
+   ========================================================================== */
+.cards { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    gap: 24px; 
+}
+
+.card { 
+    background: var(--bg-card); 
+    border-radius: 12px; 
+    padding: 24px; 
+    border: 1px solid var(--cor-borda); 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    min-height: 180px; 
+}
+
+.card:hover { 
+    border-color: #3b82f6; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); 
+}
+
+.card h3 { 
+    font-size: 14px; 
+    color: var(--texto-principal); 
+    font-weight: 600; 
+    line-height: 1.5; 
+    margin-bottom: 8px; 
+}
+
+.preco { 
+    color: var(--texto-principal); 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 12px 0; 
+    letter-spacing: -0.5px; 
+}
+
+.controls { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: var(--bg-principal); 
+    padding: 4px; 
+    border-radius: 30px; 
+    margin-top: auto; 
+    border: 1px solid var(--cor-borda); 
+}
+
+.controls button { 
+    width: 32px; 
+    height: 32px; 
+    border: none; 
+    border-radius: 50%; 
+    font-size: 16px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: all 0.1s ease; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.controls button:active { 
+    transform: scale(0.9); 
+}
+
+.btn-plus { 
+    background: #3b82f6; 
+    color: white; 
+}
+
+.btn-plus:hover { 
+    background: #2563eb; 
+}
+
+.btn-minus { 
+    background: var(--bg-card); 
+    color: var(--texto-secundario); 
+    border: 1px solid var(--cor-borda) !important; 
+}
+
+.btn-minus:hover { 
+    background: var(--bg-principal); 
+    color: var(--texto-principal); 
+}
+
+.qtd { 
+    font-size: 14px; 
+    font-weight: 700; 
+    color: var(--texto-principal); 
+    padding: 0 6px; 
+}
+
+/* ==========================================================================
+   PAINEL DE INDICADORES (LADO DIREITO DA IMAGEM image_fe7ce6.png)
    ========================================================================== */
 .painel-indicadores {
     display: flex;
@@ -184,202 +409,390 @@ body {
 .card-indicador .icon-despesas { background: rgba(239, 68, 68, 0.1); color: var(--vermelho-erro); }
 .card-indicador .icon-saldo { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
 
-.card-indicador .info {
-    display: flex;
-    flex-direction: column;
+.card-indicador .info { display: flex; flex-direction: column; }
+.card-indicador .info .label { font-size: 12px; color: var(--texto-secundario); font-weight: 500; }
+.card-indicador .info .valor { font-size: 20px; font-weight: 700; color: var(--texto-principal); margin-top: 4px; }
+
+/* ==========================================================================
+   PAINEL LATERAL DE RESUMO DE ORÇAMENTO (PRESERVAÇÃO DO :HAS)
+   ========================================================================== */
+.resumo { 
+    width: 380px; 
+    background: var(--bg-card); 
+    padding: 32px; 
+    border-radius: 16px; 
+    border: 1px solid var(--cor-borda); 
+    position: sticky; 
+    top: 32px; 
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3); 
 }
 
-.card-indicador .info .label {
-    font-size: 12px;
+.resumo h2 { 
+    font-size: 16px; 
+    font-weight: 700; 
+    margin-bottom: 24px; 
+    color: var(--texto-principal); 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 1px solid var(--cor-borda); 
+    padding-bottom: 14px; 
+}
+
+.resumo div { 
+    margin-bottom: 18px; 
+    font-size: 13px; 
+    color: var(--texto-secundario); 
+    font-weight: 600; 
+}
+
+.resumo input { 
+    width: 100%; 
+    padding: 11px 14px; 
+    margin-top: 6px; 
+    border: 1px solid var(--cor-borda); 
+    border-radius: 8px; 
+    font-size: 14px; 
+    color: var(--texto-principal); 
+    transition: all 0.15s ease; 
+    background: var(--bg-principal); 
+    font-weight: 500; 
+}
+
+.resumo input:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+    background: var(--bg-principal); 
+}
+
+/* Regras com :has para estilização condicional de inputs */
+.resumo div:has(#valorMaterial), .resumo div:has([id*="Material"]) {
+    background: var(--bg-principal); 
+    border: 1px solid var(--cor-borda); 
+    padding: 12px 16px; 
+    border-radius: 10px; 
+    margin-top: 10px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-size: 13px; 
     color: var(--texto-secundario);
-    font-weight: 500;
 }
 
-.card-indicador .info .valor {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--texto-principal);
-    margin-top: 4px;
+.resumo div:has(#valorCliente), .resumo div:has([id*="Cliente"]) {
+    background: #0d131f; 
+    color: white; 
+    padding: 20px; 
+    border-radius: 12px; 
+    margin-top: 24px; 
+    border: 1px solid var(--cor-borda); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-/* ==========================================================================
-   CARDS DE PRODUTOS / SERVIÇOS DO MEIO
-   ========================================================================== */
-.cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.card {
-    background: var(--bg-card);
-    border-radius: 12px;
-    padding: 24px;
-    border: 1px solid var(--cor-borda);
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 180px;
-}
-
-.card:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.card h3 {
-    font-size: 15px;
-    color: var(--texto-principal);
-    font-weight: 600;
-    line-height: 1.5;
-}
-
-.preco {
-    color: var(--texto-principal);
-    font-size: 22px;
-    font-weight: 700;
-    margin: 12px 0;
-}
-
-.controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-principal);
-    padding: 4px;
-    border-radius: 30px;
-    margin-top: auto;
-    border: 1px solid var(--cor-borda);
-}
-
-.controls button {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 50%;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-plus { background: #3b82f6; color: white; }
-.btn-minus { background: var(--bg-card); color: var(--texto-secundario); border: 1px solid var(--cor-borda) !important; }
-.qtd { font-size: 14px; font-weight: 700; color: var(--texto-principal); }
-
-/* ==========================================================================
-   PAINEL LATERAL DE RESUMO / ELEMENTOS LOGÍSTICOS
-   ========================================================================== */
-.resumo {
-    width: 380px;
-    background: var(--bg-card);
-    padding: 32px;
-    border-radius: 16px;
-    border: 1px solid var(--cor-borda);
-    position: sticky;
-    top: 32px;
-}
-
-.resumo h2 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--cor-borda);
-    padding-bottom: 14px;
-}
-
-.resumo input {
-    width: 100%;
-    padding: 11px 14px;
-    margin-top: 6px;
-    border: 1px solid var(--cor-borda);
+.resumo div:has(#valorCliente) input, .resumo div:has([id*="Cliente"]) input {
+    background: var(--bg-card); 
+    border: 1px solid var(--cor-borda); 
+    color: white; 
+    font-size: 22px; 
+    font-weight: 700; 
+    letter-spacing: -0.5px; 
+    padding: 12px; 
+    margin-top: 8px; 
+    text-align: center; 
     border-radius: 8px;
-    color: var(--texto-principal);
-    background: var(--bg-principal);
 }
 
-/* Inputs de logística estruturados */
-.row-inputs-logistica {
-    display: flex;
-    gap: 15px;
-    margin: 15px 0;
+.resumo div:has(#valorCliente) input:focus, .resumo div:has([id*="Cliente"]) input:focus {
+    border-color: #3b82f6;
 }
 
-.row-inputs-logistica .form-group { flex: 1; }
-.row-inputs-logistica .form-group label { display: block; font-size: 12px; font-weight: bold; color: var(--texto-secundario); margin-bottom: 5px; }
-.row-inputs-logistica .form-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--cor-borda); background-color: var(--bg-principal); color: var(--texto-principal); }
+.resumo button { 
+    width: 100%; 
+    padding: 14px; 
+    margin-top: 12px; 
+    border: none; 
+    border-radius: 10px; 
+    font-weight: 700; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+}
 
 /* ==========================================================================
-   MODAIS, TOASTS E BADGES
+   INPUTS DE LOGÍSTICA, FILTROS E LISTAS
    ========================================================================== */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
+.row-inputs-logistica { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+    margin-top: 15px; 
 }
 
-.modal-content {
-    background: var(--bg-card);
-    padding: 32px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 420px;
+.row-inputs-logistica .form-group { 
+    flex: 1; 
+}
+
+.row-inputs-logistica .form-group label { 
+    display: block; 
+    font-size: 12px; 
+    font-weight: bold; 
+    color: var(--texto-secundario); 
+    margin-bottom: 5px;
+}
+
+.row-inputs-logistica .form-group input { 
+    width: 100%; 
+    padding: 10px; 
+    border-radius: 8px; 
     border: 1px solid var(--cor-borda);
+    background-color: var(--bg-principal);
+    color: var(--texto-principal);
 }
 
-/* Badges do ciclo de vida da OS */
-.badge-status { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; text-transform: uppercase; }
-.status-orcamento { background: #334155; color: #f8fafc; }
-.status-execucao { background: #1e3a8a; color: #93c5fd; }
-.status-pronto { background: #064e3b; color: #6ee7b7; }
-.status-pago { background: #78350f; color: #fde047; }
+.cliente-item { 
+    background: var(--bg-card); 
+    padding: 24px; 
+    border-radius: 12px; 
+    margin-bottom: 16px; 
+    border: 1px solid var(--cor-borda); 
+    color: var(--texto-principal); 
+}
+
+.categorias-materiais { 
+    display: flex; 
+    gap: 6px; 
+    margin-bottom: 24px; 
+    flex-wrap: wrap; 
+}
+
+.categorias-materiais button { 
+    padding: 8px 16px; 
+    border: none; 
+    border-radius: 20px; 
+    background: var(--bg-card); 
+    color: var(--texto-secundario); 
+    font-weight: 600; 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: all 0.15s ease; 
+    border: 1px solid var(--cor-borda); 
+}
+
+.categorias-materiais button:hover { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: var(--texto-principal); 
+}
+
+.categorias-materiais button.active { 
+    background: #3b82f6; 
+    color: white; 
+    border-color: #3b82f6;
+}
+
+/* ==========================================================================
+   MODAIS, CICLO DE VIDA DA OS E ALERTAS (TOAST)
+   ========================================================================== */
+.modal { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(9, 9, 11, 0.7); 
+    backdrop-filter: blur(4px); 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 999; 
+}
+
+.modal-content { 
+    background: #09090b; 
+    padding: 32px; 
+    border-radius: 12px; 
+    width: 90%; 
+    max-width: 420px; 
+    color: white; 
+    max-height: 85vh; 
+    overflow-y: auto; 
+    border: 1px solid var(--cor-borda); 
+}
+
+.modal-content h3 { 
+    font-size: 16px; 
+    margin-bottom: 16px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    color: #fff; 
+}
+
+.modal-content input, .modal-content select { 
+    width: 100%; 
+    padding: 12px; 
+    margin: 6px 0 16px 0; 
+    border: 1px solid #27272a; 
+    border-radius: 8px; 
+    color: white; 
+    background: #141416; 
+    font-size: 14px; 
+}
+
+.modal-content input:focus, .modal-content select:focus { 
+    outline: none; 
+    border-color: #3b82f6; 
+}
+
+.modal-content button { 
+    width: 100%; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 8px; 
+    margin-top: 6px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    cursor: pointer; 
+}
+
+/* Status das Ordens de Serviço */
+.badge-status { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: inline-block; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+.status-orcamento { background: #475569; color: #f8fafc; }
+.status-execucao { background: #1e40af; color: #dbeafe; }
+.status-pronto { background: #15803d; color: #dcfce7; }
+.status-pago { background: #854d0e; color: #fef08a; }
+
+.select-status-inline { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid var(--cor-borda); 
+    font-size: 13px; 
+    background: var(--bg-principal); 
+    font-weight: 600; 
+    cursor: pointer; 
+    color: var(--texto-principal); 
+    outline: none; 
+}
+.select-status-inline:focus { border-color: #3b82f6; }
 
 /* Notificações Toast */
-#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
-.toast { padding: 14px 20px; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; }
-.toast-sucesso { background-color: var(--verde-sucesso); }
-.toast-erro { background-color: var(--vermelho-erro); }
+#toast-container { 
+    position: fixed; 
+    bottom: 24px; 
+    right: 24px; 
+    z-index: 10000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    pointer-events: none; 
+}
+
+.toast { 
+    pointer-events: auto; 
+    min-width: 280px; 
+    max-width: 380px; 
+    padding: 14px 20px; 
+    border-radius: 8px; 
+    color: white; 
+    font-size: 14px; 
+    font-weight: 600; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    transform: translateY(20px); 
+    opacity: 0; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.toast.toast-ativo { transform: translateY(0); opacity: 1; }
+.toast-sucesso { background-color: var(--verde-sucesso); border-left: 5px solid var(--verde-hover); }
+.toast-erro { background-color: var(--vermelho-erro); border-left: 5px solid var(--vermelho-hover); }
+.toast-aviso { background-color: var(--laranja-alerta); border-left: 5px solid #d97706; }
 
 /* Botão Flutuante Mobile */
 #btn-resumo-flutuante {
-    position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
-    background: #3b82f6; color: white; border: none; font-size: 24px; z-index: 1000; display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    display: none; 
 }
 
 /* ==========================================================================
-   DESIGN RESPONSIVO (MOBILE)
+   DESIGN RESPONSIVO (MOBILE SEM PERDAS)
    ========================================================================== */
-@media(max-width: 992px) {
-    .container { flex-direction: column; }
+@media(max-width:992px){
+    header { height: auto; padding: 16px; flex-direction: column; gap: 12px; align-items: stretch; }
+    .search { width: 100%; padding: 11px 14px; font-size: 14px; }
+    .logo-container { justify-content: center; }
     
-    .sidebar {
-        width: 100%;
-        flex-direction: row;
-        padding: 16px;
-        overflow-x: auto;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--cor-borda);
+    .container { flex-direction:column; min-height: auto; }
+    
+    .sidebar { 
+        width:100%; 
+        display:flex; 
+        flex-direction: row; 
+        gap:6px; 
+        overflow-x:auto; 
+        padding: 12px; 
+        height: auto; 
+        border-right: none; 
+        border-bottom: 1px solid var(--cor-borda); 
+        background: #18202e; 
+        scrollbar-width: none; 
     }
-    
+    .sidebar::-webkit-scrollbar { display: none; }
     .sidebar-logo, .sidebar h2 { display: none; }
+    .sidebar button { min-width:120px; text-align: center; justify-content: center; padding: 10px; font-size: 13px; background: var(--bg-principal); white-space: nowrap; flex-shrink: 0; margin: 0; }
     
-    .sidebar button {
-        min-width: 120px;
-        text-align: center;
-        justify-content: center;
-        margin: 0;
+    .sidebar .btn-logout { 
+        margin-top: 0 !important; 
+        min-width: 80px !important; 
+        padding: 10px !important;
+        font-size: 13px !important;
+        margin-left: 0;
+        margin-right: 0;
     }
     
-    .main-layout { flex-direction: column; }
-    .painel-indicadores { width: 100%; }
-    .resumo { display: none; width: 100%; }
+    .content { padding: 16px; gap: 20px; }
+    .main-layout { flex-direction: column; gap: 20px; width: 100%; }
+    
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .card { padding: 16px; border-radius: 12px; min-height: 150px; }
+    .card h3 { font-size: 13px; }
+    .preco { font-size: 16px; margin: 4px 0; }
+    .controls button { width: 28px; height: 28px; font-size: 14px; }
+    
+    .top-actions { gap: 8px; }
+    .top-actions button { flex: 1; min-width: 130px; padding: 12px; font-size: 13px; justify-content: center; }
+
     #btn-resumo-flutuante { display: flex; align-items: center; justify-content: center; }
+    
+    .resumo {
+        display: none; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2000;
+        overflow-y: auto;
+        border-radius: 0;
+        padding: 20px;
+        background: var(--bg-card);
+    }
 }
