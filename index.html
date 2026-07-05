@@ -5,255 +5,499 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
     
-
-    
-    <!-- Bibliotecas externas necessárias -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-   
 </head>
 <body>
 
-    <!-- Overlay de Login -->
-    <div id="loginOverlay" class="modal-overlay" style="display: flex;">
-        <div class="modal-box" style="text-align: center;">
-            <h1 class="logo-text" style="font-size: 28px; margin-bottom: 8px;">ALDINEI<span>CAR</span></h1>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">Sistema Profissional</p>
+   <div id="visao-cliente-externo" style="display: none; min-height: 100vh; background-color: #09090b; color: #fafafa; flex-direction: column;">
+    <header style="background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">ALDINEI<span style="color: #e11d48;">CAR</span></span>
+            <span style="font-size: 11px; background: #1e1e24; color: #a1a1aa; padding: 2px 8px; border-radius: 20px; font-weight: 600; border: 1px solid #27272a;">Vitrine Oficial</span>
+        </div>
+        <button onclick="abrirModalOrcamentoCliente()" style="background: #e11d48; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;">
+            🛠️ Solicitar Reparo / Orçamento
+        </button>
+    </header>
 
-            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-                <button id="tabLogin" onclick="toggleTab('login')" class="btn btn-accent" style="flex: 1;">Entrar</button>
-                <button id="tabSignup" onclick="toggleTab('signup')" class="btn btn-secondary" style="flex: 1;">Cadastrar</button>
+    <div style="max-width: 1200px; width: 100%; margin: 25px auto 0 auto; padding: 0 20px;">
+        <div style="background: linear-gradient(135deg, #18181b 0%, #09090b 100%); border: 1px solid #27272a; padding: 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Precisa de Manutenção ou Peças Específicas?</h2>
+                <p style="font-size: 13px; color: #a1a1aa;">Escolha um produto abaixo ou envie os detalhes do seu veículo para nossa equipe.</p>
+            </div>
+            <button onclick="abrirModalOrcamentoCliente()" style="background: transparent; color: #ffffff; border: 1px solid #3f3f46; padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                Iniciar Agendamento
+            </button>
+        </div>
+    </div>
+
+    <main style="max-width: 1200px; width: 100%; margin: 0 auto; padding: 30px 20px; flex: 1;">
+        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 20px; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px;">
+            <span style="width: 4px; height: 16px; background: #e11d48; display: inline-block; border-radius: 2px;"></span>
+            Produtos & Componentes Disponíveis
+        </h3>
+        
+        <div id="vitrine-publica-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+            </div>
+    </main>
+
+    <footer style="background: #09090b; border-top: 1px solid #1e1e24; text-align: center; padding: 20px; color: #71717a; font-size: 12px; margin-top: 40px;">
+        &copy; 2026 ALDINEICAR. Todos os direitos reservados.
+    </footer>
+</div>
+
+<div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: #18181b; border: 1px solid #27272a; padding: 30px; border-radius: 12px; width: 95%; max-width: 460px; color: #fafafa;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Solicitar Orçamento / Manutenção</h3>
+        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Preencha os dados básicos abaixo para nossa oficina te retornar.</p>
+        
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Nome</label>
+        <input type="text" id="cliOrcNome" placeholder="Ex: Marcos Silva" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
+        
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Telefone / WhatsApp</label>
+        <input type="text" id="cliOrcTelefone" placeholder="Ex: (11) 99999-9999" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
+
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
+        <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
+        
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
+        <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito que o carro apresenta..." style="width: 100%; height: 90px; margin-bottom: 20px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Enviar para Oficina</button>
+            <button onclick="fecharModalOrcamentoCliente()" style="flex: 1; padding: 12px; background: #27272a; color: #a1a1aa; border: 1px solid #3f3f46; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Voltar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalCompraProduto" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
+    <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:420px; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 1px solid #2c2c2e; color: #ffffff;">
+        <h3 id="compraProdutoNome" style="margin-top:0; color:#ffffff; font-size: 18px; font-weight: 700;">Finalizar Compra</h3>
+        <p id="compraProdutoPreco" style="font-weight:700; color:#22c55e; margin-top: 8px; font-size: 16px;"></p>
+        <p id="compraProdutoDisponivel" style="font-size:12px; color:#a1a1aa; margin-top: 2px;"></p>
+        
+        <hr style="border: 0; border-top: 1px solid #2c2c2e; margin: 16px 0;">
+        
+        <div style="margin-bottom: 14px;">
+            <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
+            <input type="number" id="compraQtd" value="1" min="1" oninput="calcularTotalCompra()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+        </div>
+
+        <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
+            <span id="compraTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ 0,00</span>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
+            <input type="text" id="compraNomeCliente" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
+            <input type="text" id="compraTelCliente" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button onclick="fecharModalCompra()" style="background:#3a3a3c; color:#ffffff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size: 13px; cursor:pointer;">Cancelar</button>
+            <button onclick="processarPagamentoPix()" style="background:#22c55e; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; font-size: 13px; cursor:pointer;">Pagar via PIX</button>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+function mostrarSecao(id) {
+    // Esconde todas as seções (lista os IDs das seções existentes)
+    const secoes = ['secao-loja', 'secao-vendas', 'secao-historico']; 
+    secoes.forEach(secaoId => {
+        const elemento = document.getElementById(secaoId);
+        if (elemento) elemento.style.display = 'none';
+    });
+
+    // Mostra a seção escolhida
+    const alvo = document.getElementById(id);
+    if (alvo) {
+        alvo.style.display = 'block';
+    } else {
+        console.error("Seção não encontrada: " + id);
+    }
+}
+</script>
+
+    
+
+<button id="btn-resumo-flutuante" onclick="abrirResumoMobile()">
+    <span>📋</span>
+</button>
+
+    <div id="loginOverlay" style="display:flex; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; z-index:9999;">
+        <div style="background:#1e1e1e; padding:35px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
+            <h1 style="color:#ffd700; margin-bottom:8px;">ALDINEICAR</h1>
+            <p style="color:#888; margin-bottom:25px;">Sistema Profissional</p>
+
+            <div style="display:flex; gap:8px; margin-bottom:20px;">
+                <button id="tabLogin" onclick="toggleTab('login')" style="flex:1; padding:12px; background:#ffd700; color:#111; border:none; border-radius:10px; font-weight:bold;">Entrar</button>
+                <button id="tabSignup" onclick="toggleTab('signup')" style="flex:1; padding:12px; background:transparent; color:white; border:2px solid #444; border-radius:10px; font-weight:bold;">Cadastrar</button>
             </div>
 
             <div id="loginForm">
-                <input type="email" id="loginEmail" placeholder="Email">
-                <input type="password" id="loginPassword" placeholder="Senha">
-                <button onclick="handleLogin()" class="btn btn-accent" style="width: 100%; padding: 12px;">Entrar no Sistema</button>
+                <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="password" id="loginPassword" placeholder="Senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <button onclick="handleLogin()" style="width:100%; padding:14px; background:#d40000; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Entrar</button>
             </div>
 
-            <div id="signupForm" style="display: none;">
-                <input type="text" id="signupName" placeholder="Nome completo">
-                <input type="email" id="signupEmail" placeholder="Email">
-                <input type="password" id="signupPassword" placeholder="Senha (mín. 6 caracteres)">
-                <button onclick="handleSignup()" class="btn btn-green" style="width: 100%; padding: 12px;">Criar Conta</button>
+            <div id="signupForm" style="display:none;">
+                <input type="text" id="signupName" placeholder="Nome completo" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="email" id="signupEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="password" id="signupPassword" placeholder="Senha (mín. 6 caracteres)" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <button onclick="handleSignup()" style="width:100%; padding:14px; background:#00a651; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Criar Conta</button>
             </div>
         </div>
     </div>
 
-    <!-- Header Principal do App -->
-    <header>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div id="headerLogoContainer" class="logo-text">
-                ALDINEI<span>CAR</span>
-            </div>
-            <span id="statusRedeBadge" class="badge" style="background: #10b981; color: white;">● Online</span>
-        </div>
-        <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
-    </header>
 
-    <!-- Estrutura Principal da Aplicação -->
-    <div class="app-container">
-        <!-- Sidebar Esquerda -->
-        <div class="sidebar">
-            <div class="sidebar-menu">
-                <h2>Menu Principal</h2>
-                <button onclick="mostrarAba('materiais')" class="active">📦 Materiais</button>
-                <button onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
+    <div id="appContainer">
+        <header>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="logo-container" id="headerLogoContainer">
+                    <span id="headerTextoFallback" style="font-weight: bold; font-size: 20px; display: none;">ALDINEICAR</span>
+                </div>
+                <span id="statusRedeBadge" style="padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #10b981; color: white; transition: all 0.3s ease;">
+                    ● Online
+                </span>
+            </div>
+            <input type="text" class="search" placeholder="Buscar materiais..." onkeyup="buscar(this.value)">
+        </header>
+
+        <div class="container">
+           <div class="sidebar">
+            <div>
+                <h2>Menu</h2>
+                <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
+                <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
-                <button onclick="mostrarAba('loja')">🏪 Minha Vitrine</button>
-                <button onclick="mostrarAba('vendas')">💰 Vendas Diretas</button>
-                <button onclick="abrirModalOficina()" style="border: 1px dashed #444; margin-top: 15px;">⚙️ Configurar Oficina</button>
+                <button onclick="mostrarAba('loja')">Minha Loja</button>
+              <button onclick="mostrarSecao('secao-vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
+                <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
-            <button onclick="handleLogout()" class="btn btn-logout">🚪 Sair do Sistema</button>
-        </div>
+            <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
+           </div>
 
-        <!-- Conteúdo das Abas Dinâmicas -->
-        <div class="content">
-            <div class="top-actions">
-                <button class="btn btn-accent" onclick="abrirModalNovoMaterial()">➕ Novo Material</button>
-                <button class="btn btn-green" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
-                <button class="btn btn-secondary" onclick="gerarPDFdoResumo()">📄 Gerar PDF</button>
-            </div>
-
-            <div class="main-layout">
-                <!-- Painel de Gerenciamento à Esquerda -->
-                <div class="aba-container">
-                    
-                    <!-- Aba Materiais -->
-                    <div id="aba-materiais">
-                        <div class="categorias-pills" id="botoesCategorias">
-                            <button onclick="filtrarCategoria('Todos')" class="active">Todos</button>
-                        </div>
-                        <div class="grid-cards" id="lista"></div>
-                    </div>
-
-                    <!-- Aba Mão de Obra -->
-                    <div id="aba-maoobra" style="display: none;">
-                        <h2 style="margin-bottom: 15px;">Gerenciamento de Serviços</h2>
-                        <div style="background: var(--bg-main); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-                            <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço">
-                            <input type="number" id="valorServico" placeholder="Valor da mão de obra">
-                            <button class="btn btn-green" onclick="adicionarMaoObra()">＋ Adicionar Serviço</button>
-                        </div>
-                        <div id="listaMaoObra"></div>
-
-                        <!-- Configurações de Logística para Eletricistas -->
-                        <div id="conteudo-logistica-eletricista" style="display: none; margin-top: 20px; padding: 20px; background: #111; border-radius: 8px; border: 1px solid var(--border-color);">
-                            <h4 style="color: var(--accent); margin-bottom: 10px;">📋 CÁLCULO DE DESLOCAMENTO</h4>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <input type="number" id="km-diario" value="40" placeholder="KM Diários" oninput="atualizarResumo()">
-                                <input type="number" id="dias-trabalho" value="15" placeholder="Dias de Trabalho" oninput="atualizarResumo()">
-                                <input type="number" id="preco-gasolina" value="6.00" step="0.01" placeholder="Preço Litro" oninput="atualizarResumo()">
-                                <input type="number" id="consumo-carro" value="10" placeholder="Consumo km/L" oninput="atualizarResumo()">
-                            </div>
-                            <div style="margin-top: 15px; display: flex; justify-content: space-between;">
-                                <span>Custo do Transporte:</span>
-                                <strong id="custo-gasolina-txt" style="color: var(--accent);">R$ 0,00</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Aba Clientes -->
-                    <div id="aba-clientes" style="display: none;">
-                        <h2>Clientes Cadastrados</h2>
-                        <div id="listaClientes" style="margin-top: 15px;"></div>
-                    </div>
-
-                    <!-- Aba Histórico -->
-                    <div id="aba-historico" style="display: none;">
-                        <h2>Histórico de Orçamentos</h2>
-                        <div id="historicoLista" style="margin-top: 15px;"></div>
-                    </div>
-
-                    <!-- Aba Loja Vitrine -->
-                    <div id="aba-loja" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3>Vitrine Pública de Produtos</h3>
-                            <button onclick="prepararNovoProduto()" class="btn btn-accent">+ Adicionar Produto</button>
-                        </div>
-                        <div id="vitrine-produtos" class="grid-cards"></div>
-                    </div>
-
-                    <!-- Aba Vendas Diretas -->
-                    <div id="aba-vendas" style="display: none;">
-                        <h3>💰 Histórico de Vendas Diretas</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID Venda</th>
-                                    <th>Data</th>
-                                    <th>Cliente</th>
-                                    <th>Produto</th>
-                                    <th>Qtd</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-vendas-corpo"></tbody>
-                        </table>
-                    </div>
-
+            <div class="content">
+                <div class="top-actions">
+                    <button class="btn-primary" onclick="abrirModal()">➕ Novo Material</button>
+                    <button class="btn-green" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+                    <button class="btn-primary" onclick="gerarPDFdoResumo()">📄 Gerar PDF</button>
                 </div>
 
-                <!-- Painel Resumo Fixo à Direita -->
-                <div class="resumo">
-                    <h2>Resumo Financeiro</h2>
-                    <div style="font-size: 14px; color: var(--text-muted);">Custo Materiais: <span style="color: white; font-weight: bold;">R$ <span id="totalMateriais">0.00</span></span></div>
-                    <div style="font-size: 14px; color: var(--text-muted);">Mão de Obra: <span style="color: white; font-weight: bold;">R$ <span id="totalMaoObra">0.00</span></span></div>
-                    
-                    <hr style="border-color: var(--border-color);">
-                    <h3 style="font-size: 12px; color: var(--text-muted);">DADOS DO CLIENTE</h3>
-                    <input type="text" id="clienteNome" placeholder="Nome do cliente">
-                    <input type="text" id="clienteEndereco" placeholder="Endereço">
-                    <input type="text" id="clienteTel" placeholder="Telefone">
-                    <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátiro Dias/BA">
+                <div class="main-layout">
+                    <div class="aba-container">
+                        
+                        <div id="aba-materiais">
+                            <div class="categorias-materiais" id="botoesCategorias">
+                                <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
+                                <button onclick="filtrarCategoria('Primer')">Primer</button>
+                                <button onclick="filtrarCategoria('Tintas')">Tintas</button>
+                                <button onclick="filtrarCategoria('Verniz')">Verniz</button>
+                                <button onclick="filtrarCategoria('Massa')">Massa</button>
+                                <button onclick="filtrarCategoria('Thinner')">Thinner</button>
+                                <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+                            </div>
+                            <div class="cards" id="lista"></div>
+                        </div>
+                        
+                        <div id="aba-maoobra" style="display:none">
+                            <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
+                            
+                            <div id="conteudo-mao-obra-real">
+                                <div class="card" style="margin-bottom:20px; margin-top: 15px;">
+                                    <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                    <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
+                                    <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
+                                        <span>＋</span> Adicionar Serviço
+                                    </button>
+                                </div>
+                                <div id="listaMaoObra"></div>
+                            </div>
+                            
 
-                    <hr style="border-color: var(--border-color);">
-                    <h3 style="font-size: 12px; color: var(--text-muted);" id="label-dinamico-secao">VEÍCULO</h3>
-                    <input type="text" id="veiculoModelo" placeholder="Modelo">
-                    <input type="text" id="veiculoPlaca" placeholder="Placa">
-                    <input type="text" id="veiculoAno" placeholder="Ano">
-                    <input type="text" id="veiculoCor" placeholder="Cor">
-                    <input type="text" id="nomeAvaliador" placeholder="Nome do Avaliador">
-                    <input type="text" id="tipoServico" placeholder="Tipo de Serviço">
+                            <div id="conteudo-logistica-eletricista" style="display:none; margin-top:15px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <h4 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 CÁLCULO DE DESLOCAMENTO</h4>
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Preencha os dados abaixo para adicionar automaticamente o custo de gasolina ao resumo.</p>
+                            <div class="row-inputs-logistica">
+                            <div class="form-group">
+                            <label>KM Diários</label>
+                            <input type="number" id="km-diario" value="40" oninput="atualizarResumo()">
+                            </div>
+                            <div class="form-group">
+                            <label>Dias de Trabalho</label>
+                            <input type="number" id="dias-trabalho" value="15" oninput="atualizarResumo()">
+                            </div>
+                            </div>
+                            <div class="row-inputs-logistica">
+                            <div class="form-group">
+                            <label>Preço Gasolina (R$)</label>
+                            <input type="number" id="preco-gasolina" value="6.00" step="0.01" oninput="atualizarResumo()">
+                            </div>
+                            <div class="form-group">
+                            <label>Consumo (km/L)</label>
+                            <input type="number" id="consumo-carro" value="10" oninput="atualizarResumo()">
+                            </div>
+                            </div>
+                            <div style="margin-top: 20px; padding: 12px 16px; background: #fff5f5; border: 1px solid #fecdd3; border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color: #be123c;">Custo Estimado do Transporte:</strong> 
+                            <span id="custo-gasolina-txt" style="color: #e11d48; font-size: 16px; font-weight: bold;">R$ 0,00</span>
+                            </div>
+                            </div>
+                        </div>
 
-                    <hr style="border-color: var(--border-color);">
-                    <h3 style="font-size: 12px; color: var(--text-muted);">FECHAMENTO</h3>
-                    <input type="number" id="valorCliente" placeholder="Valor Total Cobrado" oninput="atualizarResumo()">
-                    
-                    <div style="font-size: 18px; font-weight: bold; margin-top: 10px;">
-                        Lucro Real: <span style="color: var(--green);">R$ <span id="lucro">0.00</span></span>
+                        <div id="aba-clientes" style="display:none">
+                            <h2>Clientes Cadastrados</h2>
+                            <div class="clientes" id="listaClientes"></div>
+                        </div>
+
+                        <!-- SUBSTITUA A SUA ABA-LOJA POR ESTA ESTRUTURA REFORÇADA -->
+<div id="aba-loja" style="display: none; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h2 style="font-size: 24px; font-weight: 800;">Minha Vitrine Pública</h2>
+            <p style="font-size: 13px; color: #64748b;">Estes produtos ficam visíveis para clientes externos que acessarem seu link.</p>
+        </div>
+        <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">+ Adicionar Produto</button>
+    </div>
+    
+    <div id="vitrine-produtos" class="grid-produtos">
+        <!-- Os cards de produtos serão renderizados aqui via JS -->
+    </div>
+</div>
+
+<!-- MODAL DE CADASTRO/EDIÇÃO DE PRODUTO AJUSTADO -->
+<div id="modal-cadastro-produto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.6); backdrop-filter: blur(4px); z-index: 5000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <h3 id="titulo-modal-produto" style="margin-bottom: 20px; font-size: 18px; font-weight: 700; color: #0f172a;">Novo Produto</h3>
+        <input type="hidden" id="editandoId">
+        
+        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">URL da Imagem do Produto</label>
+        <input type="text" id="prodImgUrl" placeholder="https://exemplo.com/imagem.jpg" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        
+        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Nome do Produto</label>
+        <input type="text" id="prodNome" placeholder="Ex: Par de Pastilhas de Freio" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Preço de Venda (R$)</label>
+                <input type="number" id="prodPreco" step="0.01" placeholder="0.00" style="width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Estoque Inicial</label>
+                <input type="number" id="prodEstoque" placeholder="0" style="width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+            </div>
+        </div>
+        
+        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Descrição / Especificações</label>
+        <textarea id="prodDesc" placeholder="Detalhes sobre a peça ou aplicação..." style="width: 100%; height: 80px; margin-bottom: 20px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; resize: none;"></textarea>
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="salvarProdutoLoja()" style="flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Salvar na Loja</button>
+            <button onclick="fecharModalProduto()" style="flex: 1; padding: 12px; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+                        <div id="aba-historico" style="display:none">
+                            <h2>Histórico de Orçamentos</h2>
+                            <div id="historicoLista" style="margin-top: 15px;"></div>
+                        </div>
                     </div>
 
-                    <button class="btn btn-green" onclick="enviarWhatsApp()">📱 Enviar via WhatsApp</button>
-                    <button class="btn btn-secondary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
+                    <div class="resumo">
+                        <h2>Resumo</h2>
+                        <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
+                        <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        
+                        <label style="font-size:12px; font-weight:bold; color:#555;">CLIENTE</label>
+                        <input type="text" id="clienteNome" placeholder="Nome do cliente">
+                        <input type="text" id="clienteEndereco" placeholder="Endereço">
+                        <input type="text" id="clienteTel" placeholder="Telefone">
+                        <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátrio Dias/BA">
+                        
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">VEÍCULO</label>
+                        <input type="text" id="veiculoModelo" placeholder="Modelo (Ex: Palio)">
+                        <input type="text" id="veiculoPlaca" placeholder="Placa">
+                        <input type="text" id="veiculoAno" placeholder="Ano">
+                        <input type="text" id="veiculoCor" placeholder="Cor">
+                        <input type="text" id="nomeAvaliador" placeholder="Nome do Avaliador">
+                        <input type="text" id="tipoServico" placeholder="Tipo de Serviço (Ex: Pintura Geral)">
+
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
+                        <label style="font-size:12px; font-weight:bold; color:#555;">FINANCEIRO</label>
+                        <input type="number" id="valorCliente" placeholder="Valor total cobrado" oninput="atualizarResumo()">
+                        
+                        <div style="margin-top: 15px; font-weight: bold; font-size: 16px;">
+                            Lucro Real: <span style="color: #00a651;">R$ <span id="lucro">0.00</span></span>
+                        </div>
+                        <button class="btn-green" onclick="enviarWhatsApp()">📱 Enviar WhatsApp</button>
+                        <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </div> 
+        </div> 
     </div>
 
-    <!-- Modal Novo Material -->
-    <div class="modal-overlay" id="modalNovoMaterial">
-        <div class="modal-box">
-            <h2>Adicionar Novo Material</h2>
-            <input type="text" id="nomeMaterial" placeholder="Nome do Material">
-            <input type="number" id="valorMaterial" placeholder="Valor Unitário">
-            <select id="categoriaMaterial"></select>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-green" onclick="salvarMaterial()">Salvar</button>
-                <button class="btn btn-secondary" onclick="fecharModalEspecifico('modalNovoMaterial')">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Vitrine/Produto -->
-    <div class="modal-overlay" id="modal-cadastro-produto">
-        <div class="modal-box">
-            <h3 id="titulo-modal-produto">Novo Produto na Loja</h3>
-            <input type="hidden" id="editandoId">
-            <input type="text" id="prodImgUrl" placeholder="URL da Imagem do Produto">
-            <input type="text" id="prodNome" placeholder="Nome do Produto">
-            <input type="number" id="prodPreco" step="0.01" placeholder="Preço de Venda">
-            <input type="number" id="prodEstoque" placeholder="Estoque Inicial">
-            <textarea id="prodDesc" placeholder="Descrição e Especificações..."></textarea>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-green" onclick="salvarProdutoLoja()">Salvar na Loja</button>
-                <button class="btn btn-secondary" onclick="fecharModalEspecifico('modal-cadastro-produto')">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Oficina -->
-    <div class="modal-overlay" id="modalOficina">
-        <div class="modal-box">
-            <h2>Dados da Oficina</h2>
-            <select id="oficinaProfissao">
-                <option value="pintor">🎨 Pintura Automotiva</option>
-                <option value="mecanico">🔧 Mecânica Geral</option>
-                <option value="eletricista">⚡ Elétrica (Construção)</option>
-                <option value="funileiro">🔨 Funilaria / Chapista</option>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>Novo Material</h2>
+            <input type="text" id="nomeMaterial" placeholder="Nome">
+            <input type="number" id="valorMaterial" placeholder="Valor">
+            <select id="categoriaMaterial" aria-label="Selecione a categoria do material">
+                <option value="Primer">Primer</option>
+                <option value="Tintas">Tintas</option>
+                <option value="Verniz">Verniz</option>
+                <option value="Massa">Massa</option>
+                <option value="Thinner">Thinner</option>
+                <option value="Acessórios">Acessórios</option>
             </select>
-            <input type="text" id="oficinaNome" placeholder="Nome Comercial">
+            <button class="btn-green" onclick="salvarMaterial()">Salvar</button>
+            <button type="button" class="btn-primary" onclick="fecharModalEspecifico('modal')">Cancelar</button>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOficina">
+        <div class="modal-content">
+            <h2>Dados da Minha Oficina</h2>
+
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">RAMO DE ATUAÇÃO / ESPECIALIDADE</label>
+            <select id="oficinaProfissao" style="background:#2d2d2d; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:6px;">
+            <option value="pintor">🎨 Pintura Automotiva</option>
+            <option value="mecanico">🔧 Mecânica Geral</option>
+            <option value="eletricista">⚡ Elétrica (Construção)</option>
+            <option value="funileiro">🔨 Funilaria / Chapista</option>
+            </select>
+            
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">LOGO DA OFICINA</label>
+            <input type="file" id="oficinaLogoFile" accept="image/*" onchange="processarNovaLogo(this)" style="background: #2d2d2d; color: white; border: none; padding: 5px;">
+            <div id="previewLogoModal" style="margin-top: 5px; text-align: center;"></div>
+            
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:10px;">NOME COMERCIAL</label>
+            <input type="text" id="oficinaNome" placeholder="Nome Comercial" value="ALDINEICAR">
+            
             <input type="text" id="oficinaCnpj" placeholder="CNPJ / CPF">
             <input type="text" id="oficinaEnd" placeholder="Endereço Completo">
             <input type="text" id="oficinaCep" placeholder="CEP e Cidade/UF">
-            <input type="text" id="oficinaFone" placeholder="Telefone">
+            <input type="text" id="oficinaFone" placeholder="Telefone(s)">
             <input type="text" id="oficinaEmail" placeholder="E-mail">
-            <input type="text" id="oficinaPix" placeholder="Chave PIX">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-green" onclick="salvarDadosOficina()">Salvar Configurações</button>
-                <button class="btn btn-secondary" onclick="fecharModalEspecifico('modalOficina')">Fechar</button>
+            <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento">
+            <button class="btn-green" onclick="salvarDadosOficina()">Salvar Dados</button>
+            <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
+        </div>
+    </div>
+
+    <input type="hidden" id="editandoId">
+
+    <div id="modalConfirmar" class="modal">
+        <div class="modal-content" style="max-width:350px; text-align:center; background:white; color:#333;">
+            <h2 style="margin-bottom:15px;">Confirmar exclusão</h2>
+            <p id="textoConfirmacao" style="margin-bottom:20px; font-size:15px; color:#666;">Deseja realmente excluir?</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="fecharConfirmacao()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#ddd; font-weight:bold; cursor:pointer;">Cancelar</button>
+                <button id="btnConfirmarAcao" style="flex:1; padding:14px; border:none; border-radius:12px; background:#d40000; color:white; font-weight:bold; cursor:pointer;">Excluir</button>
             </div>
         </div>
     </div>
 
-    <!-- Lógica JavaScript Unificada -->
+   <div id="secao-loja" class="conteudo-aba" style="display: none;">
+    <div class="header-aba">
+        <h2>Minha Loja</h2>
+        <button onclick="abrirModalCadastroProduto()">+ Novo Produto</button>
+    </div>
+    
+    <div id="vitrine-produtos" class="grid-produtos">
+        </div>
+</div>
+
+<div id="secao-vendas" style="display:none;">
+    <div style="background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; color: #0f172a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <div>
+                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
+                <p style="font-size: 13px; color: #64748b; margin: 0;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
+            </div>
+            <button onclick="renderizarListaVendasExclusiva()" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                🔄 Atualizar Lista
+            </button>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600;">
+                        <th style="padding: 12px 8px;">ID Venda</th>
+                        <th style="padding: 12px 8px;">Data</th>
+                        <th style="padding: 12px 8px;">Cliente</th>
+                        <th style="padding: 12px 8px;">Produto</th>
+                        <th style="padding: 12px 8px;">Qtd</th>
+                        <th style="padding: 12px 8px;">Total</th>
+                        <th style="padding: 12px 8px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vendas-corpo">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Clique em "Vendas de Produtos" para carregar...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+</section>
+
+<style>
+    .grid-produtos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 10px;
+    }
+    .card-produto {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .card-produto h3 { margin: 10px 0; font-size: 1rem; }
+    .card-produto p { color: #e11d48; font-weight: bold; }
+
+
+    
+
+
+    
+
+
+    
+</style>
+
     <script>
-   
-   const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
+    const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -2580,6 +2824,7 @@ function fecharModalEspecifico(idModal) {
     }
 }
 
-    </script>
+
+</script>
 </body>
 </html>
