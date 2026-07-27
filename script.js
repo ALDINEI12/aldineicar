@@ -1042,7 +1042,7 @@ async function editarProduto(id) {
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
-            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO') return;
+            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'AGENDAMENTO') return;
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
             const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
@@ -1223,7 +1223,7 @@ async function editarProduto(id) {
     }
 
    function mostrarAba(nome) {
-    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
+    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas', 'agenda'];
     ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
         if (el) el.style.display = 'none';
@@ -1248,6 +1248,11 @@ async function editarProduto(id) {
     if (nome === 'clientes') { document.getElementById('aba-clientes').style.display = 'block'; return; }
     if (nome === 'historico') { document.getElementById('aba-historico').style.display = 'block'; return; }
     if (nome === 'maoobra') { document.getElementById('aba-maoobra').style.display = 'block'; return; }
+    if (nome === 'agenda') {
+        const el = document.getElementById('aba-agenda');
+        if (el) { el.style.display = 'block'; renderAgenda(); }
+        return;
+    }
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
         if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
@@ -1904,9 +1909,24 @@ async function enviarOrcamentoCliente() {
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
     const veiculo = document.getElementById('cliOrcVeiculo').value.trim();
     const desc = document.getElementById('cliOrcDescricao').value.trim();
+    const dataAg = document.getElementById('cliOrcData') ? document.getElementById('cliOrcData').value : '';
+    const horaAg = document.getElementById('cliOrcHora') ? document.getElementById('cliOrcHora').value : '';
 
     if (!nome || !telefone || !desc) {
         alert('Por favor, preencha Nome, Telefone e a sua Solicitação!');
+        return;
+    }
+    if (!dataAg || !horaAg) {
+        alert('Escolha a data e o horário desejados para o agendamento!');
+        return;
+    }
+
+    // Não permitir data no passado
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const dataEscolhida = new Date(dataAg + 'T00:00:00');
+    if (dataEscolhida < hoje) {
+        alert('A data do agendamento não pode ser no passado.');
         return;
     }
 
@@ -1916,7 +1936,6 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // 1. Busca os dados atuais da oficina diretamente na tabela 'user_data'
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
@@ -1925,28 +1944,38 @@ async function enviarOrcamentoCliente() {
 
         if (erroBusca) throw new Error("Não foi possível localizar os dados da oficina no banco.");
 
-        // 2. Extrai ou inicializa as listas existentes do seu banco de dados
         let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
         let listaClientes = Array.isArray(dadosAtuais.clientes) ? dadosAtuais.clientes : [];
 
-        // 3. Monta o objeto do novo orçamento no padrão exato do seu sistema
-        const novoOrcamentoCliente = {
+        // Formata data BR para exibição
+        const [y, m, d] = dataAg.split('-');
+        const dataBR = `${d}/${m}/${y}`;
+
+        const novoAgendamento = {
+            id_agendamento: 'AGD-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
-            status: 'Orçamento',
-            cliente: { 
-                nome: nome, 
-                endereco: 'Pedido via Vitrine Virtual', 
-                tel: telefone, 
-                cidade: 'Sátrio Dias/BA', 
-                city: 'Sátrio Dias/BA' 
+            status: 'Agendado',
+            tipo_registro: 'AGENDAMENTO',
+            agendamento: {
+                data: dataAg,
+                hora: horaAg,
+                data_br: dataBR,
+                label: dataBR + ' às ' + horaAg
             },
-            veiculo: { 
-                modelo: veiculo || '---', 
-                placa: '---', 
-                ano: '', 
-                cor: '', 
-                avaliador: 'Vitrine Virtual',
-                tipo_servico: `[SOLICITAÇÃO VITRINE]: ${desc}` 
+            cliente: {
+                nome: nome,
+                endereco: 'Agendamento Online',
+                tel: telefone,
+                cidade: 'Sátrio Dias/BA',
+                city: 'Sátrio Dias/BA'
+            },
+            veiculo: {
+                modelo: veiculo || '---',
+                placa: '---',
+                ano: '',
+                cor: '',
+                avaliador: 'Agendamento Online',
+                tipo_servico: desc
             },
             materiais: [],
             mao_obra: [],
@@ -1958,22 +1987,19 @@ async function enviarOrcamentoCliente() {
             lucro: 0
         };
 
-        // 4. Injeta o novo pedido no início do histórico do banco
-        listaHistorico.unshift(novoOrcamentoCliente);
+        listaHistorico.unshift(novoAgendamento);
 
-        // 5. Verifica e adiciona o contato na lista de clientes se não existir
         const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
         if (!clienteExiste) {
-            listaClientes.push({ 
-                nome: nome, 
-                endereco: 'Pedido via Vitrine Virtual', 
-                tel: telefone, 
-                city: 'Sátrio Dias/BA', 
-                cidade: 'Sátrio Dias/BA' 
+            listaClientes.push({
+                nome: nome,
+                endereco: 'Agendamento Online',
+                tel: telefone,
+                city: 'Sátrio Dias/BA',
+                cidade: 'Sátrio Dias/BA'
             });
         }
 
-        // 6. Atualiza a linha existente no Supabase mesclando os novos dados
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -1985,26 +2011,26 @@ async function enviarOrcamentoCliente() {
 
         if (erroUpdate) throw erroUpdate;
 
-        // 7. Feedback de sucesso e limpeza
-        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada com sucesso para a ALDINEICAR. Você já pode fechar esta página!`);
+        alert(`Perfeito, ${nome}!\n\nSeu agendamento foi solicitado para ${dataBR} às ${horaAg}.\nA oficina entrará em contato para confirmar.\n\nObrigado!`);
         fecharModalOrcamentoCliente();
 
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
+        if (document.getElementById('cliOrcData')) document.getElementById('cliOrcData').value = '';
+        if (document.getElementById('cliOrcHora')) document.getElementById('cliOrcHora').value = '';
 
-        // Se você por acaso estiver com o painel ADM aberto na mesma máquina, atualiza visualmente
         if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
-            historico.unshift(novoOrcamentoCliente);
-            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Pedido via Vitrine Virtual', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
-            if (typeof renderHistorico === 'function') renderHistorico();
+            historico.unshift(novoAgendamento);
+            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Agendamento Online', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
+            if (typeof renderAgenda === 'function') renderAgenda();
             if (typeof renderClientes === 'function') renderClientes();
         }
 
     } catch (err) {
-        console.error("Erro na sincronização independente:", err);
-        alert(`Erro ao salvar no painel da oficina: ${err.message || 'Verifique as permissões da tabela user_data'}`);
+        console.error("Erro no agendamento:", err);
+        alert(`Erro ao enviar agendamento: ${err.message || 'Verifique as permissões da tabela user_data'}`);
     }
 }
 
@@ -2392,6 +2418,155 @@ function renderizarVendas(vendas) {
     });
 }
 
+
+
+
+// ========================================================
+// AGENDA ONLINE - Gestão de agendamentos dos clientes
+// ========================================================
+let filtroAgendaAtual = 'todos';
+
+function filtrarAgenda(status) {
+    filtroAgendaAtual = status;
+    document.querySelectorAll('.agenda-filtro').forEach(b => {
+        b.style.background = '#f1f5f9';
+        b.style.color = '#475569';
+    });
+    const btn = document.getElementById('filtro-agenda-' + status);
+    if (btn) {
+        btn.style.background = '#0f172a';
+        btn.style.color = 'white';
+    }
+    renderAgenda();
+}
+
+function renderAgenda() {
+    const container = document.getElementById('lista-agenda');
+    if (!container) return;
+
+    const lista = Array.isArray(historico) ? historico : [];
+    let agendamentos = [];
+    lista.forEach((item, idx) => {
+        if (item.tipo_registro === 'AGENDAMENTO' || (item.agendamento && item.agendamento.data)) {
+            agendamentos.push({ item, idx });
+        }
+    });
+
+    // Ordena por data do agendamento (mais próximos primeiro)
+    agendamentos.sort((a, b) => {
+        const da = (a.item.agendamento && a.item.agendamento.data) || '';
+        const ha = (a.item.agendamento && a.item.agendamento.hora) || '';
+        const db = (b.item.agendamento && b.item.agendamento.data) || '';
+        const hb = (b.item.agendamento && b.item.agendamento.hora) || '';
+        return (da + ha).localeCompare(db + hb);
+    });
+
+    if (filtroAgendaAtual !== 'todos') {
+        agendamentos = agendamentos.filter(({ item }) => (item.status || '') === filtroAgendaAtual);
+    }
+
+    if (agendamentos.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:48px 20px; background:white; border-radius:14px; border:1px solid #e2e8f0;">
+            <div style="font-size:40px; margin-bottom:12px;">📅</div>
+            <p style="color:#64748b; font-weight:600; margin:0;">Nenhum agendamento${filtroAgendaAtual !== 'todos' ? ' com este filtro' : ''}.</p>
+            <p style="color:#94a3b8; font-size:13px; margin:8px 0 0 0;">Os clientes agendam pela vitrine pública do seu link.</p>
+        </div>`;
+        return;
+    }
+
+    let html = '';
+    agendamentos.forEach(({ item, idx }) => {
+        const cliente = item.cliente || {};
+        const veiculo = item.veiculo || {};
+        const ag = item.agendamento || {};
+        const status = item.status || 'Agendado';
+
+        let badgeClass = 'agenda-badge-pendente';
+        if (status === 'Confirmado') badgeClass = 'agenda-badge-ok';
+        if (status === 'Cancelado') badgeClass = 'agenda-badge-cancel';
+        if (status === 'Concluído') badgeClass = 'agenda-badge-done';
+
+        const tel = cliente.tel || '';
+        const telLimpo = tel.replace(/\D/g, '');
+        const msgWa = encodeURIComponent(`Olá ${cliente.nome || ''}! Sobre o seu agendamento em ${ag.label || ag.data_br || ''} — ALDINEICAR`);
+
+        html += `
+        <div class="agenda-card">
+            <div class="agenda-card-left">
+                <div class="agenda-data-box">
+                    <span class="agenda-dia">${(ag.data_br || '--/--/----').split('/')[0] || '--'}</span>
+                    <span class="agenda-mes">${(ag.data_br || '').split('/')[1] || ''}/${(ag.data_br || '').split('/')[2] || ''}</span>
+                    <span class="agenda-hora">${ag.hora || '--:--'}</span>
+                </div>
+            </div>
+            <div class="agenda-card-body">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                    <div>
+                        <span class="agenda-badge ${badgeClass}">${status}</span>
+                        <h3 style="margin:8px 0 4px 0; font-size:16px; color:#0f172a;">${cliente.nome || 'Cliente'}</h3>
+                        <p style="margin:0; font-size:13px; color:#64748b;">📱 ${tel || 'Sem telefone'} · 🚗 ${veiculo.modelo || '---'}</p>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">${item.id_agendamento || ''}</span>
+                </div>
+                <p style="margin:12px 0 0 0; font-size:13px; color:#334155; background:#f8fafc; padding:10px 12px; border-radius:8px; border:1px solid #f1f5f9;">
+                    <strong>Serviço:</strong> ${veiculo.tipo_servico || 'Não informado'}
+                </p>
+                <div class="agenda-acoes">
+                    ${status === 'Agendado' ? `
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Confirmado')" class="agenda-btn agenda-btn-ok">✓ Confirmar</button>
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
+                    ` : ''}
+                    ${status === 'Confirmado' ? `
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Concluído')" class="agenda-btn agenda-btn-done">✓ Concluir</button>
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
+                    ` : ''}
+                    ${telLimpo ? `<a href="https://wa.me/55${telLimpo}?text=${msgWa}" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>` : ''}
+                    <button onclick="deletarAgendamento(${idx})" class="agenda-btn agenda-btn-del">🗑️</button>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+async function alterarStatusAgendamento(idx, novoStatus) {
+    if (idx < 0 || idx >= historico.length) return;
+    historico[idx].status = novoStatus;
+    await salvarNoBanco();
+    renderAgenda();
+    if (typeof mostrarToast === 'function') {
+        mostrarToast('Status atualizado para: ' + novoStatus, 'sucesso');
+    }
+}
+
+async function deletarAgendamento(idx) {
+    abrirConfirmacao('Deseja excluir este agendamento?', async function() {
+        if (idx < 0 || idx >= historico.length) return;
+        historico.splice(idx, 1);
+        await salvarNoBanco();
+        renderAgenda();
+        if (typeof mostrarToast === 'function') mostrarToast('Agendamento removido.', 'sucesso');
+    });
+}
+
+function prepararMinDataAgendamento() {
+    const input = document.getElementById('cliOrcData');
+    if (!input) return;
+    const hoje = new Date();
+    const y = hoje.getFullYear();
+    const m = String(hoje.getMonth() + 1).padStart(2, '0');
+    const d = String(hoje.getDate()).padStart(2, '0');
+    input.min = `${y}-${m}-${d}`;
+}
+
+// Hook: ao abrir modal do cliente, define data mínima
+const _abrirModalOrcamentoClienteOrig = typeof abrirModalOrcamentoCliente === 'function' ? abrirModalOrcamentoCliente : null;
+function abrirModalOrcamentoCliente() {
+    const modal = document.getElementById('modal-orcamento-cliente');
+    if (modal) modal.style.display = 'flex';
+    prepararMinDataAgendamento();
+}
 
 // ========================================================
 // DASHBOARD FINANCEIRO - Orçamentos, Materiais e Vendas separados
