@@ -3482,3 +3482,5 @@ function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
     payload += pixCRC16(payload);
     return payload;
 }
+
+
