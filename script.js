@@ -2048,15 +2048,18 @@ async function carregarProdutosVitrinePublica(idOficina) {
 }
 
 // ========================================================
-// COMPRA VIA PIX + QR CODE (confirmação só pelo WEBHOOK)
+// COMPRA PIX SIMPLES
+// - Gera QR com a chave PIX do dono (Configurar Oficina)
+// - Status inicial: Aguardando PIX
+// - Confirmação: dono clica "✓ Recebi" OU webhook (se configurado)
+// - Fechar o modal NÃO confirma pagamento
 // ========================================================
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 let nomeProdutoSelecionado = "";
-let dadosCompraPendente = null;
 
-function pixCRC16Local(payload) {
+function pixCRC16(payload) {
     let crc = 0xFFFF;
     for (let i = 0; i < payload.length; i++) {
         crc ^= payload.charCodeAt(i) << 8;
@@ -2067,19 +2070,19 @@ function pixCRC16Local(payload) {
     }
     return crc.toString(16).toUpperCase().padStart(4, '0');
 }
-function pixTLVLocal(id, value) {
+function pixTLV(id, value) {
     const v = String(value);
     return id + String(v.length).padStart(2, '0') + v;
 }
-function montarPayloadPixCompra({ chave, nome, cidade, valor, txid }) {
-    const chaveLimpa = String(chave).replace(/\s/g, '');
+function gerarPayloadPixSimples({ chave, nome, cidade, valor, txid }) {
+    const chaveLimpa = String(chave || '').replace(/\s/g, '');
     const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    const mai = pixTLVLocal('00', 'BR.GOV.BCB.PIX') + pixTLVLocal('01', chaveLimpa);
-    let payload = pixTLVLocal('00','01') + pixTLVLocal('26', mai) + pixTLVLocal('52','0000') + pixTLVLocal('53','986')
-        + pixTLVLocal('54', Number(valor).toFixed(2)) + pixTLVLocal('58','BR') + pixTLVLocal('59', nomeLimpo)
-        + pixTLVLocal('60', cidadeLimpa) + pixTLVLocal('62', pixTLVLocal('05', (txid||'***').substring(0,25))) + '6304';
-    payload += pixCRC16Local(payload);
+    const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
+    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
+        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
+        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
+    payload += pixCRC16(payload);
     return payload;
 }
 
@@ -2088,7 +2091,6 @@ function abrirModalCompra(id, nome, preco, estoque) {
     precoUnitarioSelecionado = parseFloat(preco) || 0;
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
     nomeProdutoSelecionado = nome;
-    dadosCompraPendente = null;
 
     if (estoqueDisponivelSelecionado <= 0) {
         alert('Desculpe, este produto está esgotado no momento!');
@@ -2128,27 +2130,25 @@ function abrirModalCompra(id, nome, preco, estoque) {
           </div>
           <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button type="button" onclick="fecharModalCompraDinamica()" style="background:#3a3a3c;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;">Cancelar</button>
-            <button type="button" onclick="gerarPixERegistrarPedido()" style="background:#22c55e;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Gerar PIX →</button>
+            <button type="button" onclick="gerarPixSimplesERegistrar()" style="background:#22c55e;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Gerar PIX →</button>
           </div>
         </div>
 
         <div id="etapaPixCompra" style="display:none;">
           <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;">Pague com PIX</h3>
-          <p style="font-size:13px;color:#a1a1aa;margin:0 0 12px;line-height:1.45;">Escaneie o QR Code ou copie o código no app do banco.<br><b style="color:#fbbf24;">A confirmação é automática</b> pelo sistema (webhook). Você não precisa confirmar manualmente.</p>
+          <p style="font-size:13px;color:#a1a1aa;margin:0 0 12px;">Escaneie o QR ou copie o código no app do banco.</p>
           <div style="text-align:center;background:#09090b;border-radius:12px;padding:16px;border:1px solid #27272a;margin-bottom:14px;">
             <p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;font-weight:600;">TOTAL A PAGAR</p>
             <p id="pixValorGrande" style="margin:0 0 14px;font-size:28px;font-weight:800;color:#22c55e;">R$ 0,00</p>
-            <div id="pixQrBox" style="display:flex;justify-content:center;margin-bottom:12px;min-height:200px;align-items:center;">
-              <canvas id="pixQrCanvas" width="200" height="200" style="background:#fff;border-radius:8px;padding:8px;"></canvas>
-            </div>
+            <div id="pixQrBox" style="display:flex;justify-content:center;margin-bottom:12px;min-height:200px;align-items:center;"></div>
             <p style="margin:0 0 6px;font-size:11px;color:#71717a;">PIX Copia e Cola</p>
             <textarea id="pixCopiaCola" readonly style="width:100%;height:70px;font-size:10px;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:8px;padding:8px;resize:none;"></textarea>
             <button type="button" onclick="copiarPixCopiaCola()" style="margin-top:8px;width:100%;padding:10px;background:#3f3f46;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">📋 Copiar código PIX</button>
           </div>
-          <p style="font-size:11px;color:#a1a1aa;margin:0 0 8px;">Chave PIX: <b style="color:#fff;">116.843.885-38</b> (Nubank)</p>
+          <p id="pixChaveInfo" style="font-size:11px;color:#a1a1aa;margin:0 0 8px;"></p>
           <p id="pixPedidoId" style="font-size:11px;color:#64748b;margin:0 0 14px;"></p>
-          <div style="background:#14532d;border:1px solid #22c55e;border-radius:8px;padding:12px;margin-bottom:14px;">
-            <p style="margin:0;font-size:12px;color:#bbf7d0;line-height:1.4;">✓ Pedido registrado como <b>Aguardando PIX</b>. Quando o pagamento for confirmado pelo webhook, o status muda para <b>Pago PIX</b> automaticamente.</p>
+          <div style="background:#422006;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:14px;">
+            <p style="margin:0;font-size:12px;color:#fde68a;line-height:1.45;"><b>Pedido aguardando pagamento.</b><br>Fechar esta tela <u>não</u> confirma o pagamento. A oficina confirma quando o valor cair na conta (ou via webhook, se configurado).</p>
           </div>
           <button type="button" onclick="fecharModalCompraDinamica()" style="width:100%;background:#3a3a3c;color:#fff;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;">Fechar</button>
         </div>
@@ -2163,7 +2163,6 @@ function calcularTotalCompraDinamica() {
     if (!inputQtd || !txtTotal) return;
     let qtd = parseInt(inputQtd.value) || 1;
     if (qtd > estoqueDisponivelSelecionado) {
-        alert('Quantidade máxima: ' + estoqueDisponivelSelecionado);
         qtd = estoqueDisponivelSelecionado;
         inputQtd.value = qtd;
     }
@@ -2172,16 +2171,16 @@ function calcularTotalCompraDinamica() {
 }
 
 function fecharModalCompraDinamica() {
+    // Só fecha a tela — NÃO altera status da venda
     const modal = document.getElementById('modalCompraProdutoDinamico');
     if (modal) modal.remove();
-    dadosCompraPendente = null;
 }
 
 function copiarPixCopiaCola() {
     const ta = document.getElementById('pixCopiaCola');
     if (!ta || !ta.value) return;
     navigator.clipboard.writeText(ta.value).then(function() {
-        alert('Código PIX copiado! Cole no app do banco.');
+        alert('Código PIX copiado!');
     }).catch(function() {
         ta.select();
         document.execCommand('copy');
@@ -2189,54 +2188,64 @@ function copiarPixCopiaCola() {
     });
 }
 
-function desenharQrPix(payload) {
-    const canvas = document.getElementById('pixQrCanvas');
-    const box = document.getElementById('pixQrBox');
-    if (typeof QRCode !== 'undefined' && canvas) {
-        try {
-            QRCode.toCanvas(canvas, payload, { width: 200, margin: 2, color: { dark: '#000', light: '#fff' } }, function(err) {
-                if (err) usarQrImagem(payload, box, canvas);
-            });
-            return;
-        } catch (e) {}
-    }
-    usarQrImagem(payload, box, canvas);
+function obterIdLojaAtual() {
+    if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) return idOficinaDaLojaAtual;
+    const p = new URLSearchParams(window.location.search);
+    return p.get('id') || p.get('loja') || p.get('user_id') || null;
 }
 
-function usarQrImagem(payload, box, canvas) {
-    const img = document.createElement('img');
-    img.alt = 'QR PIX';
-    img.width = 200;
-    img.height = 200;
-    img.style.borderRadius = '8px';
-    img.style.background = '#fff';
-    img.style.padding = '8px';
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
-    if (box) { box.innerHTML = ''; box.appendChild(img); }
-    else if (canvas && canvas.parentNode) canvas.parentNode.replaceChild(img, canvas);
-}
-
-async function obterChavePixLoja() {
-    let idDono = (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) ? idOficinaDaLojaAtual : null;
-    if (!idDono) {
-        const p = new URLSearchParams(window.location.search);
-        idDono = p.get('id') || p.get('loja') || p.get('user_id');
-    }
-    const chavePadrao = (typeof CHAVE_PIX_PADRAO !== 'undefined') ? CHAVE_PIX_PADRAO : '11684388538';
-    if (idDono) {
-        try {
-            const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idDono).single();
-            if (data && data.dados_oficina && data.dados_oficina.pix) {
-                const k = String(data.dados_oficina.pix).replace(/\D/g, '');
-                if (k.length >= 11) return { chave: k, nome: data.dados_oficina.nome || 'ALDINEICAR', idDono: idDono };
+async function obterPixDaOficina(idDono) {
+    try {
+        const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idDono).single();
+        if (data && data.dados_oficina && data.dados_oficina.pix) {
+            const pix = String(data.dados_oficina.pix).trim();
+            if (pix) {
+                return {
+                    chave: pix.replace(/\s/g, ''),
+                    nome: data.dados_oficina.nome || 'ALDINEICAR'
+                };
             }
-        } catch (e) {}
+        }
+    } catch (e) {}
+    if (typeof dadosOficina !== 'undefined' && dadosOficina && dadosOficina.pix) {
+        return {
+            chave: String(dadosOficina.pix).replace(/\s/g, ''),
+            nome: dadosOficina.nome || 'ALDINEICAR'
+        };
     }
-    return { chave: chavePadrao, nome: 'ALDINEICAR', idDono: idDono };
+    return null;
 }
 
-/** Gera QR, registra pedido como Aguardando PIX. Confirmação só via webhook. */
-async function gerarPixERegistrarPedido() {
+function desenharQrSimples(payload) {
+    const box = document.getElementById('pixQrBox');
+    if (!box) return;
+    box.innerHTML = '';
+    if (typeof QRCode !== 'undefined') {
+        const canvas = document.createElement('canvas');
+        canvas.style.background = '#fff';
+        canvas.style.borderRadius = '8px';
+        canvas.style.padding = '8px';
+        box.appendChild(canvas);
+        QRCode.toCanvas(canvas, payload, { width: 200, margin: 2 }, function(err) {
+            if (err) {
+                const img = document.createElement('img');
+                img.width = 200; img.height = 200;
+                img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
+                img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
+                box.innerHTML = '';
+                box.appendChild(img);
+            }
+        });
+    } else {
+        const img = document.createElement('img');
+        img.width = 200; img.height = 200;
+        img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
+        box.appendChild(img);
+    }
+}
+
+async function gerarPixSimplesERegistrar() {
     try {
         const inputQtd = document.getElementById('vendaQtd');
         const inputNome = document.getElementById('vendaNome');
@@ -2246,25 +2255,32 @@ async function gerarPixERegistrarPedido() {
             alert('Preencha seu nome e telefone!');
             return;
         }
+
         const qtd = parseInt(inputQtd && inputQtd.value, 10) || 1;
         if (qtd < 1 || qtd > estoqueDisponivelSelecionado) {
             alert('Quantidade inválida.');
             return;
         }
 
-        const total = qtd * precoUnitarioSelecionado;
-        const txid = 'VND' + Date.now().toString().slice(-10);
-        const idVenda = 'VND-' + Math.floor(100000 + Math.random() * 900000);
-        const nomeCliente = inputNome.value.trim();
-        const telCliente = inputTel.value.trim();
-
-        const infoPix = await obterChavePixLoja();
-        if (!infoPix.idDono) {
-            alert('Não foi possível identificar a loja.');
+        const idDono = obterIdLojaAtual();
+        if (!idDono) {
+            alert('Loja não identificada. Use o link da vitrine (?id=...).');
             return;
         }
 
-        const payload = montarPayloadPixCompra({
+        const infoPix = await obterPixDaOficina(idDono);
+        if (!infoPix || !infoPix.chave) {
+            alert('Esta oficina ainda não cadastrou a chave PIX.\n\nDono: Configurar Oficina → campo PIX → Salvar.');
+            return;
+        }
+
+        const total = qtd * precoUnitarioSelecionado;
+        const idVenda = 'VND-' + Math.floor(100000 + Math.random() * 900000);
+        const txid = idVenda.replace(/-/g, '').substring(0, 25);
+        const nomeCliente = inputNome.value.trim();
+        const telCliente = inputTel.value.trim();
+
+        const payload = gerarPayloadPixSimples({
             chave: infoPix.chave,
             nome: infoPix.nome,
             cidade: 'SATIRO DIAS',
@@ -2272,11 +2288,11 @@ async function gerarPixERegistrarPedido() {
             txid: txid
         });
 
-        // 1) Registra pedido AGUARDANDO (estoque NÃO baixa ainda — só no webhook)
+        // APENAS registra como Aguardando — NÃO confirma, NÃO baixa estoque
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('historico')
-            .eq('user_id', infoPix.idDono)
+            .eq('user_id', idDono)
             .single();
         if (erroBusca) throw new Error('Erro ao conectar na oficina.');
 
@@ -2302,20 +2318,19 @@ async function gerarPixERegistrarPedido() {
         const { error: erroUp } = await supabaseClient
             .from('user_data')
             .update({ historico: hist, updated_at: new Date() })
-            .eq('user_id', infoPix.idDono);
+            .eq('user_id', idDono);
         if (erroUp) throw erroUp;
 
-        dadosCompraPendente = { idVenda, txid, total, qtd, nome: nomeCliente };
-
-        // 2) Mostra QR
         document.getElementById('etapaDadosCompra').style.display = 'none';
         document.getElementById('etapaPixCompra').style.display = 'block';
         document.getElementById('pixValorGrande').innerText = 'R$ ' + total.toFixed(2);
         document.getElementById('pixCopiaCola').value = payload;
+        const chaveEl = document.getElementById('pixChaveInfo');
+        if (chaveEl) chaveEl.innerHTML = 'Chave PIX: <b style="color:#fff;">' + infoPix.chave + '</b>';
         const pid = document.getElementById('pixPedidoId');
-        if (pid) pid.innerText = 'Pedido: ' + idVenda + ' · TXID: ' + txid;
+        if (pid) pid.innerText = 'Pedido: ' + idVenda;
 
-        setTimeout(function() { desenharQrPix(payload); }, 50);
+        setTimeout(function() { desenharQrSimples(payload); }, 40);
 
     } catch (err) {
         console.error(err);
@@ -2323,9 +2338,49 @@ async function gerarPixERegistrarPedido() {
     }
 }
 
-// Mantido só por compatibilidade — NÃO deve ser chamado pelo cliente
+// Compatibilidade: antigo botão não deve mais confirmar sozinho
 async function processarBaixaEstoqueEPix() {
-    alert('A confirmação do pagamento é feita automaticamente pelo webhook. Pague o PIX no app do banco.');
+    alert('Use "Gerar PIX". O pagamento só é confirmado pelo dono (botão Recebi) ou pelo webhook.');
+}
+
+/** Dono confirma que o valor caiu na conta */
+async function confirmarPagamentoVenda(idxHist) {
+    if (idxHist < 0 || idxHist >= historico.length) {
+        if (typeof mostrarToast === 'function') mostrarToast('Venda não encontrada.', 'erro');
+        return;
+    }
+    const venda = historico[idxHist];
+    if ((venda.status || '') === 'Pago PIX') {
+        if (typeof mostrarToast === 'function') mostrarToast('Esta venda já está paga.', 'aviso');
+        return;
+    }
+    const total = parseFloat(venda.total_pago || 0) || 0;
+    const nomeCli = (venda.cliente && venda.cliente.nome) || '';
+    const ok = confirm('Confirmar recebimento de R$ ' + total.toFixed(2) + '?\n\nCliente: ' + nomeCli + '\nProduto: ' + (venda.produto_nome || ''));
+    if (!ok) return;
+
+    venda.status = 'Pago PIX';
+    venda.pagamento = 'PIX';
+    venda.confirmado_em = new Date().toISOString();
+    venda.confirmado_por = 'oficina';
+
+    if (venda.produto_id) {
+        try {
+            const { data: prod } = await supabaseClient
+                .from('produtos_loja')
+                .select('estoque')
+                .eq('id', venda.produto_id)
+                .maybeSingle();
+            if (prod) {
+                const novo = Math.max(0, (parseInt(prod.estoque) || 0) - (parseInt(venda.quantidade) || 1));
+                await supabaseClient.from('produtos_loja').update({ estoque: novo }).eq('id', venda.produto_id);
+            }
+        } catch (e) { console.warn(e); }
+    }
+
+    await salvarNoBanco();
+    renderizarListaVendasExclusiva();
+    if (typeof mostrarToast === 'function') mostrarToast('Pagamento confirmado!', 'sucesso');
 }
 
 
@@ -2396,6 +2451,15 @@ async function renderizarListaVendasExclusiva() {
             const statusVenda = venda.status || 'Concluído';
             const idVenda = venda.id_venda || ('#' + idxHist);
 
+            const aguardando = String(statusVenda).toLowerCase().includes('aguardando');
+            const badgeBg = aguardando ? '#fef3c7' : (String(statusVenda).toLowerCase().includes('pago') ? '#ecfdf5' : '#f1f5f9');
+            const badgeFg = aguardando ? '#b45309' : (String(statusVenda).toLowerCase().includes('pago') ? '#059669' : '#475569');
+            let acoes = '';
+            if (aguardando) {
+                acoes += `<button onclick="confirmarPagamentoVenda(${idxHist})" title="Confirmar que o PIX caiu na conta" style="background:#22c55e;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✓ Recebi</button>`;
+            }
+            acoes += `<button onclick="deletarVendaPorIndice(${idxHist})" title="Excluir" style="background:#fee2e2;color:#dc2626;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;">🗑️</button>`;
+
             linhasHTML += `
                 <tr>
                     <td style="color:#64748b;">${idVenda}</td>
@@ -2404,10 +2468,8 @@ async function renderizarListaVendasExclusiva() {
                     <td style="color:#059669; font-weight:600;">${nomeProduto}</td>
                     <td>${quantidadeItem}</td>
                     <td style="font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
-                    <td><span style="background:#ecfdf5; color:#059669; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${statusVenda}</span></td>
-                    <td>
-                        <button onclick="deletarVendaPorIndice(${idxHist})" title="Excluir venda" style="background:#fee2e2; color:#dc2626; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:14px;">🗑️</button>
-                    </td>
+                    <td><span style="background:${badgeBg};color:${badgeFg};padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;">${statusVenda}</span></td>
+                    <td style="white-space:nowrap;">${acoes}</td>
                 </tr>`;
         });
 
@@ -3038,8 +3100,7 @@ async function processarWebhookPix(payload) {
                 || (payload.id_venda && item.id_venda === payload.id_venda);
             if (match) {
                 found = true;
-                // Só baixa estoque se ainda estava aguardando
-                if ((item.status || '') === 'Aguardando PIX' && item.produto_id) {
+                if (String(item.status || '').includes('Aguardando') && item.produto_id) {
                     produtoParaBaixa = item.produto_id;
                     qtdBaixa = parseInt(item.quantidade) || 1;
                 }
@@ -3069,15 +3130,14 @@ async function processarWebhookPix(payload) {
         if (!found) return { ok: false, error: 'venda não encontrada' };
 
         await supabaseClient.from('user_data').update({ historico: hist, updated_at: new Date() }).eq('user_id', uid);
-        // Baixa estoque somente na confirmação do webhook
-        if (typeof produtoParaBaixa !== 'undefined' && produtoParaBaixa) {
+        if (produtoParaBaixa) {
             try {
                 const { data: prod } = await supabaseClient.from('produtos_loja').select('estoque').eq('id', produtoParaBaixa).maybeSingle();
                 if (prod) {
                     const novo = Math.max(0, (parseInt(prod.estoque)||0) - (qtdBaixa||1));
                     await supabaseClient.from('produtos_loja').update({ estoque: novo }).eq('id', produtoParaBaixa);
                 }
-            } catch(e) { console.warn('baixa estoque webhook', e); }
+            } catch (e) {}
         }
         if (uid === usuarioAtualId) {
             historico = hist;
