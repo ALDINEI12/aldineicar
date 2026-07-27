@@ -1550,7 +1550,14 @@ async function editarProduto(id) {
         acaoConfirmada = callback;
     }
     function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
-    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){ if(acaoConfirmada) acaoConfirmada(); fecharConfirmacao(); });
+    
+    function confirmarAcaoExclusao() {
+        if (acaoConfirmada) {
+            acaoConfirmada();
+            acaoConfirmada = null;
+        }
+        fecharConfirmacao();
+    }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
     async function deletarCliente(index){ abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){ clientes.splice(index,1); renderClientes(); await salvarNoBanco(); }); }
