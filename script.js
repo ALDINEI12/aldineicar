@@ -25,7 +25,7 @@
         cep: '', 
         fone: '', 
         email: '', 
-        pix: '', 
+        pix: '11684388538', 
         logoBase64: '',
         profissao: 'pintor'
     };
@@ -1042,7 +1042,7 @@ async function editarProduto(id) {
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
-            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'AGENDAMENTO') return;
+            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO') return;
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
             const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
@@ -1223,10 +1223,7 @@ async function editarProduto(id) {
     }
 
    function mostrarAba(nome) {
-    // Em modo vitrine pública, não troca abas do painel
-    if (window.__modoClienteVitrine) return;
-
-    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas', 'agenda'];
+    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
     ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
         if (el) el.style.display = 'none';
@@ -1251,14 +1248,8 @@ async function editarProduto(id) {
     if (nome === 'clientes') { document.getElementById('aba-clientes').style.display = 'block'; return; }
     if (nome === 'historico') { document.getElementById('aba-historico').style.display = 'block'; return; }
     if (nome === 'maoobra') { document.getElementById('aba-maoobra').style.display = 'block'; return; }
-    if (nome === 'agenda') {
-        const el = document.getElementById('aba-agenda');
-        if (el) { el.style.display = 'block'; renderAgenda(); }
-        return;
-    }
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
-        if (typeof atualizarCardLinkVitrine === 'function') atualizarCardLinkVitrine();
         if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
         else if (typeof carregarProdutosDaLoja === 'function') carregarProdutosDaLoja();
         return;
@@ -1600,22 +1591,11 @@ async function editarProduto(id) {
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (window.__modoClienteVitrine) {
-                // Vitrine pública: nunca mostra login/painel da oficina
-                const login = document.getElementById('loginOverlay');
-                const app = document.getElementById('appContainer');
-                if (login) login.style.display = 'none';
-                if (app) app.style.display = 'none';
-                return;
-            }
             if (session && session.user) {
                 await carregarDadosDoUsuario(session.user.id);
                 document.getElementById('loginOverlay').style.display = 'none';
                 const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
-                const algumaAtiva = abas.some(id => {
-                    const el = document.getElementById(id);
-                    return el && el.style.display === 'block';
-                });
+                const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
                 if (!algumaAtiva) mostrarAba('dashboard');
             } else {
                 document.getElementById('loginOverlay').style.display = 'flex';
@@ -1809,43 +1789,23 @@ window.addEventListener('error', function(e) {
 
 function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
-    // Aceita ?id=  ?loja=  ou  ?user_id=
-    const idLoja = parametrosUrl.get('id') || parametrosUrl.get('loja') || parametrosUrl.get('user_id');
+    const idLoja = parametrosUrl.get('loja');
 
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
-        window.__modoClienteVitrine = true;
         
-        // Esconde painel da oficina e login; mostra vitrine pública
+        // Esconde as telas antigas para o cliente não ver o login de empresa
         const estiloEsconder = document.createElement('style');
-        estiloEsconder.id = 'estilo-modo-cliente';
         estiloEsconder.innerHTML = `
-            #loginOverlay, #appContainer, #btn-resumo-flutuante { display: none !important; visibility: hidden !important; }
-            #visao-cliente-externo { display: flex !important; visibility: visible !important; }
+            #loginOverlay, #appContainer, .modal, .toast { display: none !important; }
+            #visao-cliente-externo { display: flex !important; }
         `;
         document.head.appendChild(estiloEsconder);
-
-        // Garante via JS também (casos de timing com auth)
-        const hideApp = () => {
-            const login = document.getElementById('loginOverlay');
-            const app = document.getElementById('appContainer');
-            const visao = document.getElementById('visao-cliente-externo');
-            if (login) { login.style.display = 'none'; }
-            if (app) { app.style.display = 'none'; }
-            if (visao) {
-                visao.style.display = 'flex';
-                visao.style.flexDirection = 'column';
-            }
-        };
-        hideApp();
-        setTimeout(hideApp, 100);
-        setTimeout(hideApp, 500);
         
+        // Chama os produtos com segurança
         setTimeout(() => {
-            if (typeof carregarProdutosVitrinePublica === 'function') {
-                carregarProdutosVitrinePublica(idLoja);
-            }
-        }, 400);
+            carregarProdutosVitrinePublica(idLoja);
+        }, 500);
 
         return true;
     }
@@ -1944,23 +1904,9 @@ async function enviarOrcamentoCliente() {
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
     const veiculo = document.getElementById('cliOrcVeiculo').value.trim();
     const desc = document.getElementById('cliOrcDescricao').value.trim();
-    const dataAg = document.getElementById('cliOrcData') ? document.getElementById('cliOrcData').value : '';
-    const horaAg = document.getElementById('cliOrcHora') ? document.getElementById('cliOrcHora').value : '';
 
     if (!nome || !telefone || !desc) {
         alert('Por favor, preencha Nome, Telefone e a sua Solicitação!');
-        return;
-    }
-    if (!dataAg || !horaAg) {
-        alert('Escolha a data e o horário desejados para o agendamento!');
-        return;
-    }
-
-    const hoje = new Date();
-    hoje.setHours(0,0,0,0);
-    const dataEscolhida = new Date(dataAg + 'T00:00:00');
-    if (dataEscolhida < hoje) {
-        alert('A data do agendamento não pode ser no passado.');
         return;
     }
 
@@ -1970,6 +1916,7 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
+        // 1. Busca os dados atuais da oficina diretamente na tabela 'user_data'
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
@@ -1978,37 +1925,28 @@ async function enviarOrcamentoCliente() {
 
         if (erroBusca) throw new Error("Não foi possível localizar os dados da oficina no banco.");
 
+        // 2. Extrai ou inicializa as listas existentes do seu banco de dados
         let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
         let listaClientes = Array.isArray(dadosAtuais.clientes) ? dadosAtuais.clientes : [];
 
-        const [y, m, d] = dataAg.split('-');
-        const dataBR = `${d}/${m}/${y}`;
-
-        const novoAgendamento = {
-            id_agendamento: 'AGD-' + Math.floor(100000 + Math.random() * 900000),
+        // 3. Monta o objeto do novo orçamento no padrão exato do seu sistema
+        const novoOrcamentoCliente = {
             data: new Date().toLocaleString('pt-BR'),
-            status: 'Agendado',
-            tipo_registro: 'AGENDAMENTO',
-            agendamento: {
-                data: dataAg,
-                hora: horaAg,
-                data_br: dataBR,
-                label: dataBR + ' às ' + horaAg
+            status: 'Orçamento',
+            cliente: { 
+                nome: nome, 
+                endereco: 'Pedido via Vitrine Virtual', 
+                tel: telefone, 
+                cidade: 'Sátrio Dias/BA', 
+                city: 'Sátrio Dias/BA' 
             },
-            cliente: {
-                nome: nome,
-                endereco: 'Agendamento Online',
-                tel: telefone,
-                cidade: 'Sátrio Dias/BA',
-                city: 'Sátrio Dias/BA'
-            },
-            veiculo: {
-                modelo: veiculo || '---',
-                placa: '---',
-                ano: '',
-                cor: '',
-                avaliador: 'Agendamento Online',
-                tipo_servico: desc
+            veiculo: { 
+                modelo: veiculo || '---', 
+                placa: '---', 
+                ano: '', 
+                cor: '', 
+                avaliador: 'Vitrine Virtual',
+                tipo_servico: `[SOLICITAÇÃO VITRINE]: ${desc}` 
             },
             materiais: [],
             mao_obra: [],
@@ -2020,19 +1958,22 @@ async function enviarOrcamentoCliente() {
             lucro: 0
         };
 
-        listaHistorico.unshift(novoAgendamento);
+        // 4. Injeta o novo pedido no início do histórico do banco
+        listaHistorico.unshift(novoOrcamentoCliente);
 
+        // 5. Verifica e adiciona o contato na lista de clientes se não existir
         const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
         if (!clienteExiste) {
-            listaClientes.push({
-                nome: nome,
-                endereco: 'Agendamento Online',
-                tel: telefone,
-                city: 'Sátrio Dias/BA',
-                cidade: 'Sátrio Dias/BA'
+            listaClientes.push({ 
+                nome: nome, 
+                endereco: 'Pedido via Vitrine Virtual', 
+                tel: telefone, 
+                city: 'Sátrio Dias/BA', 
+                cidade: 'Sátrio Dias/BA' 
             });
         }
 
+        // 6. Atualiza a linha existente no Supabase mesclando os novos dados
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -2044,29 +1985,28 @@ async function enviarOrcamentoCliente() {
 
         if (erroUpdate) throw erroUpdate;
 
-        alert('Perfeito, ' + nome + '!\n\nSeu agendamento foi solicitado para ' + dataBR + ' às ' + horaAg + '.\nA oficina entrará em contato para confirmar.');
+        // 7. Feedback de sucesso e limpeza
+        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada com sucesso para a ALDINEICAR. Você já pode fechar esta página!`);
         fecharModalOrcamentoCliente();
 
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
-        if (document.getElementById('cliOrcData')) document.getElementById('cliOrcData').value = '';
-        if (document.getElementById('cliOrcHora')) document.getElementById('cliOrcHora').value = '';
 
+        // Se você por acaso estiver com o painel ADM aberto na mesma máquina, atualiza visualmente
         if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
-            historico.unshift(novoAgendamento);
-            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Agendamento Online', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
-            if (typeof renderAgenda === 'function') renderAgenda();
+            historico.unshift(novoOrcamentoCliente);
+            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Pedido via Vitrine Virtual', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
+            if (typeof renderHistorico === 'function') renderHistorico();
             if (typeof renderClientes === 'function') renderClientes();
         }
 
     } catch (err) {
-        console.error("Erro no agendamento:", err);
-        alert('Erro ao enviar agendamento: ' + (err.message || 'Verifique as permissões'));
+        console.error("Erro na sincronização independente:", err);
+        alert(`Erro ao salvar no painel da oficina: ${err.message || 'Verifique as permissões da tabela user_data'}`);
     }
 }
-
 
 
 
@@ -2129,15 +2069,60 @@ let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 let nomeProdutoSelecionado = "";
+let dadosCompraPendente = null; // guarda dados até confirmar PIX
+const CHAVE_PIX_PADRAO = '11684388538'; // CPF Nubank
+
+// ========== GERADOR PIX (BR Code estático) ==========
+function pixCRC16(payload) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+            crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+            crc &= 0xFFFF;
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function pixTLV(id, value) {
+    const v = String(value);
+    const len = String(v.length).padStart(2, '0');
+    return id + len + v;
+}
+
+function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
+    const chaveLimpa = String(chave).replace(/\s/g, '');
+    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const valorStr = Number(valor).toFixed(2);
+    const txidLimpo = (txid || '***').substring(0, 25);
+
+    const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
+    let payload = '';
+    payload += pixTLV('00', '01'); // Payload Format Indicator
+    payload += pixTLV('26', mai);  // Merchant Account Information
+    payload += pixTLV('52', '0000'); // Merchant Category Code
+    payload += pixTLV('53', '986');  // BRL
+    payload += pixTLV('54', valorStr);
+    payload += pixTLV('58', 'BR');
+    payload += pixTLV('59', nomeLimpo);
+    payload += pixTLV('60', cidadeLimpa);
+    payload += pixTLV('62', pixTLV('05', txidLimpo));
+    payload += '6304';
+    payload += pixCRC16(payload);
+    return payload;
+}
 
 function abrirModalCompra(id, nome, preco, estoque) {
     produtoSelecionadoParaCompra = id;
     precoUnitarioSelecionado = parseFloat(preco) || 0;
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
     nomeProdutoSelecionado = nome;
+    dadosCompraPendente = null;
 
     if (estoqueDisponivelSelecionado <= 0) {
-        alert("Desculpe, este produto está esgotado no momento!");
+        alert('Desculpe, este produto está esgotado no momento!');
         return;
     }
 
@@ -2146,44 +2131,57 @@ function abrirModalCompra(id, nome, preco, estoque) {
 
     const divModal = document.createElement('div');
     divModal.id = 'modalCompraProdutoDinamico';
-    divModal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
-    
+    divModal.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);';
+
     divModal.innerHTML = `
-        <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:420px; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 1px solid #2c2c2e; color: #ffffff; font-family: sans-serif;">
-            <h3 style="margin-top:0; color:#ffffff; font-size: 18px; font-weight: 700;">Finalizar Compra</h3>
-            <p style="font-weight:700; color:#22c55e; margin-top: 8px; font-size: 16px;">${nome}</p>
-            <p style="font-size:13px; color:#22c55e; margin-top: 2px;">Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
-            <p style="font-size:12px; color:#a1a1aa; margin-top: 2px;">Disponível no Estoque: ${estoqueDisponivelSelecionado} un.</p>
-            
-            <hr style="border: 0; border-top: 1px solid #2c2c2e; margin: 16px 0;">
-            
-            <div style="margin-bottom: 14px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
-                <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+        <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:440px; max-height:92vh; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.5); border:1px solid #2c2c2e; color:#fff; font-family:sans-serif;">
+            <div id="etapaDadosCompra">
+                <h3 style="margin:0 0 4px 0; font-size:18px; font-weight:700;">Finalizar Compra</h3>
+                <p style="font-weight:700; color:#22c55e; margin:8px 0 2px 0; font-size:16px;">${nome}</p>
+                <p style="font-size:13px; color:#22c55e; margin:0;">Preço unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
+                <p style="font-size:12px; color:#a1a1aa; margin:4px 0 0 0;">Estoque: ${estoqueDisponivelSelecionado} un.</p>
+                <hr style="border:0; border-top:1px solid #2c2c2e; margin:16px 0;">
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; margin-bottom:6px; font-size:13px; color:#a1a1aa; font-weight:600;">Quantidade</label>
+                    <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background:#2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color:#fff; font-weight:600;">
+                </div>
+                <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:14px; color:#a1a1aa; font-weight:600;">Total</span>
+                    <span id="vendaTotalExibicao" style="font-weight:800; color:#22c55e; font-size:18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="display:block; margin-bottom:6px; font-size:13px; color:#a1a1aa; font-weight:600;">Seu Nome</label>
+                    <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%; padding:10px; background:#2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color:#fff;">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:6px; font-size:13px; color:#a1a1aa; font-weight:600;">WhatsApp</label>
+                    <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background:#2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color:#fff;">
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button onclick="fecharModalCompraDinamica()" style="background:#3a3a3c; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer;">Cancelar</button>
+                    <button onclick="gerarPixEMostrarQR()" style="background:#22c55e; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Gerar PIX →</button>
+                </div>
             </div>
 
-            <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
-                <span id="vendaTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
-                <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
-                <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="fecharModalCompraDinamica()" style="background:#3a3a3c; color:#ffffff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size: 13px; cursor:pointer;">Cancelar</button>
-                <button onclick="processarBaixaEstoqueEPix()" style="background:#22c55e; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; font-size: 13px; cursor:pointer;">Pagar via PIX</button>
+            <div id="etapaPixCompra" style="display:none;">
+                <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:700;">Pagamento via PIX</h3>
+                <p style="font-size:13px; color:#a1a1aa; margin:0 0 12px 0;">Pague o valor abaixo. O dinheiro cai na conta Nubank da oficina. Só depois confirme.</p>
+                <div style="text-align:center; background:#09090b; border-radius:12px; padding:16px; border:1px solid #27272a; margin-bottom:14px;">
+                    <p style="margin:0 0 8px 0; font-size:12px; color:#a1a1aa; font-weight:600;">TOTAL A PAGAR</p>
+                    <p id="pixValorGrande" style="margin:0 0 14px 0; font-size:28px; font-weight:800; color:#22c55e;">R$ 0,00</p>
+                    <canvas id="pixQrCanvas" style="background:#fff; border-radius:8px; padding:8px; max-width:220px;"></canvas>
+                    <p style="margin:12px 0 6px 0; font-size:11px; color:#71717a;">PIX Copia e Cola</p>
+                    <textarea id="pixCopiaCola" readonly style="width:100%; height:64px; font-size:10px; background:#18181b; color:#e4e4e7; border:1px solid #3f3f46; border-radius:8px; padding:8px; resize:none;"></textarea>
+                    <button onclick="copiarPixCopiaCola()" style="margin-top:8px; width:100%; padding:10px; background:#3f3f46; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">📋 Copiar código PIX</button>
+                </div>
+                <p style="font-size:11px; color:#a1a1aa; margin:0 0 14px 0; line-height:1.4;">Chave PIX (CPF Nubank): <b style="color:#fff;">116.843.885-38</b><br>Após o pagamento no app do banco, clique em confirmar.</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="voltarEtapaDadosCompra()" style="flex:1; background:#3a3a3c; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:600; cursor:pointer;">← Voltar</button>
+                    <button onclick="confirmarPagamentoPixEFinalizar()" style="flex:2; background:#22c55e; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer;">✓ Já paguei — Confirmar</button>
+                </div>
             </div>
         </div>
     `;
-
     document.body.appendChild(divModal);
 }
 
@@ -2191,133 +2189,221 @@ function calcularTotalCompraDinamica() {
     const inputQtd = document.getElementById('vendaQtd');
     const txtTotal = document.getElementById('vendaTotalExibicao');
     if (!inputQtd || !txtTotal) return;
-
     let qtd = parseInt(inputQtd.value) || 1;
     if (qtd > estoqueDisponivelSelecionado) {
-        alert(`Quantidade máxima em estoque: ${estoqueDisponivelSelecionado}`);
+        alert('Quantidade máxima em estoque: ' + estoqueDisponivelSelecionado);
         qtd = estoqueDisponivelSelecionado;
         inputQtd.value = qtd;
     }
-    if (qtd < 1) {
-        qtd = 1;
-        inputQtd.value = 1;
-    }
-
-    const total = qtd * precoUnitarioSelecionado;
-    txtTotal.innerText = `R$ ${total.toFixed(2)}`;
+    if (qtd < 1) { qtd = 1; inputQtd.value = 1; }
+    txtTotal.innerText = 'R$ ' + (qtd * precoUnitarioSelecionado).toFixed(2);
 }
 
 function fecharModalCompraDinamica() {
     const modal = document.getElementById('modalCompraProdutoDinamico');
     if (modal) modal.remove();
+    dadosCompraPendente = null;
 }
 
-async function processarBaixaEstoqueEPix() {
+function voltarEtapaDadosCompra() {
+    const e1 = document.getElementById('etapaDadosCompra');
+    const e2 = document.getElementById('etapaPixCompra');
+    if (e1) e1.style.display = 'block';
+    if (e2) e2.style.display = 'none';
+}
+
+function copiarPixCopiaCola() {
+    const ta = document.getElementById('pixCopiaCola');
+    if (!ta || !ta.value) return;
+    navigator.clipboard.writeText(ta.value).then(() => {
+        alert('Código PIX copiado! Cole no app do seu banco.');
+    }).catch(() => {
+        ta.select();
+        document.execCommand('copy');
+        alert('Código PIX copiado!');
+    });
+}
+
+async function obterChavePixOficina() {
+    // Tenta buscar a chave configurada na oficina; senão usa o CPF Nubank padrão
+    let idDono = idOficinaDaLojaAtual;
+    if (!idDono) {
+        const p = new URLSearchParams(window.location.search);
+        idDono = p.get('id') || p.get('loja') || p.get('user_id');
+    }
+    if (idDono) {
+        try {
+            const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idDono).single();
+            if (data && data.dados_oficina && data.dados_oficina.pix) {
+                const k = String(data.dados_oficina.pix).replace(/\D/g, '');
+                if (k.length >= 11) return { chave: k, nome: (data.dados_oficina.nome || 'ALDINEICAR') };
+            }
+        } catch (e) {}
+    }
+    return { chave: CHAVE_PIX_PADRAO, nome: 'ALDINEICAR' };
+}
+
+async function gerarPixEMostrarQR() {
     const inputQtd = document.getElementById('vendaQtd');
     const inputNome = document.getElementById('vendaNome');
     const inputTel = document.getElementById('vendaTel');
 
     if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
-        alert("Por favor, preencha seu nome e telefone para contato!");
+        alert('Preencha seu nome e telefone para contato!');
         return;
     }
 
-    const qtdComprada = parseInt(inputQtd.value) || 1;
-    const nomeCliente = inputNome.value.trim();
-    const telCliente = inputTel.value.trim();
-    const totalVenda = qtdComprada * precoUnitarioSelecionado;
+    const qtd = parseInt(inputQtd.value) || 1;
+    if (qtd < 1 || qtd > estoqueDisponivelSelecionado) {
+        alert('Quantidade inválida.');
+        return;
+    }
+
+    const total = qtd * precoUnitarioSelecionado;
+    const txid = 'VND' + Date.now().toString().slice(-10);
+
+    dadosCompraPendente = {
+        qtd,
+        nome: inputNome.value.trim(),
+        tel: inputTel.value.trim(),
+        total,
+        txid
+    };
+
+    const infoPix = await obterChavePixOficina();
+    const payload = gerarPayloadPix({
+        chave: infoPix.chave,
+        nome: infoPix.nome,
+        cidade: 'SATIRO DIAS',
+        valor: total,
+        txid
+    });
+
+    document.getElementById('etapaDadosCompra').style.display = 'none';
+    document.getElementById('etapaPixCompra').style.display = 'block';
+    document.getElementById('pixValorGrande').innerText = 'R$ ' + total.toFixed(2);
+    document.getElementById('pixCopiaCola').value = payload;
+
+    const canvas = document.getElementById('pixQrCanvas');
+    if (typeof QRCode !== 'undefined' && canvas) {
+        QRCode.toCanvas(canvas, payload, {
+            width: 200,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        }, function (err) {
+            if (err) console.error('QR error', err);
+        });
+    } else if (canvas) {
+        // Fallback: API pública de QR se a lib não carregar
+        const img = document.createElement('img');
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
+        img.style.borderRadius = '8px';
+        canvas.parentNode.replaceChild(img, canvas);
+    }
+}
+
+async function confirmarPagamentoPixEFinalizar() {
+    if (!dadosCompraPendente) {
+        alert('Gere o PIX antes de confirmar o pagamento.');
+        return;
+    }
+
+    const ok = confirm('Confirma que o pagamento PIX de R$ ' + dadosCompraPendente.total.toFixed(2) + ' já foi realizado?\n\nSó confirme se o pagamento já aparecer no seu banco.');
+    if (!ok) return;
+
+    await processarBaixaEstoqueEPix();
+}
+
+async function processarBaixaEstoqueEPix() {
+    if (!dadosCompraPendente) {
+        alert('Conclua o pagamento PIX antes de finalizar a compra.');
+        return;
+    }
+
+    const qtdComprada = dadosCompraPendente.qtd;
+    const nomeCliente = dadosCompraPendente.nome;
+    const telCliente = dadosCompraPendente.tel;
+    const totalVenda = dadosCompraPendente.total;
+    const txid = dadosCompraPendente.txid;
 
     try {
-        // Tenta descobrir o ID do dono da loja por todas as vias possíveis
         let idDonoVenda = null;
-        
         if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
             idDonoVenda = idOficinaDaLojaAtual;
-        } else if (typeof dadosOficina !== 'undefined' && dadosOficina) {
-            idDonoVenda = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
-        } else if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
-            idDonoVenda = supabaseClient.auth.user().id;
-        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
-            idDonoVenda = supabaseClient.auth.session().user?.id;
-        }
-
-        // Se ainda assim não achar, tenta pegar de algum parâmetro na URL do site (?id=...)
-        if (!idDonoVenda) {
+        } else {
             const urlParams = new URLSearchParams(window.location.search);
-            idDonoVenda = urlParams.get('id') || urlParams.get('user_id');
+            idDonoVenda = urlParams.get('id') || urlParams.get('loja') || urlParams.get('user_id');
         }
+        if (!idDonoVenda) throw new Error('Não foi possível identificar a loja.');
 
-        if (!idDonoVenda) {
-            throw new Error("Não foi possível identificar o ID do proprietário desta loja para registrar a venda.");
-        }
-
-        // Busca o registro atual do usuário no banco
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
             .eq('user_id', idDonoVenda)
             .single();
+        if (erroBusca) throw new Error('Erro ao conectar à base da oficina.');
 
-        if (erroBusca) throw new Error("Erro ao conectar à base de dados da oficina.");
-
-        let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
         let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
 
-        // 1. Atualiza o estoque na lista de materiais
-        listaMateriais = listaMateriais.map(item => {
-            if (item.id === produtoSelecionadoParaCompra) {
-                let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
-                if (estoqueAtual < qtdComprada) {
-                    throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
-                }
-                item.qtd = estoqueAtual - qtdComprada;
-                if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
-                if (item.hasOwnProperty('estoque')) item.estoque = estoqueAtual - qtdComprada;
-            }
-            return item;
-        });
-
-        // 2. Estrutura da venda padronizada com a tag limpa
         const novoRegistroVenda = {
             id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleDateString('pt-BR'),
-            status: 'Concluído',
-            tipo_registro: 'VENDA_DIRETA_BALCAO', 
+            status: 'Pago PIX',
+            tipo_registro: 'VENDA_DIRETA_BALCAO',
+            pagamento: 'PIX',
+            pix_txid: txid,
+            pix_chave: CHAVE_PIX_PADRAO,
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
             veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
+            produto_id: produtoSelecionadoParaCompra,
             quantidade: qtdComprada,
             valor_unitario: precoUnitarioSelecionado,
             total_pago: totalVenda,
             lucro: totalVenda
         };
-        
+
         listaHistoricoGeral.unshift(novoRegistroVenda);
 
-        // 3. Grava de volta no Supabase
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
-                materiais: listaMateriais,
                 historico: listaHistoricoGeral,
                 updated_at: new Date()
             })
             .eq('user_id', idDonoVenda);
-
         if (erroUpdate) throw erroUpdate;
 
-        alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
+        // Baixa estoque na tabela produtos_loja
+        try {
+            const { data: prod } = await supabaseClient
+                .from('produtos_loja')
+                .select('estoque')
+                .eq('id', produtoSelecionadoParaCompra)
+                .maybeSingle();
+            if (prod) {
+                const novoEstoque = Math.max(0, (parseInt(prod.estoque) || 0) - qtdComprada);
+                await supabaseClient
+                    .from('produtos_loja')
+                    .update({ estoque: novoEstoque })
+                    .eq('id', produtoSelecionadoParaCompra);
+            }
+        } catch (eEst) {
+            console.warn('Estoque produtos_loja:', eEst);
+        }
+
+        alert('Pagamento confirmado, ' + nomeCliente + '!\n\nPedido registrado.\nValor: R$ ' + totalVenda.toFixed(2) + '\nA oficina receberá o PIX na chave cadastrada.');
         fecharModalCompraDinamica();
 
-        // Recarrega as listagens locais após um pequeno delay para o banco propagar
         setTimeout(() => {
-            if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
-            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
-        }, 500);
+            if (typeof carregarProdutosVitrinePublica === 'function' && idDonoVenda) {
+                carregarProdutosVitrinePublica(idDonoVenda);
+            }
+        }, 400);
 
     } catch (err) {
         console.error(err);
-        alert(`Não foi possível concluir: ${err.message}`);
+        alert('Não foi possível concluir: ' + err.message);
     }
 }
 
@@ -2749,292 +2835,3 @@ function renderDashboard() {
     });
 }
 
-
-// ========================================================
-// AGENDA ONLINE - Gestão de agendamentos dos clientes
-// ========================================================
-let filtroAgendaAtual = 'todos';
-
-function filtrarAgenda(status) {
-    filtroAgendaAtual = status;
-    document.querySelectorAll('.agenda-filtro').forEach(b => {
-        b.style.background = '#f1f5f9';
-        b.style.color = '#475569';
-    });
-    const btn = document.getElementById('filtro-agenda-' + status);
-    if (btn) {
-        btn.style.background = '#0f172a';
-        btn.style.color = 'white';
-    }
-    renderAgenda();
-}
-
-function renderAgenda() {
-    const container = document.getElementById('lista-agenda');
-    if (!container) return;
-
-    const lista = Array.isArray(historico) ? historico : [];
-    let agendamentos = [];
-    lista.forEach((item, idx) => {
-        if (item.tipo_registro === 'AGENDAMENTO' || (item.agendamento && item.agendamento.data)) {
-            agendamentos.push({ item, idx });
-        }
-    });
-
-    agendamentos.sort((a, b) => {
-        const da = (a.item.agendamento && a.item.agendamento.data) || '';
-        const ha = (a.item.agendamento && a.item.agendamento.hora) || '';
-        const db = (b.item.agendamento && b.item.agendamento.data) || '';
-        const hb = (b.item.agendamento && b.item.agendamento.hora) || '';
-        return (da + ha).localeCompare(db + hb);
-    });
-
-    if (filtroAgendaAtual !== 'todos') {
-        agendamentos = agendamentos.filter(({ item }) => (item.status || '') === filtroAgendaAtual);
-    }
-
-    if (agendamentos.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:48px 20px; background:white; border-radius:14px; border:1px solid #e2e8f0;">
-            <div style="font-size:40px; margin-bottom:12px;">📅</div>
-            <p style="color:#64748b; font-weight:600; margin:0;">Nenhum agendamento${filtroAgendaAtual !== 'todos' ? ' com este filtro' : ''}.</p>
-            <p style="color:#94a3b8; font-size:13px; margin:8px 0 0 0;">Os clientes agendam pela vitrine pública do seu link.</p>
-        </div>`;
-        return;
-    }
-
-    let html = '';
-    agendamentos.forEach(({ item, idx }) => {
-        const cliente = item.cliente || {};
-        const veiculo = item.veiculo || {};
-        const ag = item.agendamento || {};
-        const status = item.status || 'Agendado';
-
-        let badgeClass = 'agenda-badge-pendente';
-        if (status === 'Confirmado') badgeClass = 'agenda-badge-ok';
-        if (status === 'Cancelado') badgeClass = 'agenda-badge-cancel';
-        if (status === 'Concluído') badgeClass = 'agenda-badge-done';
-
-        const tel = cliente.tel || '';
-        const telLimpo = String(tel).replace(/\D/g, '');
-        const msgWa = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Sobre o seu agendamento em ' + (ag.label || ag.data_br || '') + ' — ALDINEICAR');
-
-        html += `
-        <div class="agenda-card">
-            <div class="agenda-card-left">
-                <div class="agenda-data-box">
-                    <span class="agenda-dia">${(ag.data_br || '--/--/----').split('/')[0] || '--'}</span>
-                    <span class="agenda-mes">${(ag.data_br || '').split('/')[1] || ''}/${(ag.data_br || '').split('/')[2] || ''}</span>
-                    <span class="agenda-hora">${ag.hora || '--:--'}</span>
-                </div>
-            </div>
-            <div class="agenda-card-body">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
-                    <div>
-                        <span class="agenda-badge ${badgeClass}">${status}</span>
-                        <h3 style="margin:8px 0 4px 0; font-size:16px; color:#0f172a;">${cliente.nome || 'Cliente'}</h3>
-                        <p style="margin:0; font-size:13px; color:#64748b;">📱 ${tel || 'Sem telefone'} · 🚗 ${veiculo.modelo || '---'}</p>
-                    </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">${item.id_agendamento || ''}</span>
-                </div>
-                <p style="margin:12px 0 0 0; font-size:13px; color:#334155; background:#f8fafc; padding:10px 12px; border-radius:8px; border:1px solid #f1f5f9;">
-                    <strong>Serviço:</strong> ${veiculo.tipo_servico || 'Não informado'}
-                </p>
-                <div class="agenda-acoes">
-                    ${status === 'Agendado' ? `
-                        <button onclick="alterarStatusAgendamento(${idx}, 'Confirmado')" class="agenda-btn agenda-btn-ok">✓ Confirmar</button>
-                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
-                    ` : ''}
-                    ${status === 'Confirmado' ? `
-                        <button onclick="alterarStatusAgendamento(${idx}, 'Concluído')" class="agenda-btn agenda-btn-done">✓ Concluir</button>
-                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
-                    ` : ''}
-                    ${telLimpo ? `<a href="https://wa.me/55${telLimpo}?text=${msgWa}" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>` : ''}
-                    <button onclick="deletarAgendamento(${idx})" class="agenda-btn agenda-btn-del">🗑️</button>
-                </div>
-            </div>
-        </div>`;
-    });
-
-    container.innerHTML = html;
-}
-
-async function alterarStatusAgendamento(idx, novoStatus) {
-    if (idx < 0 || idx >= historico.length) return;
-    historico[idx].status = novoStatus;
-    await salvarNoBanco();
-    renderAgenda();
-    if (typeof mostrarToast === 'function') mostrarToast('Status atualizado para: ' + novoStatus, 'sucesso');
-}
-
-async function deletarAgendamento(idx) {
-    abrirConfirmacao('Deseja excluir este agendamento?', async function() {
-        if (idx < 0 || idx >= historico.length) return;
-        historico.splice(idx, 1);
-        await salvarNoBanco();
-        renderAgenda();
-        if (typeof mostrarToast === 'function') mostrarToast('Agendamento removido.', 'sucesso');
-    });
-}
-
-function prepararMinDataAgendamento() {
-    const input = document.getElementById('cliOrcData');
-    if (!input) return;
-    const hoje = new Date();
-    const y = hoje.getFullYear();
-    const m = String(hoje.getMonth() + 1).padStart(2, '0');
-    const d = String(hoje.getDate()).padStart(2, '0');
-    input.min = y + '-' + m + '-' + d;
-}
-
-function abrirModalOrcamentoCliente() {
-    const modal = document.getElementById('modal-orcamento-cliente');
-    if (modal) modal.style.display = 'flex';
-    prepararMinDataAgendamento();
-}
-
-
-// ========================================================
-// LINK DA VITRINE + NOTIFICAÇÕES
-// ========================================================
-let monitorNotifInterval = null;
-const NOTIF_KEY = 'aldineicar_notif_ativas';
-const NOTIF_SEEN_KEY = 'aldineicar_notif_seen_ids';
-
-function obterLinkVitrine() {
-    if (!usuarioAtualId) return '';
-    const limpo = (window.location.origin + window.location.pathname).split('?')[0];
-    return limpo + '?id=' + usuarioAtualId;
-}
-
-function atualizarCardLinkVitrine() {
-    const el = document.getElementById('texto-link-vitrine');
-    if (!el) return;
-    el.innerText = obterLinkVitrine() || 'Faça login para gerar o link.';
-    atualizarBotaoNotifUI();
-}
-
-async function copiarLinkVitrine() {
-    const link = obterLinkVitrine();
-    if (!link) { mostrarToast('Link indisponível.', 'aviso'); return; }
-    try {
-        await navigator.clipboard.writeText(link);
-        mostrarToast('Link copiado!', 'sucesso');
-    } catch (e) {
-        const ta = document.createElement('textarea');
-        ta.value = link; document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); ta.remove();
-        mostrarToast('Link copiado!', 'sucesso');
-    }
-}
-
-function abrirVitrinePublica() {
-    const link = obterLinkVitrine();
-    if (!link) { mostrarToast('Link indisponível.', 'aviso'); return; }
-    window.open(link, '_blank');
-}
-
-function notificacoesAtivas() {
-    const v = localStorage.getItem(NOTIF_KEY);
-    return v === null ? true : v === '1';
-}
-
-function atualizarBotaoNotifUI() {
-    const btn = document.getElementById('btn-toggle-notif');
-    if (!btn) return;
-    if (notificacoesAtivas()) {
-        btn.innerText = '🔔 Ativadas';
-        btn.style.background = '#10b981';
-    } else {
-        btn.innerText = '🔔 Desativadas';
-        btn.style.background = '#475569';
-    }
-}
-
-async function alternarNotificacoes() {
-    if (notificacoesAtivas()) {
-        localStorage.setItem(NOTIF_KEY, '0');
-        mostrarToast('Notificações desativadas.', 'aviso');
-    } else {
-        localStorage.setItem(NOTIF_KEY, '1');
-        await solicitarPermissaoNotificacoes();
-        mostrarToast('Notificações ativadas!', 'sucesso');
-    }
-    atualizarBotaoNotifUI();
-}
-
-async function solicitarPermissaoNotificacoes() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
-    if (Notification.permission === 'denied') return false;
-    try { return (await Notification.requestPermission()) === 'granted'; } catch(e) { return false; }
-}
-
-function obterIdsVistos() {
-    try { return JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY) || '[]'); } catch(e) { return []; }
-}
-function salvarIdsVistos(ids) {
-    localStorage.setItem(NOTIF_SEEN_KEY, JSON.stringify(Array.from(new Set(ids)).slice(-200)));
-}
-function coletarIdsNotificaveis(lista) {
-    const ids = [];
-    (lista||[]).forEach((item, idx) => {
-        if (item.tipo_registro === 'AGENDAMENTO') ids.push(item.id_agendamento || ('agd-'+idx));
-        if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') ids.push(item.id_venda || ('vnd-'+idx));
-    });
-    return ids;
-}
-function dispararNotificacaoBrowser(titulo, corpo) {
-    if (!notificacoesAtivas() || !('Notification' in window) || Notification.permission !== 'granted') return;
-    try {
-        const n = new Notification(titulo, { body: corpo, tag: 'aldineicar-'+Date.now() });
-        n.onclick = () => { window.focus(); n.close(); };
-    } catch(e) {}
-}
-function verificarNovasNotificacoes(lista) {
-    if (!notificacoesAtivas() || !usuarioAtualId) return;
-    const atuais = coletarIdsNotificaveis(lista);
-    const vistos = obterIdsVistos();
-    if (vistos.length === 0 && atuais.length > 0) { salvarIdsVistos(atuais); return; }
-    const novos = atuais.filter(id => !vistos.includes(id));
-    if (novos.length === 0) { salvarIdsVistos([...vistos, ...atuais]); return; }
-    let qtdAgd = 0, qtdVnd = 0;
-    (lista||[]).forEach((item, idx) => {
-        const idA = item.id_agendamento || ('agd-'+idx);
-        const idV = item.id_venda || ('vnd-'+idx);
-        if (novos.includes(idA) && item.tipo_registro === 'AGENDAMENTO') qtdAgd++;
-        if (novos.includes(idV) && (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL')) qtdVnd++;
-    });
-    if (qtdAgd > 0) {
-        const msg = qtdAgd === 1 ? '1 novo agendamento!' : qtdAgd + ' novos agendamentos!';
-        mostrarToast('📅 ' + msg, 'aviso');
-        dispararNotificacaoBrowser('ALDINEICAR', msg);
-    }
-    if (qtdVnd > 0) {
-        const msg = qtdVnd === 1 ? '1 nova venda!' : qtdVnd + ' novas vendas!';
-        mostrarToast('💰 ' + msg, 'sucesso');
-        dispararNotificacaoBrowser('ALDINEICAR', msg);
-    }
-    salvarIdsVistos([...vistos, ...atuais]);
-}
-async function sincronizarEVerificarNotificacoes() {
-    if (!usuarioAtualId || !notificacoesAtivas() || !navigator.onLine) return;
-    try {
-        const { data, error } = await supabaseClient.from('user_data').select('historico').eq('user_id', usuarioAtualId).single();
-        if (error || !data) return;
-        const lista = Array.isArray(data.historico) ? data.historico : [];
-        if (lista.length !== (historico||[]).length) {
-            historico = lista;
-            const ag = document.getElementById('aba-agenda');
-            if (ag && ag.style.display !== 'none' && typeof renderAgenda === 'function') renderAgenda();
-        }
-        verificarNovasNotificacoes(lista);
-    } catch(e) {}
-}
-function iniciarMonitorNotificacoes() {
-    if (!usuarioAtualId) return;
-    if (notificacoesAtivas()) solicitarPermissaoNotificacoes();
-    atualizarBotaoNotifUI();
-    verificarNovasNotificacoes(historico || []);
-    if (monitorNotifInterval) clearInterval(monitorNotifInterval);
-    monitorNotifInterval = setInterval(sincronizarEVerificarNotificacoes, 60000);
-}

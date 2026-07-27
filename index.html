@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="script.js"></script>
 
     <style>
@@ -28,7 +29,7 @@
             <span style="font-size: 11px; background: #1e1e24; color: #a1a1aa; padding: 2px 8px; border-radius: 20px; font-weight: 600; border: 1px solid #27272a;">Vitrine Oficial</span>
         </div>
         <button onclick="abrirModalOrcamentoCliente()" style="background: #e11d48; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;">
-            📅 Agendar Serviço
+            🛠️ Solicitar Reparo / Orçamento
         </button>
     </header>
 
@@ -61,7 +62,7 @@
 
 <div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
     <div style="background: #18181b; border: 1px solid #27272a; padding: 30px; border-radius: 12px; width: 95%; max-width: 460px; color: #fafafa;">
-        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Agendar Serviço / Orçamento</h3>
+        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Solicitar Orçamento / Manutenção</h3>
         <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Preencha os dados básicos abaixo para nossa oficina te retornar.</p>
         
         <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Nome</label>
@@ -74,36 +75,10 @@
         <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
         
         <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
-        <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito que o carro apresenta..." style="width: 100%; height: 80px; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
-
-        <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:18px;">
-            <p style="font-size:12px; font-weight:700; color:#e11d48; margin:0 0 12px 0; text-transform:uppercase;">📅 Preferência de Agendamento</p>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:140px;">
-                    <label style="font-size:11px; font-weight:600; color:#a1a1aa; display:block; margin-bottom:5px;">Data desejada</label>
-                    <input type="date" id="cliOrcData" style="width:100%; padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:6px; color:white; font-size:13px;">
-                </div>
-                <div style="flex:1; min-width:120px;">
-                    <label style="font-size:11px; font-weight:600; color:#a1a1aa; display:block; margin-bottom:5px;">Horário</label>
-                    <select id="cliOrcHora" style="width:100%; padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:6px; color:white; font-size:13px;">
-                        <option value="">Selecione</option>
-                        <option value="08:00">08:00</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="13:00">13:00</option>
-                        <option value="14:00">14:00</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                        <option value="17:00">17:00</option>
-                    </select>
-                </div>
-            </div>
-            <p style="font-size:11px; color:#71717a; margin:10px 0 0 0;">A oficina confirmará o horário. Sujeito à disponibilidade.</p>
-        </div>
+        <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito que o carro apresenta..." style="width: 100%; height: 90px; margin-bottom: 20px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
         
         <div style="display: flex; gap: 10px;">
-            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">📅 Solicitar Agendamento</button>
+            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Enviar para Oficina</button>
             <button onclick="fecharModalOrcamentoCliente()" style="flex: 1; padding: 12px; background: #27272a; color: #a1a1aa; border: 1px solid #3f3f46; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Voltar</button>
         </div>
     </div>
@@ -219,7 +194,6 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
-                <button onclick="mostrarAba('agenda')">📅 Agenda</button>
                 <button onclick="mostrarAba('loja')">🛒 Minha Loja</button>
                 <button onclick="mostrarAba('vendas')">💰 Vendas</button>
                 <button onclick="abrirModalOficina()">⚙️ Configurar Oficina</button>
@@ -359,26 +333,6 @@ function mostrarSecao(id) {
                             </div>
                         </div>
 
-                        
-                        <!-- ===== AGENDA ===== -->
-                        <div id="aba-agenda" style="display:none;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-                                <div>
-                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">📅 Agenda Online</h2>
-                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Solicitações de agendamento enviadas pelos clientes pela vitrine.</p>
-                                </div>
-                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button onclick="filtrarAgenda('todos')" id="filtro-agenda-todos" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#0f172a; color:white; font-weight:600; font-size:12px; cursor:pointer;">Todos</button>
-                                    <button onclick="filtrarAgenda('Agendado')" id="filtro-agenda-Agendado" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:12px; cursor:pointer;">Pendentes</button>
-                                    <button onclick="filtrarAgenda('Confirmado')" id="filtro-agenda-Confirmado" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:12px; cursor:pointer;">Confirmados</button>
-                                    <button onclick="renderAgenda()" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5e1; background:#f1f5f9; color:#0f172a; font-weight:600; font-size:12px; cursor:pointer;">🔄</button>
-                                </div>
-                            </div>
-                            <div id="lista-agenda" class="agenda-lista">
-                                <p style="color:#94a3b8; text-align:center; padding:40px;">Carregando agendamentos...</p>
-                            </div>
-                        </div>
-
                         <div id="aba-materiais">
                             <div class="categorias-materiais" id="botoesCategorias">
                                 <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
@@ -444,24 +398,14 @@ function mostrarSecao(id) {
 
                         <!-- SUBSTITUA A SUA ABA-LOJA POR ESTA ESTRUTURA REFORÇADA -->
 <div id="aba-loja" style="display: none; padding: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
         <div>
             <h2 style="font-size: 24px; font-weight: 800;">Minha Vitrine Pública</h2>
-            <p style="font-size: 13px; color: #64748b;">Produtos e link de agendamento para clientes.</p>
+            <p style="font-size: 13px; color: #64748b;">Estes produtos ficam visíveis para clientes externos que acessarem seu link.</p>
         </div>
-        <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">+ Adicionar Produto</button>
+        <button onclick="prepararNovoProduto()" style="background: #e11d48; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;">+ Adicionar Produto</button>
     </div>
-
-    <div id="card-link-vitrine" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 14px; padding: 20px 22px; margin-bottom: 24px; color: white;">
-        <p style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px 0;">🔗 Link da sua vitrine pública</p>
-        <p id="texto-link-vitrine" style="font-size:13px; font-weight:600; color:#e2e8f0; word-break:break-all; margin:0 0 14px 0; line-height:1.5; background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px;">Carregando...</p>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-            <button onclick="copiarLinkVitrine()" style="padding:10px 16px; background:#e11d48; color:white; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">📋 Copiar</button>
-            <button onclick="abrirVitrinePublica()" style="padding:10px 16px; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">🌐 Abrir</button>
-            <button id="btn-toggle-notif" onclick="alternarNotificacoes()" style="padding:10px 16px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">🔔 Notificações</button>
-        </div>
-    </div>
-
+    
     <div id="vitrine-produtos" class="grid-produtos">
         <!-- Os cards de produtos serão renderizados aqui via JS -->
     </div>
