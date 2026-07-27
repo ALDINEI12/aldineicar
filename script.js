@@ -3082,9 +3082,10 @@ function atualizarHorariosCliente() {
 
 
 // ========================================================
-// AGENDA ONLINE
+// AGENDA ONLINE (melhorada)
 // ========================================================
 let filtroAgendaAtual = 'todos';
+let filtroPeriodoAgenda = 'todos';
 
 function filtrarAgenda(status) {
     filtroAgendaAtual = status;
@@ -3097,29 +3098,120 @@ function filtrarAgenda(status) {
     renderAgenda();
 }
 
-function renderAgenda() {
-    const container = document.getElementById('lista-agenda');
-    if (!container) return;
+function filtrarAgendaPeriodo(periodo) {
+    filtroPeriodoAgenda = periodo;
+    document.querySelectorAll('.agenda-filtro-periodo').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('filtro-periodo-' + periodo);
+    if (btn) btn.classList.add('active');
+    renderAgenda();
+}
+
+function _hojeISO() {
+    const h = new Date();
+    return h.getFullYear() + '-' + String(h.getMonth()+1).padStart(2,'0') + '-' + String(h.getDate()).padStart(2,'0');
+}
+
+function _inicioSemanaISO() {
+    const h = new Date();
+    const dia = h.getDay();
+    const diff = dia === 0 ? -6 : 1 - dia;
+    const seg = new Date(h);
+    seg.setDate(h.getDate() + diff);
+    return dataISO(seg);
+}
+
+function _fimSemanaISO() {
+    const ini = new Date(_inicioSemanaISO() + 'T12:00:00');
+    ini.setDate(ini.getDate() + 6);
+    return dataISO(ini);
+}
+
+function _agendamentoEstaAtrasado(item) {
+    const ag = item.agendamento || {};
+    if (!ag.data) return false;
+    const st = item.status || '';
+    if (st === 'Concluído' || st === 'Cancelado') return false;
+    const hoje = _hojeISO();
+    if (ag.data < hoje) return true;
+    if (ag.data === hoje && ag.hora) {
+        const agora = new Date();
+        const parts = String(ag.hora).split(':');
+        const hh = parseInt(parts[0], 10);
+        const mm = parseInt(parts[1] || '0', 10);
+        if (!isNaN(hh) && (agora.getHours() > hh || (agora.getHours() === hh && agora.getMinutes() > mm))) return true;
+    }
+    return false;
+}
+
+function _agendamentoEHoje(item) {
+    const ag = item.agendamento || {};
+    return ag.data === _hojeISO();
+}
+
+function coletarAgendamentos() {
     const lista = Array.isArray(historico) ? historico : [];
-    let agendamentos = [];
+    const out = [];
     lista.forEach((item, idx) => {
         if (item.tipo_registro === 'AGENDAMENTO' || (item.agendamento && item.agendamento.data)) {
-            agendamentos.push({ item, idx });
+            out.push({ item, idx });
         }
     });
-    agendamentos.sort((a, b) => {
+    out.sort((a, b) => {
         const da = ((a.item.agendamento && a.item.agendamento.data) || '') + ((a.item.agendamento && a.item.agendamento.hora) || '');
         const db = ((b.item.agendamento && b.item.agendamento.data) || '') + ((b.item.agendamento && b.item.agendamento.hora) || '');
         return da.localeCompare(db);
     });
+    return out;
+}
+
+function renderAgendaContadores(todos) {
+    const box = document.getElementById('agenda-resumo-contadores');
+    if (!box) return;
+    let hoje = 0, pend = 0, atr = 0, conf = 0;
+    todos.forEach(({ item }) => {
+        if (_agendamentoEHoje(item) && item.status !== 'Cancelado' && item.status !== 'Concluído') hoje++;
+        if ((item.status || '') === 'Agendado') pend++;
+        if ((item.status || '') === 'Confirmado') conf++;
+        if (_agendamentoEstaAtrasado(item)) atr++;
+    });
+    box.innerHTML =
+        '<div class="agenda-contador hoje-c">Hoje <span>' + hoje + '</span></div>' +
+        '<div class="agenda-contador pend-c">Pendentes <span>' + pend + '</span></div>' +
+        '<div class="agenda-contador">Confirmados <span>' + conf + '</span></div>' +
+        '<div class="agenda-contador atr-c">Atrasados <span>' + atr + '</span></div>';
+}
+
+function renderAgenda() {
+    const container = document.getElementById('lista-agenda');
+    if (!container) return;
+    let agendamentos = coletarAgendamentos();
+    renderAgendaContadores(agendamentos);
+
     if (filtroAgendaAtual !== 'todos') {
         agendamentos = agendamentos.filter(({ item }) => (item.status || '') === filtroAgendaAtual);
     }
+
+    const hoje = _hojeISO();
+    const iniSem = _inicioSemanaISO();
+    const fimSem = _fimSemanaISO();
+    if (filtroPeriodoAgenda === 'hoje') {
+        agendamentos = agendamentos.filter(({ item }) => (item.agendamento || {}).data === hoje);
+    } else if (filtroPeriodoAgenda === 'semana') {
+        agendamentos = agendamentos.filter(({ item }) => {
+            const d = (item.agendamento || {}).data || '';
+            return d >= iniSem && d <= fimSem;
+        });
+    } else if (filtroPeriodoAgenda === 'atrasados') {
+        agendamentos = agendamentos.filter(({ item }) => _agendamentoEstaAtrasado(item));
+    }
+
     if (agendamentos.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:48px;background:white;border-radius:14px;border:1px solid #e2e8f0;"><div style="font-size:40px;">📅</div><p style="color:#64748b;font-weight:600;">Nenhum agendamento.</p><p style="color:#94a3b8;font-size:13px;">Clientes agendam pela vitrine pública.</p></div>';
+        container.innerHTML = '<div style="text-align:center;padding:48px;background:white;border-radius:14px;border:1px solid #e2e8f0;"><div style="font-size:40px;">📅</div><p style="color:#64748b;font-weight:600;">Nenhum agendamento neste filtro.</p><p style="color:#94a3b8;font-size:13px;">Clientes agendam pela vitrine ou use <strong>+ Novo Agendamento</strong>.</p></div>';
         return;
     }
+
     let html = '';
+    let ultimoDia = '';
     agendamentos.forEach(({ item, idx }) => {
         const cliente = item.cliente || {};
         const veiculo = item.veiculo || {};
@@ -3129,20 +3221,43 @@ function renderAgenda() {
         if (status === 'Confirmado') badgeClass = 'agenda-badge-ok';
         if (status === 'Cancelado') badgeClass = 'agenda-badge-cancel';
         if (status === 'Concluído') badgeClass = 'agenda-badge-done';
+
+        const eHoje = _agendamentoEHoje(item);
+        const eAtrasado = _agendamentoEstaAtrasado(item);
+        let cardClass = 'agenda-card';
+        if (eAtrasado) cardClass += ' atrasado';
+        else if (eHoje) cardClass += ' hoje';
+
+        if (ag.data && ag.data !== ultimoDia) {
+            ultimoDia = ag.data;
+            const dt = new Date(ag.data + 'T12:00:00');
+            const nomeDia = (typeof NOMES_DIA_AGENDA !== 'undefined' ? NOMES_DIA_AGENDA[dt.getDay()] : '') || '';
+            const labelDia = eHoje ? 'Hoje · ' + formatarDataBR_ISO(ag.data) : (nomeDia + ' · ' + formatarDataBR_ISO(ag.data));
+            html += '<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin:8px 0 4px 2px;">' + labelDia + '</div>';
+        }
+
         const tel = cliente.tel || '';
         const telLimpo = String(tel).replace(/\D/g, '');
-        const msgWa = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Sobre seu agendamento em ' + (ag.label || '') + ' — ALDINEICAR');
-        html += '<div class="agenda-card"><div class="agenda-card-left"><div class="agenda-data-box">'
+        const nomeOficina = (typeof dadosOficina !== 'undefined' && dadosOficina.nome) ? dadosOficina.nome : 'ALDINEICAR';
+        const msgWa = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Sobre seu agendamento em ' + (ag.label || '') + ' — ' + nomeOficina);
+        const msgLembrar = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Lembrete: seu horário está marcado para ' + (ag.label || '') + '. Qualquer dúvida, estamos à disposição. — ' + nomeOficina);
+
+        let extraBadge = '';
+        if (eAtrasado) extraBadge = '<span class="agenda-badge agenda-badge-atrasado">Atrasado</span>';
+        else if (eHoje) extraBadge = '<span class="agenda-badge agenda-badge-hoje">Hoje</span>';
+
+        html += '<div class="' + cardClass + '"><div class="agenda-card-left"><div class="agenda-data-box">'
             + '<span class="agenda-dia">' + ((ag.data_br || '--').split('/')[0] || '--') + '</span>'
             + '<span class="agenda-mes">' + ((ag.data_br || '').split('/')[1] || '') + '/' + ((ag.data_br || '').split('/')[2] || '') + '</span>'
             + '<span class="agenda-hora">' + (ag.hora || '--:--') + '</span></div></div>'
             + '<div class="agenda-card-body"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
-            + '<div><span class="agenda-badge ' + badgeClass + '">' + status + '</span>'
+            + '<div><span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
             + '<h3 style="margin:8px 0 4px;font-size:16px;color:#0f172a;">' + (cliente.nome || 'Cliente') + '</h3>'
             + '<p style="margin:0;font-size:13px;color:#64748b;">📱 ' + (tel || '—') + ' · 🚗 ' + (veiculo.modelo || '—') + '</p></div>'
             + '<span style="font-size:11px;color:#94a3b8;">' + (item.id_agendamento || '') + '</span></div>'
-            + '<p style="margin:12px 0 0;font-size:13px;background:#f8fafc;padding:10px;border-radius:8px;"><strong>Serviço:</strong> ' + (veiculo.tipo_servico || '—') + '</p>'
+            + '<p style="margin:12px 0 0;font-size:13px;background:#f8fafc;padding:10px;border-radius:8px;"><strong>Serviço:</strong> ' + (veiculo.tipo_servico || '—') + (item.obs ? ' · ' + item.obs : '') + '</p>'
             + '<div class="agenda-acoes">';
+
         if (status === 'Agendado') {
             html += '<button onclick="alterarStatusAgendamento(' + idx + ',\'Confirmado\')" class="agenda-btn agenda-btn-ok">✓ Confirmar</button>'
                 + '<button onclick="alterarStatusAgendamento(' + idx + ',\'Cancelado\')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>';
@@ -3151,7 +3266,15 @@ function renderAgenda() {
             html += '<button onclick="alterarStatusAgendamento(' + idx + ',\'Concluído\')" class="agenda-btn agenda-btn-done">✓ Concluir</button>'
                 + '<button onclick="alterarStatusAgendamento(' + idx + ',\'Cancelado\')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>';
         }
-        if (telLimpo) html += '<a href="https://wa.me/55' + telLimpo + '?text=' + msgWa + '" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>';
+        if (status !== 'Cancelado' && status !== 'Concluído') {
+            html += '<button onclick="converterAgendamentoEmOrcamento(' + idx + ')" class="agenda-btn agenda-btn-convert">📋 Virar Orçamento</button>';
+        }
+        if (telLimpo) {
+            html += '<a href="https://wa.me/55' + telLimpo + '?text=' + msgWa + '" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>';
+            if (status !== 'Cancelado' && status !== 'Concluído') {
+                html += '<a href="https://wa.me/55' + telLimpo + '?text=' + msgLembrar + '" target="_blank" class="agenda-btn agenda-btn-lembrar">🔔 Lembrar</a>';
+            }
+        }
         html += '<button onclick="deletarAgendamento(' + idx + ')" class="agenda-btn agenda-btn-del">🗑️</button></div></div></div>';
     });
     container.innerHTML = html;
@@ -3175,6 +3298,125 @@ async function deletarAgendamento(idx) {
     });
 }
 
+function converterAgendamentoEmOrcamento(idx) {
+    if (idx < 0 || idx >= historico.length) return;
+    const item = historico[idx];
+    const cliente = item.cliente || {};
+    const veiculo = item.veiculo || {};
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    setVal('clienteNome', cliente.nome);
+    setVal('clienteEndereco', cliente.endereco || '');
+    setVal('clienteTel', cliente.tel || '');
+    setVal('clienteCidade', cliente.cidade || 'Sátrio Dias/BA');
+    setVal('veiculoModelo', veiculo.modelo || '');
+    setVal('veiculoPlaca', veiculo.placa || '');
+    setVal('veiculoAno', veiculo.ano || '');
+    setVal('veiculoCor', veiculo.cor || '');
+    setVal('tipoServico', veiculo.tipo_servico || '');
+    setVal('valorCliente', '');
+    materiais.forEach(m => { m.qtd = 0; });
+    maoObraItens = [];
+    if (typeof render === 'function') render();
+    if (typeof renderMaoObra === 'function') renderMaoObra();
+    if (typeof atualizarResumo === 'function') atualizarResumo();
+    historico[idx].convertido_orcamento = true;
+    salvarNoBanco(true);
+    mostrarAba('materiais');
+    if (typeof mostrarToast === 'function') mostrarToast('Dados do cliente carregados no resumo. Monte o orçamento!', 'sucesso');
+}
+
+function togglePainelDisponibilidade() {
+    const conteudo = document.getElementById('painel-disp-conteudo');
+    const btn = document.getElementById('btn-toggle-disp');
+    if (!conteudo) return;
+    const aberto = conteudo.style.display !== 'none';
+    conteudo.style.display = aberto ? 'none' : 'block';
+    if (btn) btn.innerText = aberto ? 'Expandir' : 'Recolher';
+}
+
+function abrirModalNovoAgendamento() {
+    const modal = document.getElementById('modal-novo-agendamento');
+    if (!modal) return;
+    document.getElementById('agdNome').value = '';
+    document.getElementById('agdTel').value = '';
+    document.getElementById('agdVeiculo').value = '';
+    document.getElementById('agdServico').value = '';
+    document.getElementById('agdObs').value = '';
+    const inputData = document.getElementById('agdData');
+    const hoje = _hojeISO();
+    inputData.min = hoje;
+    inputData.value = hoje;
+    preencherHorariosNovoAgendamento();
+    modal.style.display = 'flex';
+}
+
+function fecharModalNovoAgendamento() {
+    const modal = document.getElementById('modal-novo-agendamento');
+    if (modal) modal.style.display = 'none';
+}
+
+function preencherHorariosNovoAgendamento() {
+    const sel = document.getElementById('agdHora');
+    if (!sel) return;
+    const disp = typeof obterDisponibilidadeOficina === 'function' ? obterDisponibilidadeOficina() : { horarios: ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'] };
+    const horas = (disp.horarios && disp.horarios.length) ? disp.horarios : ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
+    sel.innerHTML = '<option value="">Selecione</option>' + horas.map(h => '<option value="' + h + '">' + h + '</option>').join('');
+}
+
+async function salvarNovoAgendamento() {
+    const nome = (document.getElementById('agdNome').value || '').trim();
+    const tel = (document.getElementById('agdTel').value || '').trim();
+    const veiculo = (document.getElementById('agdVeiculo').value || '').trim();
+    const servico = (document.getElementById('agdServico').value || '').trim();
+    const dataAg = document.getElementById('agdData').value;
+    const horaAg = document.getElementById('agdHora').value;
+    const obs = (document.getElementById('agdObs').value || '').trim();
+
+    if (!nome) {
+        if (typeof mostrarToast === 'function') mostrarToast('Informe o nome do cliente.', 'aviso');
+        else alert('Informe o nome do cliente.');
+        return;
+    }
+    if (!dataAg || !horaAg) {
+        if (typeof mostrarToast === 'function') mostrarToast('Escolha data e horário.', 'aviso');
+        else alert('Escolha data e horário.');
+        return;
+    }
+
+    const dataBR = formatarDataBR_ISO(dataAg);
+    const novo = {
+        id_agendamento: 'AGD-' + Math.floor(100000 + Math.random() * 900000),
+        data: new Date().toLocaleString('pt-BR'),
+        status: 'Agendado',
+        tipo_registro: 'AGENDAMENTO',
+        origem: 'painel',
+        obs: obs,
+        agendamento: { data: dataAg, hora: horaAg, data_br: dataBR, label: dataBR + ' às ' + horaAg },
+        cliente: { nome: nome, tel: tel, endereco: '', cidade: '' },
+        veiculo: { modelo: veiculo, placa: '', ano: '', cor: '', tipo_servico: servico || '—' }
+    };
+
+    const conflito = (historico || []).some(item => {
+        if (!item || item.tipo_registro !== 'AGENDAMENTO') return false;
+        if ((item.status || '') === 'Cancelado') return false;
+        const ag = item.agendamento || {};
+        return ag.data === dataAg && ag.hora === horaAg;
+    });
+    if (conflito) {
+        if (!confirm('Já existe um agendamento neste horário. Deseja criar mesmo assim?')) return;
+    }
+
+    historico.unshift(novo);
+    if (nome && !(clientes || []).some(c => (c.nome || '').toLowerCase() === nome.toLowerCase())) {
+        clientes.push({ nome: nome, tel: tel, endereco: '', cidade: '' });
+        if (typeof renderClientes === 'function') renderClientes();
+    }
+    await salvarNoBanco();
+    fecharModalNovoAgendamento();
+    renderAgenda();
+    if (typeof mostrarToast === 'function') mostrarToast('Agendamento criado!', 'sucesso');
+}
+
 function prepararMinDataAgendamento() {
     const input = document.getElementById('cliOrcData');
     if (!input) return;
@@ -3191,7 +3433,6 @@ function abrirModalOrcamentoCliente() {
         prepararMinDataAgendamento();
     }
 }
-
 
 // ========================================================
 // LINK VITRINE + NOTIFICAÇÕES + WEBHOOK
@@ -3482,5 +3723,3 @@ function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
     payload += pixCRC16(payload);
     return payload;
 }
-
-

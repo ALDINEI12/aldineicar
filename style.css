@@ -359,3 +359,87 @@
 /* Disponibilidade agenda */
 #painel-disponibilidade button:active { transform: scale(0.97); }
 
+
+/* ===== AGENDA MELHORADA ===== */
+.agenda-filtro-periodo {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.agenda-filtro-periodo.active {
+    background: #0f172a;
+    color: white;
+    border-color: #0f172a;
+}
+.agenda-filtro-periodo:hover:not(.active) {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+.agenda-card.hoje {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+.agenda-card.hoje .agenda-data-box {
+    background: linear-gradient(160deg, #1e40af, #3b82f6);
+}
+.agenda-card.atrasado {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
+}
+.agenda-card.atrasado .agenda-data-box {
+    background: linear-gradient(160deg, #991b1b, #ef4444);
+}
+.agenda-badge-hoje { background:#dbeafe; color:#1d4ed8; margin-left:6px; }
+.agenda-badge-atrasado { background:#fee2e2; color:#b91c1c; margin-left:6px; }
+.agenda-btn-convert { background:#fef3c7; color:#b45309; }
+.agenda-btn-convert:hover { background:#fde68a; }
+.agenda-btn-lembrar { background:#ede9fe; color:#6d28d9; }
+.agenda-contador {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.agenda-contador span { font-size:16px; font-weight:800; color:#0f172a; }
+.agenda-contador.hoje-c span { color:#2563eb; }
+.agenda-contador.pend-c span { color:#d97706; }
+.agenda-contador.atr-c span { color:#dc2626; }
+
+@media (max-width: 992px) {
+    .sidebar button { min-width:100px; font-size:12px; padding:10px 8px; gap:6px; }
+    .agenda-filtros-bar { gap:6px !important; }
+    .filtro-sep { display:none; }
+    .btn-novo-agendamento { width:100%; justify-content:center; }
+    .agenda-acoes .agenda-btn { flex:1 1 auto; justify-content:center; min-width:90px; }
+    #agenda-resumo-contadores { gap:8px; }
+    .agenda-contador { flex:1 1 calc(50% - 8px); min-width:120px; }
+}
+@media (max-width: 600px) {
+    .agenda-card.hoje, .agenda-card.atrasado { box-shadow:none; }
+    .agenda-data-box .agenda-dia { font-size:22px; }
+    .content { padding:12px; }
+    .top-actions button { min-width:0; flex:1 1 45%; font-size:12px; padding:11px 8px; }
+    .cards { grid-template-columns:1fr 1fr; gap:10px; }
+    .card { padding:12px; min-height:140px; }
+    .card h3 { font-size:12px; }
+    .preco { font-size:15px; }
+}
+@media (max-width: 480px) {
+    #modal-novo-agendamento .modal-content { width:96% !important; padding:20px !important; max-height:92vh; }
+}
+.agenda-btn:active, .agenda-filtro-periodo:active, .btn-novo-agendamento:active { transform:scale(0.97); }
+.sidebar button:active { transform:scale(0.98); }
+#btn-resumo-flutuante { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+#btn-resumo-flutuante:active { transform:scale(0.92); }
