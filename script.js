@@ -153,8 +153,6 @@
     renderMaoObra();
     renderHistorico();
     renderClientes();
-    atualizarCardLinkVitrine();
-    iniciarMonitorNotificacoes();
 }
 
 async function cadastrarProdutoLoja() {
@@ -1044,7 +1042,7 @@ async function editarProduto(id) {
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
         historico.forEach((item, index)=>{
-            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO') return;
+            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'AGENDAMENTO') return;
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
             const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
@@ -1225,7 +1223,10 @@ async function editarProduto(id) {
     }
 
    function mostrarAba(nome) {
-    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
+    // Em modo vitrine pública, não troca abas do painel
+    if (window.__modoClienteVitrine) return;
+
+    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas', 'agenda'];
     ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
         if (el) el.style.display = 'none';
@@ -1250,9 +1251,14 @@ async function editarProduto(id) {
     if (nome === 'clientes') { document.getElementById('aba-clientes').style.display = 'block'; return; }
     if (nome === 'historico') { document.getElementById('aba-historico').style.display = 'block'; return; }
     if (nome === 'maoobra') { document.getElementById('aba-maoobra').style.display = 'block'; return; }
+    if (nome === 'agenda') {
+        const el = document.getElementById('aba-agenda');
+        if (el) { el.style.display = 'block'; renderAgenda(); }
+        return;
+    }
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
-        atualizarCardLinkVitrine();
+        if (typeof atualizarCardLinkVitrine === 'function') atualizarCardLinkVitrine();
         if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
         else if (typeof carregarProdutosDaLoja === 'function') carregarProdutosDaLoja();
         return;
@@ -1594,11 +1600,22 @@ async function editarProduto(id) {
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (window.__modoClienteVitrine) {
+                // Vitrine pública: nunca mostra login/painel da oficina
+                const login = document.getElementById('loginOverlay');
+                const app = document.getElementById('appContainer');
+                if (login) login.style.display = 'none';
+                if (app) app.style.display = 'none';
+                return;
+            }
             if (session && session.user) {
                 await carregarDadosDoUsuario(session.user.id);
                 document.getElementById('loginOverlay').style.display = 'none';
                 const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
-                const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
+                const algumaAtiva = abas.some(id => {
+                    const el = document.getElementById(id);
+                    return el && el.style.display === 'block';
+                });
                 if (!algumaAtiva) mostrarAba('dashboard');
             } else {
                 document.getElementById('loginOverlay').style.display = 'flex';
@@ -1792,23 +1809,43 @@ window.addEventListener('error', function(e) {
 
 function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
-    const idLoja = parametrosUrl.get('loja');
+    // Aceita ?id=  ?loja=  ou  ?user_id=
+    const idLoja = parametrosUrl.get('id') || parametrosUrl.get('loja') || parametrosUrl.get('user_id');
 
     if (idLoja) {
         idOficinaDaLojaAtual = idLoja;
+        window.__modoClienteVitrine = true;
         
-        // Esconde as telas antigas para o cliente não ver o login de empresa
+        // Esconde painel da oficina e login; mostra vitrine pública
         const estiloEsconder = document.createElement('style');
+        estiloEsconder.id = 'estilo-modo-cliente';
         estiloEsconder.innerHTML = `
-            #loginOverlay, #appContainer, .modal, .toast { display: none !important; }
-            #visao-cliente-externo { display: flex !important; }
+            #loginOverlay, #appContainer, #btn-resumo-flutuante { display: none !important; visibility: hidden !important; }
+            #visao-cliente-externo { display: flex !important; visibility: visible !important; }
         `;
         document.head.appendChild(estiloEsconder);
+
+        // Garante via JS também (casos de timing com auth)
+        const hideApp = () => {
+            const login = document.getElementById('loginOverlay');
+            const app = document.getElementById('appContainer');
+            const visao = document.getElementById('visao-cliente-externo');
+            if (login) { login.style.display = 'none'; }
+            if (app) { app.style.display = 'none'; }
+            if (visao) {
+                visao.style.display = 'flex';
+                visao.style.flexDirection = 'column';
+            }
+        };
+        hideApp();
+        setTimeout(hideApp, 100);
+        setTimeout(hideApp, 500);
         
-        // Chama os produtos com segurança
         setTimeout(() => {
-            carregarProdutosVitrinePublica(idLoja);
-        }, 500);
+            if (typeof carregarProdutosVitrinePublica === 'function') {
+                carregarProdutosVitrinePublica(idLoja);
+            }
+        }, 400);
 
         return true;
     }
@@ -1907,9 +1944,23 @@ async function enviarOrcamentoCliente() {
     const telefone = document.getElementById('cliOrcTelefone').value.trim();
     const veiculo = document.getElementById('cliOrcVeiculo').value.trim();
     const desc = document.getElementById('cliOrcDescricao').value.trim();
+    const dataAg = document.getElementById('cliOrcData') ? document.getElementById('cliOrcData').value : '';
+    const horaAg = document.getElementById('cliOrcHora') ? document.getElementById('cliOrcHora').value : '';
 
     if (!nome || !telefone || !desc) {
         alert('Por favor, preencha Nome, Telefone e a sua Solicitação!');
+        return;
+    }
+    if (!dataAg || !horaAg) {
+        alert('Escolha a data e o horário desejados para o agendamento!');
+        return;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const dataEscolhida = new Date(dataAg + 'T00:00:00');
+    if (dataEscolhida < hoje) {
+        alert('A data do agendamento não pode ser no passado.');
         return;
     }
 
@@ -1919,7 +1970,6 @@ async function enviarOrcamentoCliente() {
     }
 
     try {
-        // 1. Busca os dados atuais da oficina diretamente na tabela 'user_data'
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
             .select('*')
@@ -1928,28 +1978,37 @@ async function enviarOrcamentoCliente() {
 
         if (erroBusca) throw new Error("Não foi possível localizar os dados da oficina no banco.");
 
-        // 2. Extrai ou inicializa as listas existentes do seu banco de dados
         let listaHistorico = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
         let listaClientes = Array.isArray(dadosAtuais.clientes) ? dadosAtuais.clientes : [];
 
-        // 3. Monta o objeto do novo orçamento no padrão exato do seu sistema
-        const novoOrcamentoCliente = {
+        const [y, m, d] = dataAg.split('-');
+        const dataBR = `${d}/${m}/${y}`;
+
+        const novoAgendamento = {
+            id_agendamento: 'AGD-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleString('pt-BR'),
-            status: 'Orçamento',
-            cliente: { 
-                nome: nome, 
-                endereco: 'Pedido via Vitrine Virtual', 
-                tel: telefone, 
-                cidade: 'Sátrio Dias/BA', 
-                city: 'Sátrio Dias/BA' 
+            status: 'Agendado',
+            tipo_registro: 'AGENDAMENTO',
+            agendamento: {
+                data: dataAg,
+                hora: horaAg,
+                data_br: dataBR,
+                label: dataBR + ' às ' + horaAg
             },
-            veiculo: { 
-                modelo: veiculo || '---', 
-                placa: '---', 
-                ano: '', 
-                cor: '', 
-                avaliador: 'Vitrine Virtual',
-                tipo_servico: `[SOLICITAÇÃO VITRINE]: ${desc}` 
+            cliente: {
+                nome: nome,
+                endereco: 'Agendamento Online',
+                tel: telefone,
+                cidade: 'Sátrio Dias/BA',
+                city: 'Sátrio Dias/BA'
+            },
+            veiculo: {
+                modelo: veiculo || '---',
+                placa: '---',
+                ano: '',
+                cor: '',
+                avaliador: 'Agendamento Online',
+                tipo_servico: desc
             },
             materiais: [],
             mao_obra: [],
@@ -1961,22 +2020,19 @@ async function enviarOrcamentoCliente() {
             lucro: 0
         };
 
-        // 4. Injeta o novo pedido no início do histórico do banco
-        listaHistorico.unshift(novoOrcamentoCliente);
+        listaHistorico.unshift(novoAgendamento);
 
-        // 5. Verifica e adiciona o contato na lista de clientes se não existir
         const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
         if (!clienteExiste) {
-            listaClientes.push({ 
-                nome: nome, 
-                endereco: 'Pedido via Vitrine Virtual', 
-                tel: telefone, 
-                city: 'Sátrio Dias/BA', 
-                cidade: 'Sátrio Dias/BA' 
+            listaClientes.push({
+                nome: nome,
+                endereco: 'Agendamento Online',
+                tel: telefone,
+                city: 'Sátrio Dias/BA',
+                cidade: 'Sátrio Dias/BA'
             });
         }
 
-        // 6. Atualiza a linha existente no Supabase mesclando os novos dados
         const { error: erroUpdate } = await supabaseClient
             .from('user_data')
             .update({
@@ -1988,28 +2044,29 @@ async function enviarOrcamentoCliente() {
 
         if (erroUpdate) throw erroUpdate;
 
-        // 7. Feedback de sucesso e limpeza
-        alert(`Perfeito, ${nome}! A sua solicitação de orçamento foi enviada com sucesso para a ALDINEICAR. Você já pode fechar esta página!`);
+        alert('Perfeito, ' + nome + '!\n\nSeu agendamento foi solicitado para ' + dataBR + ' às ' + horaAg + '.\nA oficina entrará em contato para confirmar.');
         fecharModalOrcamentoCliente();
 
         document.getElementById('cliOrcNome').value = '';
         document.getElementById('cliOrcTelefone').value = '';
         document.getElementById('cliOrcVeiculo').value = '';
         document.getElementById('cliOrcDescricao').value = '';
+        if (document.getElementById('cliOrcData')) document.getElementById('cliOrcData').value = '';
+        if (document.getElementById('cliOrcHora')) document.getElementById('cliOrcHora').value = '';
 
-        // Se você por acaso estiver com o painel ADM aberto na mesma máquina, atualiza visualmente
         if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
-            historico.unshift(novoOrcamentoCliente);
-            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Pedido via Vitrine Virtual', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
-            if (typeof renderHistorico === 'function') renderHistorico();
+            historico.unshift(novoAgendamento);
+            if (!clienteExiste) clientes.push({ nome: nome, endereco: 'Agendamento Online', tel: telefone, city: 'Sátrio Dias/BA', cidade: 'Sátrio Dias/BA' });
+            if (typeof renderAgenda === 'function') renderAgenda();
             if (typeof renderClientes === 'function') renderClientes();
         }
 
     } catch (err) {
-        console.error("Erro na sincronização independente:", err);
-        alert(`Erro ao salvar no painel da oficina: ${err.message || 'Verifique as permissões da tabela user_data'}`);
+        console.error("Erro no agendamento:", err);
+        alert('Erro ao enviar agendamento: ' + (err.message || 'Verifique as permissões'));
     }
 }
+
 
 
 
@@ -2694,7 +2751,150 @@ function renderDashboard() {
 
 
 // ========================================================
-// LINK DA VITRINE + NOTIFICAÇÕES AUTOMÁTICAS
+// AGENDA ONLINE - Gestão de agendamentos dos clientes
+// ========================================================
+let filtroAgendaAtual = 'todos';
+
+function filtrarAgenda(status) {
+    filtroAgendaAtual = status;
+    document.querySelectorAll('.agenda-filtro').forEach(b => {
+        b.style.background = '#f1f5f9';
+        b.style.color = '#475569';
+    });
+    const btn = document.getElementById('filtro-agenda-' + status);
+    if (btn) {
+        btn.style.background = '#0f172a';
+        btn.style.color = 'white';
+    }
+    renderAgenda();
+}
+
+function renderAgenda() {
+    const container = document.getElementById('lista-agenda');
+    if (!container) return;
+
+    const lista = Array.isArray(historico) ? historico : [];
+    let agendamentos = [];
+    lista.forEach((item, idx) => {
+        if (item.tipo_registro === 'AGENDAMENTO' || (item.agendamento && item.agendamento.data)) {
+            agendamentos.push({ item, idx });
+        }
+    });
+
+    agendamentos.sort((a, b) => {
+        const da = (a.item.agendamento && a.item.agendamento.data) || '';
+        const ha = (a.item.agendamento && a.item.agendamento.hora) || '';
+        const db = (b.item.agendamento && b.item.agendamento.data) || '';
+        const hb = (b.item.agendamento && b.item.agendamento.hora) || '';
+        return (da + ha).localeCompare(db + hb);
+    });
+
+    if (filtroAgendaAtual !== 'todos') {
+        agendamentos = agendamentos.filter(({ item }) => (item.status || '') === filtroAgendaAtual);
+    }
+
+    if (agendamentos.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:48px 20px; background:white; border-radius:14px; border:1px solid #e2e8f0;">
+            <div style="font-size:40px; margin-bottom:12px;">📅</div>
+            <p style="color:#64748b; font-weight:600; margin:0;">Nenhum agendamento${filtroAgendaAtual !== 'todos' ? ' com este filtro' : ''}.</p>
+            <p style="color:#94a3b8; font-size:13px; margin:8px 0 0 0;">Os clientes agendam pela vitrine pública do seu link.</p>
+        </div>`;
+        return;
+    }
+
+    let html = '';
+    agendamentos.forEach(({ item, idx }) => {
+        const cliente = item.cliente || {};
+        const veiculo = item.veiculo || {};
+        const ag = item.agendamento || {};
+        const status = item.status || 'Agendado';
+
+        let badgeClass = 'agenda-badge-pendente';
+        if (status === 'Confirmado') badgeClass = 'agenda-badge-ok';
+        if (status === 'Cancelado') badgeClass = 'agenda-badge-cancel';
+        if (status === 'Concluído') badgeClass = 'agenda-badge-done';
+
+        const tel = cliente.tel || '';
+        const telLimpo = String(tel).replace(/\D/g, '');
+        const msgWa = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Sobre o seu agendamento em ' + (ag.label || ag.data_br || '') + ' — ALDINEICAR');
+
+        html += `
+        <div class="agenda-card">
+            <div class="agenda-card-left">
+                <div class="agenda-data-box">
+                    <span class="agenda-dia">${(ag.data_br || '--/--/----').split('/')[0] || '--'}</span>
+                    <span class="agenda-mes">${(ag.data_br || '').split('/')[1] || ''}/${(ag.data_br || '').split('/')[2] || ''}</span>
+                    <span class="agenda-hora">${ag.hora || '--:--'}</span>
+                </div>
+            </div>
+            <div class="agenda-card-body">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                    <div>
+                        <span class="agenda-badge ${badgeClass}">${status}</span>
+                        <h3 style="margin:8px 0 4px 0; font-size:16px; color:#0f172a;">${cliente.nome || 'Cliente'}</h3>
+                        <p style="margin:0; font-size:13px; color:#64748b;">📱 ${tel || 'Sem telefone'} · 🚗 ${veiculo.modelo || '---'}</p>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">${item.id_agendamento || ''}</span>
+                </div>
+                <p style="margin:12px 0 0 0; font-size:13px; color:#334155; background:#f8fafc; padding:10px 12px; border-radius:8px; border:1px solid #f1f5f9;">
+                    <strong>Serviço:</strong> ${veiculo.tipo_servico || 'Não informado'}
+                </p>
+                <div class="agenda-acoes">
+                    ${status === 'Agendado' ? `
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Confirmado')" class="agenda-btn agenda-btn-ok">✓ Confirmar</button>
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
+                    ` : ''}
+                    ${status === 'Confirmado' ? `
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Concluído')" class="agenda-btn agenda-btn-done">✓ Concluir</button>
+                        <button onclick="alterarStatusAgendamento(${idx}, 'Cancelado')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>
+                    ` : ''}
+                    ${telLimpo ? `<a href="https://wa.me/55${telLimpo}?text=${msgWa}" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>` : ''}
+                    <button onclick="deletarAgendamento(${idx})" class="agenda-btn agenda-btn-del">🗑️</button>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+async function alterarStatusAgendamento(idx, novoStatus) {
+    if (idx < 0 || idx >= historico.length) return;
+    historico[idx].status = novoStatus;
+    await salvarNoBanco();
+    renderAgenda();
+    if (typeof mostrarToast === 'function') mostrarToast('Status atualizado para: ' + novoStatus, 'sucesso');
+}
+
+async function deletarAgendamento(idx) {
+    abrirConfirmacao('Deseja excluir este agendamento?', async function() {
+        if (idx < 0 || idx >= historico.length) return;
+        historico.splice(idx, 1);
+        await salvarNoBanco();
+        renderAgenda();
+        if (typeof mostrarToast === 'function') mostrarToast('Agendamento removido.', 'sucesso');
+    });
+}
+
+function prepararMinDataAgendamento() {
+    const input = document.getElementById('cliOrcData');
+    if (!input) return;
+    const hoje = new Date();
+    const y = hoje.getFullYear();
+    const m = String(hoje.getMonth() + 1).padStart(2, '0');
+    const d = String(hoje.getDate()).padStart(2, '0');
+    input.min = y + '-' + m + '-' + d;
+}
+
+function abrirModalOrcamentoCliente() {
+    const modal = document.getElementById('modal-orcamento-cliente');
+    if (modal) modal.style.display = 'flex';
+    prepararMinDataAgendamento();
+}
+
+
+// ========================================================
+// LINK DA VITRINE + NOTIFICAÇÕES
 // ========================================================
 let monitorNotifInterval = null;
 const NOTIF_KEY = 'aldineicar_notif_ativas';
@@ -2702,67 +2902,51 @@ const NOTIF_SEEN_KEY = 'aldineicar_notif_seen_ids';
 
 function obterLinkVitrine() {
     if (!usuarioAtualId) return '';
-    const base = window.location.origin + window.location.pathname;
-    // Remove querystring atual e monta com id da oficina
-    const limpo = base.split('?')[0];
+    const limpo = (window.location.origin + window.location.pathname).split('?')[0];
     return limpo + '?id=' + usuarioAtualId;
 }
 
 function atualizarCardLinkVitrine() {
     const el = document.getElementById('texto-link-vitrine');
     if (!el) return;
-    const link = obterLinkVitrine();
-    el.innerText = link || 'Faça login para gerar o link da vitrine.';
+    el.innerText = obterLinkVitrine() || 'Faça login para gerar o link.';
     atualizarBotaoNotifUI();
 }
 
 async function copiarLinkVitrine() {
     const link = obterLinkVitrine();
-    if (!link) {
-        mostrarToast('Link indisponível. Faça login novamente.', 'aviso');
-        return;
-    }
+    if (!link) { mostrarToast('Link indisponível.', 'aviso'); return; }
     try {
         await navigator.clipboard.writeText(link);
-        mostrarToast('Link copiado para a área de transferência!', 'sucesso');
+        mostrarToast('Link copiado!', 'sucesso');
     } catch (e) {
-        // Fallback
         const ta = document.createElement('textarea');
-        ta.value = link;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
+        ta.value = link; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
         mostrarToast('Link copiado!', 'sucesso');
     }
 }
 
 function abrirVitrinePublica() {
     const link = obterLinkVitrine();
-    if (!link) {
-        mostrarToast('Link indisponível.', 'aviso');
-        return;
-    }
+    if (!link) { mostrarToast('Link indisponível.', 'aviso'); return; }
     window.open(link, '_blank');
 }
 
 function notificacoesAtivas() {
     const v = localStorage.getItem(NOTIF_KEY);
-    if (v === null) return true; // padrão: ligadas
-    return v === '1';
+    return v === null ? true : v === '1';
 }
 
 function atualizarBotaoNotifUI() {
     const btn = document.getElementById('btn-toggle-notif');
     if (!btn) return;
     if (notificacoesAtivas()) {
-        btn.innerText = 'Ativadas';
+        btn.innerText = '🔔 Ativadas';
         btn.style.background = '#10b981';
-        btn.style.color = 'white';
     } else {
-        btn.innerText = 'Desativadas';
+        btn.innerText = '🔔 Desativadas';
         btn.style.background = '#475569';
-        btn.style.color = 'white';
     }
 }
 
@@ -2772,9 +2956,8 @@ async function alternarNotificacoes() {
         mostrarToast('Notificações desativadas.', 'aviso');
     } else {
         localStorage.setItem(NOTIF_KEY, '1');
-        const ok = await solicitarPermissaoNotificacoes();
-        if (ok) mostrarToast('Notificações ativadas!', 'sucesso');
-        else mostrarToast('Permita notificações no navegador para receber alertas.', 'aviso');
+        await solicitarPermissaoNotificacoes();
+        mostrarToast('Notificações ativadas!', 'sucesso');
     }
     atualizarBotaoNotifUI();
 }
@@ -2783,152 +2966,75 @@ async function solicitarPermissaoNotificacoes() {
     if (!('Notification' in window)) return false;
     if (Notification.permission === 'granted') return true;
     if (Notification.permission === 'denied') return false;
-    try {
-        const perm = await Notification.requestPermission();
-        return perm === 'granted';
-    } catch (e) {
-        return false;
-    }
+    try { return (await Notification.requestPermission()) === 'granted'; } catch(e) { return false; }
 }
 
 function obterIdsVistos() {
-    try {
-        return JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY) || '[]');
-    } catch (e) {
-        return [];
-    }
+    try { return JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY) || '[]'); } catch(e) { return []; }
 }
-
 function salvarIdsVistos(ids) {
-    // Mantém no máximo 200 ids
-    const uniq = Array.from(new Set(ids)).slice(-200);
-    localStorage.setItem(NOTIF_SEEN_KEY, JSON.stringify(uniq));
+    localStorage.setItem(NOTIF_SEEN_KEY, JSON.stringify(Array.from(new Set(ids)).slice(-200)));
 }
-
 function coletarIdsNotificaveis(lista) {
     const ids = [];
-    (lista || []).forEach((item, idx) => {
-        if (item.tipo_registro === 'AGENDAMENTO' && (item.status === 'Agendado' || item.status === 'Confirmado')) {
-            ids.push(item.id_agendamento || ('agd-' + idx + '-' + (item.data || '')));
-        }
-        if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') {
-            ids.push(item.id_venda || ('vnd-' + idx + '-' + (item.data || '')));
-        }
+    (lista||[]).forEach((item, idx) => {
+        if (item.tipo_registro === 'AGENDAMENTO') ids.push(item.id_agendamento || ('agd-'+idx));
+        if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') ids.push(item.id_venda || ('vnd-'+idx));
     });
     return ids;
 }
-
 function dispararNotificacaoBrowser(titulo, corpo) {
-    if (!notificacoesAtivas()) return;
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!notificacoesAtivas() || !('Notification' in window) || Notification.permission !== 'granted') return;
     try {
-        const n = new Notification(titulo, {
-            body: corpo,
-            icon: '/favicon.ico',
-            tag: 'aldineicar-' + Date.now()
-        });
-        n.onclick = () => {
-            window.focus();
-            n.close();
-        };
-    } catch (e) {
-        console.warn('Falha ao exibir notificação:', e);
-    }
+        const n = new Notification(titulo, { body: corpo, tag: 'aldineicar-'+Date.now() });
+        n.onclick = () => { window.focus(); n.close(); };
+    } catch(e) {}
 }
-
 function verificarNovasNotificacoes(lista) {
     if (!notificacoesAtivas() || !usuarioAtualId) return;
-
     const atuais = coletarIdsNotificaveis(lista);
     const vistos = obterIdsVistos();
-
-    // Primeira execução: só marca como visto, sem notificar tudo antigo
-    if (vistos.length === 0 && atuais.length > 0) {
-        salvarIdsVistos(atuais);
-        return;
-    }
-
+    if (vistos.length === 0 && atuais.length > 0) { salvarIdsVistos(atuais); return; }
     const novos = atuais.filter(id => !vistos.includes(id));
-    if (novos.length === 0) {
-        salvarIdsVistos(Array.from(new Set([...vistos, ...atuais])));
-        return;
-    }
-
-    // Conta tipos
+    if (novos.length === 0) { salvarIdsVistos([...vistos, ...atuais]); return; }
     let qtdAgd = 0, qtdVnd = 0;
-    (lista || []).forEach((item, idx) => {
-        const idAgd = item.id_agendamento || ('agd-' + idx + '-' + (item.data || ''));
-        const idVnd = item.id_venda || ('vnd-' + idx + '-' + (item.data || ''));
-        if (novos.includes(idAgd) && item.tipo_registro === 'AGENDAMENTO') qtdAgd++;
-        if (novos.includes(idVnd) && (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL')) qtdVnd++;
+    (lista||[]).forEach((item, idx) => {
+        const idA = item.id_agendamento || ('agd-'+idx);
+        const idV = item.id_venda || ('vnd-'+idx);
+        if (novos.includes(idA) && item.tipo_registro === 'AGENDAMENTO') qtdAgd++;
+        if (novos.includes(idV) && (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL')) qtdVnd++;
     });
-
     if (qtdAgd > 0) {
-        const msg = qtdAgd === 1 ? '1 novo agendamento recebido!' : (qtdAgd + ' novos agendamentos!');
+        const msg = qtdAgd === 1 ? '1 novo agendamento!' : qtdAgd + ' novos agendamentos!';
         mostrarToast('📅 ' + msg, 'aviso');
-        dispararNotificacaoBrowser('ALDINEICAR — Novo agendamento', msg);
+        dispararNotificacaoBrowser('ALDINEICAR', msg);
     }
     if (qtdVnd > 0) {
-        const msg = qtdVnd === 1 ? '1 nova venda na vitrine!' : (qtdVnd + ' novas vendas!');
+        const msg = qtdVnd === 1 ? '1 nova venda!' : qtdVnd + ' novas vendas!';
         mostrarToast('💰 ' + msg, 'sucesso');
-        dispararNotificacaoBrowser('ALDINEICAR — Nova venda', msg);
+        dispararNotificacaoBrowser('ALDINEICAR', msg);
     }
-
-    salvarIdsVistos(Array.from(new Set([...vistos, ...atuais])));
+    salvarIdsVistos([...vistos, ...atuais]);
 }
-
 async function sincronizarEVerificarNotificacoes() {
-    if (!usuarioAtualId || !notificacoesAtivas()) return;
-    if (!navigator.onLine) return;
+    if (!usuarioAtualId || !notificacoesAtivas() || !navigator.onLine) return;
     try {
-        const { data, error } = await supabaseClient
-            .from('user_data')
-            .select('historico')
-            .eq('user_id', usuarioAtualId)
-            .single();
+        const { data, error } = await supabaseClient.from('user_data').select('historico').eq('user_id', usuarioAtualId).single();
         if (error || !data) return;
         const lista = Array.isArray(data.historico) ? data.historico : [];
-        // Atualiza histórico local se houver itens novos
-        if (lista.length !== (historico || []).length) {
+        if (lista.length !== (historico||[]).length) {
             historico = lista;
-            if (typeof renderAgenda === 'function') {
-                const ag = document.getElementById('aba-agenda');
-                if (ag && ag.style.display !== 'none') renderAgenda();
-            }
-            if (typeof renderizarListaVendasExclusiva === 'function') {
-                const vd = document.getElementById('aba-vendas');
-                if (vd && vd.style.display !== 'none') renderizarListaVendasExclusiva();
-            }
+            const ag = document.getElementById('aba-agenda');
+            if (ag && ag.style.display !== 'none' && typeof renderAgenda === 'function') renderAgenda();
         }
         verificarNovasNotificacoes(lista);
-    } catch (e) {
-        console.warn('Monitor notif:', e);
-    }
+    } catch(e) {}
 }
-
 function iniciarMonitorNotificacoes() {
     if (!usuarioAtualId) return;
-
-    // Solicita permissão se notif ativas
-    if (notificacoesAtivas()) {
-        solicitarPermissaoNotificacoes();
-    }
+    if (notificacoesAtivas()) solicitarPermissaoNotificacoes();
     atualizarBotaoNotifUI();
-
-    // Verifica estado atual sem flood
     verificarNovasNotificacoes(historico || []);
-
-    // Polling a cada 60s enquanto a aba estiver aberta
     if (monitorNotifInterval) clearInterval(monitorNotifInterval);
     monitorNotifInterval = setInterval(sincronizarEVerificarNotificacoes, 60000);
-
-    // Quando a aba volta ao foco
-    document.removeEventListener('visibilitychange', onVisibilidadeNotif);
-    document.addEventListener('visibilitychange', onVisibilidadeNotif);
-}
-
-function onVisibilidadeNotif() {
-    if (document.visibilityState === 'visible') {
-        sincronizarEVerificarNotificacoes();
-    }
 }
