@@ -1223,55 +1223,41 @@ async function editarProduto(id) {
     }
 
    function mostrarAba(nome) {
-    const abas = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
-    abas.forEach(id => {
+    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
+    ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
         if (el) el.style.display = 'none';
     });
-    // secao-vendas (estrutura antiga duplicada)
-    const secaoVendas = document.getElementById('secao-vendas');
-    if (secaoVendas) secaoVendas.style.display = 'none';
 
-    // Destacar botão ativo no menu
     document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-    const btnMap = {
-        dashboard: 'btn-menu-dashboard',
-        maoobra: 'btn-menu-maoobra'
-    };
-    if (btnMap[nome]) {
-        const btn = document.getElementById(btnMap[nome]);
+    document.querySelectorAll('.sidebar button').forEach(b => {
+        const oc = b.getAttribute('onclick') || '';
+        if (oc.includes("'" + nome + "'") || oc.includes('"' + nome + '"')) b.classList.add('active');
+    });
+    if (nome === 'dashboard') {
+        const btn = document.getElementById('btn-menu-dashboard');
         if (btn) btn.classList.add('active');
-    } else {
-        document.querySelectorAll('.sidebar button').forEach(b => {
-            if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + nome + "'")) {
-                b.classList.add('active');
-            }
-        });
     }
 
     if (nome === 'dashboard') {
         const el = document.getElementById('aba-dashboard');
         if (el) { el.style.display = 'block'; renderDashboard(); }
+        return;
     }
-    if (nome === 'materiais') document.getElementById('aba-materiais').style.display = 'block';
-    if (nome === 'clientes') document.getElementById('aba-clientes').style.display = 'block';
-    if (nome === 'historico') document.getElementById('aba-historico').style.display = 'block';
-    if (nome === 'maoobra') document.getElementById('aba-maoobra').style.display = 'block';
+    if (nome === 'materiais') { document.getElementById('aba-materiais').style.display = 'block'; return; }
+    if (nome === 'clientes') { document.getElementById('aba-clientes').style.display = 'block'; return; }
+    if (nome === 'historico') { document.getElementById('aba-historico').style.display = 'block'; return; }
+    if (nome === 'maoobra') { document.getElementById('aba-maoobra').style.display = 'block'; return; }
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
         if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
         else if (typeof carregarProdutosDaLoja === 'function') carregarProdutosDaLoja();
+        return;
     }
     if (nome === 'vendas') {
-        if (secaoVendas) {
-            secaoVendas.style.display = 'block';
-            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
-        }
-        const abaVendas = document.getElementById('aba-vendas');
-        if (abaVendas) {
-            abaVendas.style.display = 'block';
-            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
-        }
+        const el = document.getElementById('aba-vendas');
+        if (el) el.style.display = 'block';
+        renderizarListaVendasExclusiva();
     }
 }
 
@@ -1567,12 +1553,24 @@ async function editarProduto(id) {
     }
 
     function abrirConfirmacao(texto, callback){
-        document.getElementById('modalConfirmar').style.display='flex';
-        document.getElementById('textoConfirmacao').innerText = texto;
+        const modal = document.getElementById('modalConfirmar');
+        const textoEl = document.getElementById('textoConfirmacao');
+        if (modal) modal.style.display = 'flex';
+        if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
     }
-    function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
-    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){ if(acaoConfirmada) acaoConfirmada(); fecharConfirmacao(); });
+    function fecharConfirmacao(){
+        const modal = document.getElementById('modalConfirmar');
+        if (modal) modal.style.display = 'none';
+    }
+    function confirmarAcaoExclusao() {
+        if (typeof acaoConfirmada === 'function') {
+            const fn = acaoConfirmada;
+            acaoConfirmada = null;
+            fn();
+        }
+        fecharConfirmacao();
+    }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
     async function deletarCliente(index){ abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){ clientes.splice(index,1); renderClientes(); await salvarNoBanco(); }); }
@@ -2267,95 +2265,109 @@ async function processarBaixaEstoqueEPix() {
 async function renderizarListaVendasExclusiva() {
     const corpoTabela = document.getElementById('tabela-vendas-corpo');
     if (!corpoTabela) {
-        console.error("Erro: O elemento 'tabela-vendas-corpo' não foi localizado.");
+        console.error("Erro: tabela-vendas-corpo não encontrado.");
         return;
     }
 
-    corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">🔄 Buscando histórico no Supabase...</td></tr>`;
+    corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">🔄 Carregando vendas...</td></tr>`;
 
     try {
-        // Captura a sessão ativa diretamente do Supabase para garantir precisão absoluta
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-        
-        if (sessionError) throw sessionError;
-        
-        const idUsuarioLogado = session?.user?.id;
+        let historicoGeral = Array.isArray(historico) ? historico : [];
 
-        if (!idUsuarioLogado) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">⚠️ Identificação de usuário não encontrada. Certifique-se de que está logado.</td></tr>`;
-            return;
+        // Sincroniza com nuvem se possível
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const idUsuarioLogado = session?.user?.id || usuarioAtualId;
+            if (idUsuarioLogado) {
+                const { data: dados, error } = await supabaseClient
+                    .from('user_data')
+                    .select('historico')
+                    .eq('user_id', idUsuarioLogado)
+                    .single();
+                if (!error && dados && Array.isArray(dados.historico)) {
+                    historicoGeral = dados.historico;
+                    historico = dados.historico; // mantém local sincronizado
+                }
+            }
+        } catch (e) {
+            console.warn('Usando histórico local para vendas:', e);
         }
 
-        // Faz a consulta na tabela do Supabase
-        const { data: dados, error } = await supabaseClient
-            .from('user_data')
-            .select('historico')
-            .eq('user_id', idUsuarioLogado)
-            .single();
+        // Índices reais no array historico para poder excluir
+        const vendasComIdx = [];
+        historicoGeral.forEach((item, idxHist) => {
+            const isVenda = item.tipo_registro === 'VENDA_DIRETA_BALCAO' ||
+                item.tipo_registro === 'LOJA_VIRTUAL' ||
+                item.tipo_servico === '[VENDA DIRETA]' ||
+                (item.veiculo && item.veiculo.tipo_servico && String(item.veiculo.tipo_servico).includes('[VENDA DIRETA]'));
+            if (isVenda) vendasComIdx.push({ item, idxHist });
+        });
 
-        if (error) throw error;
-
-        const historicoGeral = Array.isArray(dados?.historico) ? dados.historico : [];
-        
-        // Filtra os registros que correspondem a vendas balcão ou vendas da vitrine
-        const vendas = historicoGeral.filter(item => 
-            item.tipo_registro === 'VENDA_DIRETA_BALCAO' || 
-            item.tipo_registro === 'LOJA_VIRTUAL' ||
-            item.tipo_servico === '[VENDA DIRETA]' ||
-            (item.veiculo && item.veiculo.tipo_servico && item.veiculo.tipo_servico.includes('[VENDA DIRETA]'))
-        );
-        
-        corpoTabela.innerHTML = ''; 
-        
-        if (vendas.length === 0) {
-            corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma venda encontrada no histórico.</td></tr>`;
+        if (vendasComIdx.length === 0) {
+            corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px; color:#94a3b8;">Nenhuma venda encontrada.</td></tr>`;
             return;
         }
 
         let linhasHTML = '';
-
-        vendas.forEach(venda => {
+        vendasComIdx.forEach(({ item: venda, idxHist }) => {
             let nomeCliente = 'Cliente';
             if (venda.cliente) {
-                if (typeof venda.cliente === 'object' && venda.cliente.nome) {
-                    nomeCliente = venda.cliente.nome;
-                } else if (typeof venda.cliente === 'string') {
-                    nomeCliente = venda.cliente;
-                }
+                if (typeof venda.cliente === 'object' && venda.cliente.nome) nomeCliente = venda.cliente.nome;
+                else if (typeof venda.cliente === 'string') nomeCliente = venda.cliente;
             } else if (venda.cliente_nome) {
                 nomeCliente = venda.cliente_nome;
             }
 
             const nomeProduto = venda.produto_nome || venda.nome_produto || 'Produto';
-            const quantidadeItem = venda.quantidade || '1';
-            
-            let valorTotalRaw = venda.total_pago || venda.valor_total || 0;
+            const quantidadeItem = venda.quantidade || 1;
+
+            let valorTotalRaw = venda.total_pago || venda.valor_total || venda.totalCobrado || 0;
             if (typeof valorTotalRaw === 'string') {
                 valorTotalRaw = parseFloat(valorTotalRaw.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
             }
             const valorTotal = parseFloat(valorTotalRaw) || 0;
             const statusVenda = venda.status || 'Concluído';
+            const idVenda = venda.id_venda || ('#' + idxHist);
 
             linhasHTML += `
-                <tr style="border-bottom: 1px solid #f1f5f9; background: white;">
-                    <td style="padding: 12px 8px; color: #64748b;">${venda.id_venda || '---'}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${venda.data || ''}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${nomeCliente}</td>
-                    <td style="padding: 12px 8px; color: #10b981; font-weight:600;">${nomeProduto}</td>
-                    <td style="padding: 12px 8px; color: #0f172a;">${quantidadeItem}</td>
-                    <td style="padding: 12px 8px; color: #0f172a; font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
-                    <td style="padding: 12px 8px;"><span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">${statusVenda}</span></td>
-                </tr>
-            `;
+                <tr>
+                    <td style="color:#64748b;">${idVenda}</td>
+                    <td>${venda.data || ''}</td>
+                    <td>${nomeCliente}</td>
+                    <td style="color:#059669; font-weight:600;">${nomeProduto}</td>
+                    <td>${quantidadeItem}</td>
+                    <td style="font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
+                    <td><span style="background:#ecfdf5; color:#059669; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${statusVenda}</span></td>
+                    <td>
+                        <button onclick="deletarVendaPorIndice(${idxHist})" title="Excluir venda" style="background:#fee2e2; color:#dc2626; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:14px;">🗑️</button>
+                    </td>
+                </tr>`;
         });
 
         corpoTabela.innerHTML = linhasHTML;
-
     } catch (err) {
         console.error("Erro na listagem das vendas:", err);
-        corpoTabela.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar dados: ${err.message}</td></tr>`;
+        corpoTabela.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#ef4444;">Erro: ${err.message}</td></tr>`;
     }
 }
+
+async function deletarVendaPorIndice(idxHist) {
+    abrirConfirmacao('Deseja excluir esta venda do histórico?', async function() {
+        if (idxHist < 0 || idxHist >= historico.length) {
+            mostrarToast('Venda não encontrada.', 'erro');
+            return;
+        }
+        historico.splice(idxHist, 1);
+        await salvarNoBanco();
+        renderizarListaVendasExclusiva();
+        if (typeof renderDashboard === 'function') {
+            const dash = document.getElementById('aba-dashboard');
+            if (dash && dash.style.display !== 'none') renderDashboard();
+        }
+        mostrarToast('Venda excluída com sucesso!', 'sucesso');
+    });
+}
+
 
 function fecharModalEspecifico(idModal) {
     const modal = document.getElementById(idModal);
@@ -2381,21 +2393,23 @@ function renderizarVendas(vendas) {
 }
 
 
-
-
 // ========================================================
-// DASHBOARD FINANCEIRO - Faturamento x Gastos em Materiais
+// DASHBOARD FINANCEIRO - Orçamentos, Materiais e Vendas separados
 // ========================================================
 let graficoFinanceiroInstance = null;
 
 function parseDataHistorico(dataStr) {
     if (!dataStr) return null;
-    // Formatos: "26/07/2026, 15:30:00" | "26/07/2026" | ISO
     try {
-        if (dataStr.includes('/')) {
-            const parte = dataStr.split(',')[0].trim();
-            const [dia, mes, ano] = parte.split('/').map(Number);
-            if (dia && mes && ano) return new Date(ano, mes - 1, dia);
+        if (String(dataStr).includes('/')) {
+            const parte = String(dataStr).split(',')[0].trim();
+            const bits = parte.split('/');
+            if (bits.length >= 3) {
+                const dia = parseInt(bits[0], 10);
+                const mes = parseInt(bits[1], 10);
+                const ano = parseInt(bits[2], 10);
+                if (dia && mes && ano) return new Date(ano, mes - 1, dia);
+            }
         }
         const d = new Date(dataStr);
         if (!isNaN(d.getTime())) return d;
@@ -2403,134 +2417,125 @@ function parseDataHistorico(dataStr) {
     return null;
 }
 
-function extrairValorFaturamento(item) {
-    // Vendas diretas da vitrine
-    if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') {
-        let v = item.total_pago || item.valor_total || item.totalCobrado || 0;
-        if (typeof v === 'string') v = parseFloat(v.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-        return parseFloat(v) || 0;
-    }
+function isRegistroVenda(item) {
+    if (!item) return false;
+    if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') return true;
+    if (item.tipo_servico === '[VENDA DIRETA]') return true;
+    if (item.veiculo && item.veiculo.tipo_servico && String(item.veiculo.tipo_servico).includes('[VENDA DIRETA]')) return true;
+    return false;
+}
+
+function valorVenda(item) {
+    let v = item.total_pago || item.valor_total || item.totalCobrado || 0;
+    if (typeof v === 'string') v = parseFloat(v.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    return parseFloat(v) || 0;
+}
+
+function valorOrcamento(item) {
     return parseFloat(item.totalCobrado) || parseFloat(item.total) || 0;
 }
 
-function extrairCustoMateriais(item) {
-    if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') {
-        // Na venda direta o "custo" pode ser 0 se não houver markup separado; usa 0
-        return 0;
-    }
+function custoMateriaisOrc(item) {
     let c = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
     return parseFloat(c) || 0;
 }
 
-function calcularDadosMensais(anoFiltro) {
-    const meses = Array.from({ length: 12 }, () => ({ faturamento: 0, materiais: 0, qtd: 0 }));
+function calcularDadosMensaisSeparados(anoFiltro) {
+    const meses = Array.from({ length: 12 }, () => ({
+        fatOrc: 0, materiais: 0, vendas: 0, qtdOrc: 0, qtdVendas: 0
+    }));
     const lista = Array.isArray(historico) ? historico : [];
 
     lista.forEach(item => {
         const data = parseDataHistorico(item.data);
-        if (!data) return;
-        if (data.getFullYear() !== anoFiltro) return;
+        if (!data || data.getFullYear() !== anoFiltro) return;
+        const m = data.getMonth();
 
-        const mes = data.getMonth(); // 0-11
-        const fat = extrairValorFaturamento(item);
-        const mat = extrairCustoMateriais(item);
-
-        meses[mes].faturamento += fat;
-        meses[mes].materiais += mat;
-        meses[mes].qtd += 1;
+        if (isRegistroVenda(item)) {
+            meses[m].vendas += valorVenda(item);
+            meses[m].qtdVendas += 1;
+        } else {
+            meses[m].fatOrc += valorOrcamento(item);
+            meses[m].materiais += custoMateriaisOrc(item);
+            meses[m].qtdOrc += 1;
+        }
     });
-
     return meses;
 }
 
 function formatarBRL(valor) {
-    return 'R$ ' + (valor || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const n = Number(valor) || 0;
+    return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function popularSelectAnos() {
     const select = document.getElementById('filtroAnoDashboard');
     if (!select) return;
-
-    const anos = new Set();
-    const agora = new Date().getFullYear();
-    anos.add(agora);
-
+    const anos = new Set([new Date().getFullYear()]);
     (historico || []).forEach(item => {
         const d = parseDataHistorico(item.data);
         if (d) anos.add(d.getFullYear());
     });
-
-    const listaAnos = Array.from(anos).sort((a, b) => b - a);
-    const valorAtual = select.value ? parseInt(select.value) : agora;
-
-    select.innerHTML = listaAnos.map(a =>
-        `<option value="${a}" ${a === valorAtual ? 'selected' : ''}>${a}</option>`
-    ).join('');
+    const lista = Array.from(anos).sort((a, b) => b - a);
+    const atual = select.value ? parseInt(select.value, 10) : new Date().getFullYear();
+    select.innerHTML = lista.map(a => `<option value="${a}" ${a === atual ? 'selected' : ''}>${a}</option>`).join('');
 }
 
 function renderDashboard() {
     const canvas = document.getElementById('graficoFinanceiro');
-    if (!canvas || typeof Chart === 'undefined') return;
+    if (!canvas) return;
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js não carregado');
+        return;
+    }
 
     popularSelectAnos();
-
     const select = document.getElementById('filtroAnoDashboard');
-    const ano = select ? parseInt(select.value) || new Date().getFullYear() : new Date().getFullYear();
-    const dados = calcularDadosMensais(ano);
+    const ano = select ? (parseInt(select.value, 10) || new Date().getFullYear()) : new Date().getFullYear();
+    const dados = calcularDadosMensaisSeparados(ano);
 
-    const labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const fatData = dados.map(m => m.faturamento);
-    const matData = dados.map(m => m.materiais);
+    const labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const fatOrc = dados.map(m => m.fatOrc);
+    const mat = dados.map(m => m.materiais);
+    const vendas = dados.map(m => m.vendas);
 
-    // Totais do ano
-    const totalFat = fatData.reduce((s, v) => s + v, 0);
-    const totalMat = matData.reduce((s, v) => s + v, 0);
-    const totalLucro = totalFat - totalMat;
-    const totalQtd = dados.reduce((s, m) => s + m.qtd, 0);
+    const totalFatOrc = fatOrc.reduce((s, v) => s + v, 0);
+    const totalMat = mat.reduce((s, v) => s + v, 0);
+    const totalVendas = vendas.reduce((s, v) => s + v, 0);
+    const totalLucro = totalFatOrc - totalMat;
+    const totalQtdOrc = dados.reduce((s, m) => s + m.qtdOrc, 0);
+    const totalQtdVendas = dados.reduce((s, m) => s + m.qtdVendas, 0);
 
-    // Mês atual
-    const mesAtualIdx = new Date().getMonth();
-    const fatMesAtual = (new Date().getFullYear() === ano) ? dados[mesAtualIdx].faturamento : 0;
-    const qtdMesAtual = (new Date().getFullYear() === ano) ? dados[mesAtualIdx].qtd : 0;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    set('kpi-fat-orc', formatarBRL(totalFatOrc));
+    set('kpi-materiais', formatarBRL(totalMat));
+    set('kpi-vendas', formatarBRL(totalVendas));
+    set('kpi-lucro', formatarBRL(totalLucro));
+    set('kpi-fat-orc-sub', totalQtdOrc + ' orçamento(s) no ano');
+    set('kpi-materiais-sub', 'Custo dos orçamentos');
+    set('kpi-vendas-sub', totalQtdVendas + ' venda(s) no ano');
 
-    // KPIs
-    const elFat = document.getElementById('kpi-faturamento');
-    const elMat = document.getElementById('kpi-materiais');
-    const elLucro = document.getElementById('kpi-lucro');
-    const elMes = document.getElementById('kpi-mes-atual');
-    const elFatSub = document.getElementById('kpi-faturamento-sub');
-    const elMesSub = document.getElementById('kpi-mes-atual-sub');
-
-    if (elFat) elFat.innerText = formatarBRL(totalFat);
-    if (elMat) elMat.innerText = formatarBRL(totalMat);
-    if (elLucro) elLucro.innerText = formatarBRL(totalLucro);
-    if (elMes) elMes.innerText = formatarBRL(fatMesAtual);
-    if (elFatSub) elFatSub.innerText = totalQtd + ' registro(s) no período';
-    if (elMesSub) elMesSub.innerText = qtdMesAtual + ' registro(s) neste mês';
-
-    // Tabela mensal
     const tbody = document.getElementById('tabela-resumo-mensal');
     if (tbody) {
-        const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         let html = '';
         dados.forEach((m, i) => {
-            if (m.qtd === 0 && m.faturamento === 0 && m.materiais === 0) return;
-            const lucro = m.faturamento - m.materiais;
+            if (!m.qtdOrc && !m.qtdVendas && !m.fatOrc && !m.materiais && !m.vendas) return;
+            const lucro = m.fatOrc - m.materiais;
             html += `<tr>
-                <td>${nomesMes[i]}/${ano}</td>
-                <td class="val-pos">${formatarBRL(m.faturamento)}</td>
+                <td>${nomes[i]}/${ano}</td>
+                <td class="val-pos">${formatarBRL(m.fatOrc)}</td>
                 <td class="val-neg">${formatarBRL(m.materiais)}</td>
                 <td class="${lucro >= 0 ? 'val-pos' : 'val-neg'}">${formatarBRL(lucro)}</td>
-                <td>${m.qtd}</td>
+                <td style="color:#d97706;font-weight:700;">${formatarBRL(m.vendas)}</td>
+                <td>${m.qtdOrc}</td>
+                <td>${m.qtdVendas}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum dado em ${ano}</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado em ${ano}</td></tr>`;
     }
 
-    // Gráfico
-    if (graficoFinanceiroInstance) {
-        graficoFinanceiroInstance.destroy();
-    }
+    if (graficoFinanceiroInstance) graficoFinanceiroInstance.destroy();
 
     graficoFinanceiroInstance = new Chart(canvas, {
         type: 'bar',
@@ -2538,20 +2543,28 @@ function renderDashboard() {
             labels,
             datasets: [
                 {
-                    label: 'Faturamento',
-                    data: fatData,
+                    label: 'Orçamentos',
+                    data: fatOrc,
                     backgroundColor: 'rgba(16, 185, 129, 0.85)',
                     borderRadius: 6,
                     borderSkipped: false,
-                    maxBarThickness: 28
+                    maxBarThickness: 22
                 },
                 {
-                    label: 'Gastos em Materiais',
-                    data: matData,
+                    label: 'Materiais',
+                    data: mat,
                     backgroundColor: 'rgba(225, 29, 72, 0.8)',
                     borderRadius: 6,
                     borderSkipped: false,
-                    maxBarThickness: 28
+                    maxBarThickness: 22
+                },
+                {
+                    label: 'Vendas Loja',
+                    data: vendas,
+                    backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 22
                 }
             ]
         },
@@ -2563,27 +2576,19 @@ function renderDashboard() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) {
-                            return ctx.dataset.label + ': R$ ' + ctx.parsed.y.toFixed(2).replace('.', ',');
-                        }
+                        label: (ctx) => ctx.dataset.label + ': ' + formatarBRL(ctx.parsed.y)
                     }
                 }
             },
             scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { weight: '600', size: 11 }, color: '#64748b' }
-                },
+                x: { grid: { display: false }, ticks: { font: { weight: '600', size: 11 }, color: '#64748b' } },
                 y: {
                     beginAtZero: true,
                     grid: { color: '#f1f5f9' },
                     ticks: {
                         font: { size: 11 },
                         color: '#94a3b8',
-                        callback: function(v) {
-                            if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(1) + 'k';
-                            return 'R$ ' + v;
-                        }
+                        callback: (v) => v >= 1000 ? 'R$ ' + (v / 1000).toFixed(1) + 'k' : 'R$ ' + v
                     }
                 }
             }

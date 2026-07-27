@@ -188,14 +188,14 @@ function mostrarSecao(id) {
            <div class="sidebar">
             <div>
                 <h2>Menu</h2>
-                <button id="btn-menu-dashboard" onclick="mostrarAba('dashboard')" class="active">📊 Dashboard</button>
+                <button id="btn-menu-dashboard" class="active" onclick="mostrarAba('dashboard')">📊 Dashboard</button>
                 <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
                 <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
-                <button onclick="mostrarAba('loja')">Minha Loja</button>
-                <button onclick="mostrarAba('vendas')">💰 Vendas de Produtos</button>
-                <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
+                <button onclick="mostrarAba('loja')">🛒 Minha Loja</button>
+                <button onclick="mostrarAba('vendas')">💰 Vendas</button>
+                <button onclick="abrirModalOficina()">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
            </div>
@@ -211,51 +211,49 @@ function mostrarSecao(id) {
                     <div class="aba-container">
                         
 
-                        <!-- DASHBOARD -->
+                        <!-- ===== DASHBOARD ===== -->
                         <div id="aba-dashboard" style="display:none;">
                             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
                                 <div>
                                     <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">Dashboard Financeiro</h2>
-                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Faturamento e gastos calculados a partir do histórico de orçamentos e vendas.</p>
+                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Orçamentos, materiais e vendas da loja separados.</p>
                                 </div>
                                 <div style="display:flex; gap:8px; align-items:center;">
-                                    <select id="filtroAnoDashboard" onchange="renderDashboard()" style="padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:13px; background:white; color:#0f172a; cursor:pointer;">
-                                    </select>
+                                    <select id="filtroAnoDashboard" onchange="renderDashboard()" style="padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:13px; background:white; color:#0f172a; cursor:pointer;"></select>
                                     <button onclick="renderDashboard()" style="padding:10px 16px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; color:#0f172a;">🔄 Atualizar</button>
                                 </div>
                             </div>
 
-                            <!-- KPI Cards -->
                             <div class="dash-kpis">
                                 <div class="dash-kpi kpi-green">
-                                    <div class="dash-kpi-label">Faturamento do Ano</div>
-                                    <div class="dash-kpi-value" id="kpi-faturamento">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-faturamento-sub">0 orçamentos pagos/concluídos</div>
+                                    <div class="dash-kpi-label">Faturamento Orçamentos</div>
+                                    <div class="dash-kpi-value" id="kpi-fat-orc">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-fat-orc-sub">Serviços / OS no ano</div>
                                 </div>
                                 <div class="dash-kpi kpi-red">
                                     <div class="dash-kpi-label">Gasto em Materiais</div>
                                     <div class="dash-kpi-value" id="kpi-materiais">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-materiais-sub">Custo total do período</div>
+                                    <div class="dash-kpi-sub" id="kpi-materiais-sub">Custo dos orçamentos</div>
+                                </div>
+                                <div class="dash-kpi kpi-orange">
+                                    <div class="dash-kpi-label">Vendas da Loja</div>
+                                    <div class="dash-kpi-value" id="kpi-vendas">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-vendas-sub">Vitrine / balcão</div>
                                 </div>
                                 <div class="dash-kpi kpi-blue">
-                                    <div class="dash-kpi-label">Lucro Estimado</div>
+                                    <div class="dash-kpi-label">Lucro Orçamentos</div>
                                     <div class="dash-kpi-value" id="kpi-lucro">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-lucro-sub">Faturamento − Materiais</div>
-                                </div>
-                                <div class="dash-kpi kpi-purple">
-                                    <div class="dash-kpi-label">Mês Atual</div>
-                                    <div class="dash-kpi-value" id="kpi-mes-atual">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-mes-atual-sub">Faturamento deste mês</div>
+                                    <div class="dash-kpi-sub">Faturamento − Materiais</div>
                                 </div>
                             </div>
 
-                            <!-- Chart -->
                             <div class="dash-chart-card">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
-                                    <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0;">Faturamento x Gastos por Mês</h3>
-                                    <div style="display:flex; gap:16px; font-size:12px; font-weight:600;">
-                                        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; border-radius:3px; background:#10b981; display:inline-block;"></span> Faturamento</span>
-                                        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; border-radius:3px; background:#e11d48; display:inline-block;"></span> Materiais</span>
+                                    <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0;">Comparativo Mensal</h3>
+                                    <div style="display:flex; gap:14px; font-size:12px; font-weight:600; flex-wrap:wrap;">
+                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#10b981;display:inline-block;"></span> Orçamentos</span>
+                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#e11d48;display:inline-block;"></span> Materiais</span>
+                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block;"></span> Vendas Loja</span>
                                     </div>
                                 </div>
                                 <div style="position:relative; height:320px; width:100%;">
@@ -263,7 +261,6 @@ function mostrarSecao(id) {
                                 </div>
                             </div>
 
-                            <!-- Tabela resumo mensal -->
                             <div class="dash-chart-card" style="margin-top:24px;">
                                 <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0 0 16px 0;">Resumo Mensal</h3>
                                 <div style="overflow-x:auto;">
@@ -271,14 +268,48 @@ function mostrarSecao(id) {
                                         <thead>
                                             <tr>
                                                 <th>Mês</th>
-                                                <th>Faturamento</th>
+                                                <th>Orçamentos</th>
                                                 <th>Materiais</th>
-                                                <th>Lucro</th>
-                                                <th>Qtd. OS</th>
+                                                <th>Lucro OS</th>
+                                                <th>Vendas Loja</th>
+                                                <th>Qtd OS</th>
+                                                <th>Qtd Vendas</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tabela-resumo-mensal">
-                                            <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
+                                            <tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ===== VENDAS ===== -->
+                        <div id="aba-vendas" style="display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                                <div>
+                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">💰 Vendas de Produtos</h2>
+                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Vendas da vitrine virtual e balcão — separadas dos orçamentos.</p>
+                                </div>
+                                <button onclick="renderizarListaVendasExclusiva()" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🔄 Atualizar</button>
+                            </div>
+                            <div class="dash-chart-card">
+                                <div style="overflow-x:auto;">
+                                    <table class="dash-table" id="tabela-vendas">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Data</th>
+                                                <th>Cliente</th>
+                                                <th>Produto</th>
+                                                <th>Qtd</th>
+                                                <th>Valor</th>
+                                                <th>Status</th>
+                                                <th style="width:70px;">Ação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabela-vendas-corpo">
+                                            <tr><td colspan="8" style="text-align:center; color:#94a3b8; padding:24px;">Carregando vendas...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -494,65 +525,10 @@ function mostrarSecao(id) {
             <p id="textoConfirmacao" style="margin-bottom:20px; font-size:15px; color:#666;">Deseja realmente excluir?</p>
             <div style="display:flex; gap:10px;">
                 <button onclick="fecharConfirmacao()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#ddd; font-weight:bold; cursor:pointer;">Cancelar</button>
-                <button id="btnConfirmarAcao" style="flex:1; padding:14px; border:none; border-radius:12px; background:#d40000; color:white; font-weight:bold; cursor:pointer;">Excluir</button>
+                <button id="btnConfirmarAcao" onclick="confirmarAcaoExclusao()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#d40000; color:white; font-weight:bold; cursor:pointer;">Excluir</button>
             </div>
         </div>
     </div>
-
-   <div id="secao-loja" class="conteudo-aba" style="display: none;">
-    <div class="header-aba">
-        <h2>Minha Loja</h2>
-        <button onclick="abrirModalCadastroProduto()">+ Novo Produto</button>
-    </div>
-    
-    <div id="vitrine-produtos" class="grid-produtos">
-        </div>
-</div>
-
-<div id="secao-vendas" style="display:none;">
-    <div style="background: white; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; color: #0f172a;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-            <div>
-                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #0f172a;">💰 Histórico de Vendas Diretas</h2>
-                <p style="font-size: 13px; color: #64748b; margin: 0;">Lista de produtos vendidos diretamente pela vitrine virtual ou balcão.</p>
-            </div>
-            <button onclick="renderizarListaVendasExclusiva()" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                🔄 Atualizar Lista
-            </button>
-        </div>
-        
-        <!-- Seção de Vendas -->
-<section id="secao-vendas" class="painel-secao">
-    <div class="header-secao">
-        <h2>Controle de Vendas</h2>
-        <button onclick="abrirModalVendas()">+ Nova Venda</button>
-    </div>
-
-    <section id="secao-vendas" class="painel-secao">
-    <div class="header-secao">
-        <h2>Controle de Vendas</h2>
-    </div>
-
-    <div class="tabela-container">
-        <table id="tabela-vendas">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Data</th>
-                    <th>Cliente</th>
-                    <th>Produto</th>
-                    <th>Qtd</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-vendas-corpo">
-            </tbody>
-        </table>
-    </div>
-</section>
-</div>
-
 
 </body>
 
