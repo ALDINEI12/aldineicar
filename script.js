@@ -2048,21 +2048,50 @@ async function carregarProdutosVitrinePublica(idOficina) {
 }
 
 // ========================================================
-// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR (IDs BLINDADOS)
+// COMPRA VIA PIX + QR CODE (confirmação só pelo WEBHOOK)
 // ========================================================
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 let nomeProdutoSelecionado = "";
+let dadosCompraPendente = null;
+
+function pixCRC16Local(payload) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+            crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+            crc &= 0xFFFF;
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+function pixTLVLocal(id, value) {
+    const v = String(value);
+    return id + String(v.length).padStart(2, '0') + v;
+}
+function montarPayloadPixCompra({ chave, nome, cidade, valor, txid }) {
+    const chaveLimpa = String(chave).replace(/\s/g, '');
+    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const mai = pixTLVLocal('00', 'BR.GOV.BCB.PIX') + pixTLVLocal('01', chaveLimpa);
+    let payload = pixTLVLocal('00','01') + pixTLVLocal('26', mai) + pixTLVLocal('52','0000') + pixTLVLocal('53','986')
+        + pixTLVLocal('54', Number(valor).toFixed(2)) + pixTLVLocal('58','BR') + pixTLVLocal('59', nomeLimpo)
+        + pixTLVLocal('60', cidadeLimpa) + pixTLVLocal('62', pixTLVLocal('05', (txid||'***').substring(0,25))) + '6304';
+    payload += pixCRC16Local(payload);
+    return payload;
+}
 
 function abrirModalCompra(id, nome, preco, estoque) {
     produtoSelecionadoParaCompra = id;
     precoUnitarioSelecionado = parseFloat(preco) || 0;
     estoqueDisponivelSelecionado = parseInt(estoque) || 0;
     nomeProdutoSelecionado = nome;
+    dadosCompraPendente = null;
 
     if (estoqueDisponivelSelecionado <= 0) {
-        alert("Desculpe, este produto está esgotado no momento!");
+        alert('Desculpe, este produto está esgotado no momento!');
         return;
     }
 
@@ -2071,44 +2100,60 @@ function abrirModalCompra(id, nome, preco, estoque) {
 
     const divModal = document.createElement('div');
     divModal.id = 'modalCompraProdutoDinamico';
-    divModal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
-    
+    divModal.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(4px);';
+
     divModal.innerHTML = `
-        <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:420px; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 1px solid #2c2c2e; color: #ffffff; font-family: sans-serif;">
-            <h3 style="margin-top:0; color:#ffffff; font-size: 18px; font-weight: 700;">Finalizar Compra</h3>
-            <p style="font-weight:700; color:#22c55e; margin-top: 8px; font-size: 16px;">${nome}</p>
-            <p style="font-size:13px; color:#22c55e; margin-top: 2px;">Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
-            <p style="font-size:12px; color:#a1a1aa; margin-top: 2px;">Disponível no Estoque: ${estoqueDisponivelSelecionado} un.</p>
-            
-            <hr style="border: 0; border-top: 1px solid #2c2c2e; margin: 16px 0;">
-            
-            <div style="margin-bottom: 14px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
-                <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
-            </div>
-
-            <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
-                <span id="vendaTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
-                <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
-                <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="fecharModalCompraDinamica()" style="background:#3a3a3c; color:#ffffff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size: 13px; cursor:pointer;">Cancelar</button>
-                <button onclick="processarBaixaEstoqueEPix()" style="background:#22c55e; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; font-size: 13px; cursor:pointer;">Pagar via PIX</button>
-            </div>
+      <div style="background:#1c1c1e;padding:24px;border-radius:12px;width:90%;max-width:440px;max-height:92vh;overflow-y:auto;border:1px solid #2c2c2e;color:#fff;font-family:sans-serif;">
+        <div id="etapaDadosCompra">
+          <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;">Finalizar Compra</h3>
+          <p style="font-weight:700;color:#22c55e;margin:8px 0 2px;font-size:16px;">${nome}</p>
+          <p style="font-size:13px;color:#22c55e;margin:0;">Preço unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
+          <p style="font-size:12px;color:#a1a1aa;margin:4px 0 0;">Estoque: ${estoqueDisponivelSelecionado} un.</p>
+          <hr style="border:0;border-top:1px solid #2c2c2e;margin:16px 0;">
+          <div style="margin-bottom:14px;">
+            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">Quantidade</label>
+            <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;font-weight:600;">
+          </div>
+          <div style="background:#2c2c2e;padding:12px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;">
+            <span style="font-size:14px;color:#a1a1aa;font-weight:600;">Total</span>
+            <span id="vendaTotalExibicao" style="font-weight:800;color:#22c55e;font-size:18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">Seu Nome</label>
+            <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">WhatsApp</label>
+            <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;">
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" onclick="fecharModalCompraDinamica()" style="background:#3a3a3c;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;">Cancelar</button>
+            <button type="button" onclick="gerarPixERegistrarPedido()" style="background:#22c55e;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Gerar PIX →</button>
+          </div>
         </div>
-    `;
 
+        <div id="etapaPixCompra" style="display:none;">
+          <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;">Pague com PIX</h3>
+          <p style="font-size:13px;color:#a1a1aa;margin:0 0 12px;line-height:1.45;">Escaneie o QR Code ou copie o código no app do banco.<br><b style="color:#fbbf24;">A confirmação é automática</b> pelo sistema (webhook). Você não precisa confirmar manualmente.</p>
+          <div style="text-align:center;background:#09090b;border-radius:12px;padding:16px;border:1px solid #27272a;margin-bottom:14px;">
+            <p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;font-weight:600;">TOTAL A PAGAR</p>
+            <p id="pixValorGrande" style="margin:0 0 14px;font-size:28px;font-weight:800;color:#22c55e;">R$ 0,00</p>
+            <div id="pixQrBox" style="display:flex;justify-content:center;margin-bottom:12px;min-height:200px;align-items:center;">
+              <canvas id="pixQrCanvas" width="200" height="200" style="background:#fff;border-radius:8px;padding:8px;"></canvas>
+            </div>
+            <p style="margin:0 0 6px;font-size:11px;color:#71717a;">PIX Copia e Cola</p>
+            <textarea id="pixCopiaCola" readonly style="width:100%;height:70px;font-size:10px;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:8px;padding:8px;resize:none;"></textarea>
+            <button type="button" onclick="copiarPixCopiaCola()" style="margin-top:8px;width:100%;padding:10px;background:#3f3f46;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">📋 Copiar código PIX</button>
+          </div>
+          <p style="font-size:11px;color:#a1a1aa;margin:0 0 8px;">Chave PIX: <b style="color:#fff;">116.843.885-38</b> (Nubank)</p>
+          <p id="pixPedidoId" style="font-size:11px;color:#64748b;margin:0 0 14px;"></p>
+          <div style="background:#14532d;border:1px solid #22c55e;border-radius:8px;padding:12px;margin-bottom:14px;">
+            <p style="margin:0;font-size:12px;color:#bbf7d0;line-height:1.4;">✓ Pedido registrado como <b>Aguardando PIX</b>. Quando o pagamento for confirmado pelo webhook, o status muda para <b>Pago PIX</b> automaticamente.</p>
+          </div>
+          <button type="button" onclick="fecharModalCompraDinamica()" style="width:100%;background:#3a3a3c;color:#fff;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;">Fechar</button>
+        </div>
+      </div>
+    `;
     document.body.appendChild(divModal);
 }
 
@@ -2116,134 +2161,171 @@ function calcularTotalCompraDinamica() {
     const inputQtd = document.getElementById('vendaQtd');
     const txtTotal = document.getElementById('vendaTotalExibicao');
     if (!inputQtd || !txtTotal) return;
-
     let qtd = parseInt(inputQtd.value) || 1;
     if (qtd > estoqueDisponivelSelecionado) {
-        alert(`Quantidade máxima em estoque: ${estoqueDisponivelSelecionado}`);
+        alert('Quantidade máxima: ' + estoqueDisponivelSelecionado);
         qtd = estoqueDisponivelSelecionado;
         inputQtd.value = qtd;
     }
-    if (qtd < 1) {
-        qtd = 1;
-        inputQtd.value = 1;
-    }
-
-    const total = qtd * precoUnitarioSelecionado;
-    txtTotal.innerText = `R$ ${total.toFixed(2)}`;
+    if (qtd < 1) { qtd = 1; inputQtd.value = 1; }
+    txtTotal.innerText = 'R$ ' + (qtd * precoUnitarioSelecionado).toFixed(2);
 }
 
 function fecharModalCompraDinamica() {
     const modal = document.getElementById('modalCompraProdutoDinamico');
     if (modal) modal.remove();
+    dadosCompraPendente = null;
 }
 
-async function processarBaixaEstoqueEPix() {
-    const inputQtd = document.getElementById('vendaQtd');
-    const inputNome = document.getElementById('vendaNome');
-    const inputTel = document.getElementById('vendaTel');
+function copiarPixCopiaCola() {
+    const ta = document.getElementById('pixCopiaCola');
+    if (!ta || !ta.value) return;
+    navigator.clipboard.writeText(ta.value).then(function() {
+        alert('Código PIX copiado! Cole no app do banco.');
+    }).catch(function() {
+        ta.select();
+        document.execCommand('copy');
+        alert('Código PIX copiado!');
+    });
+}
 
-    if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
-        alert("Por favor, preencha seu nome e telefone para contato!");
-        return;
+function desenharQrPix(payload) {
+    const canvas = document.getElementById('pixQrCanvas');
+    const box = document.getElementById('pixQrBox');
+    if (typeof QRCode !== 'undefined' && canvas) {
+        try {
+            QRCode.toCanvas(canvas, payload, { width: 200, margin: 2, color: { dark: '#000', light: '#fff' } }, function(err) {
+                if (err) usarQrImagem(payload, box, canvas);
+            });
+            return;
+        } catch (e) {}
     }
+    usarQrImagem(payload, box, canvas);
+}
 
-    const qtdComprada = parseInt(inputQtd.value) || 1;
-    const nomeCliente = inputNome.value.trim();
-    const telCliente = inputTel.value.trim();
-    const totalVenda = qtdComprada * precoUnitarioSelecionado;
+function usarQrImagem(payload, box, canvas) {
+    const img = document.createElement('img');
+    img.alt = 'QR PIX';
+    img.width = 200;
+    img.height = 200;
+    img.style.borderRadius = '8px';
+    img.style.background = '#fff';
+    img.style.padding = '8px';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
+    if (box) { box.innerHTML = ''; box.appendChild(img); }
+    else if (canvas && canvas.parentNode) canvas.parentNode.replaceChild(img, canvas);
+}
 
-    try {
-        // Tenta descobrir o ID do dono da loja por todas as vias possíveis
-        let idDonoVenda = null;
-        
-        if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
-            idDonoVenda = idOficinaDaLojaAtual;
-        } else if (typeof dadosOficina !== 'undefined' && dadosOficina) {
-            idDonoVenda = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
-        } else if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
-            idDonoVenda = supabaseClient.auth.user().id;
-        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
-            idDonoVenda = supabaseClient.auth.session().user?.id;
-        }
-
-        // Se ainda assim não achar, tenta pegar de algum parâmetro na URL do site (?id=...)
-        if (!idDonoVenda) {
-            const urlParams = new URLSearchParams(window.location.search);
-            idDonoVenda = urlParams.get('id') || urlParams.get('user_id');
-        }
-
-        if (!idDonoVenda) {
-            throw new Error("Não foi possível identificar o ID do proprietário desta loja para registrar a venda.");
-        }
-
-        // Busca o registro atual do usuário no banco
-        const { data: dadosAtuais, error: erroBusca } = await supabaseClient
-            .from('user_data')
-            .select('*')
-            .eq('user_id', idDonoVenda)
-            .single();
-
-        if (erroBusca) throw new Error("Erro ao conectar à base de dados da oficina.");
-
-        let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
-        let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
-
-        // 1. Atualiza o estoque na lista de materiais
-        listaMateriais = listaMateriais.map(item => {
-            if (item.id === produtoSelecionadoParaCompra) {
-                let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
-                if (estoqueAtual < qtdComprada) {
-                    throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
-                }
-                item.qtd = estoqueAtual - qtdComprada;
-                if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
-                if (item.hasOwnProperty('estoque')) item.estoque = estoqueAtual - qtdComprada;
+async function obterChavePixLoja() {
+    let idDono = (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) ? idOficinaDaLojaAtual : null;
+    if (!idDono) {
+        const p = new URLSearchParams(window.location.search);
+        idDono = p.get('id') || p.get('loja') || p.get('user_id');
+    }
+    const chavePadrao = (typeof CHAVE_PIX_PADRAO !== 'undefined') ? CHAVE_PIX_PADRAO : '11684388538';
+    if (idDono) {
+        try {
+            const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idDono).single();
+            if (data && data.dados_oficina && data.dados_oficina.pix) {
+                const k = String(data.dados_oficina.pix).replace(/\D/g, '');
+                if (k.length >= 11) return { chave: k, nome: data.dados_oficina.nome || 'ALDINEICAR', idDono: idDono };
             }
-            return item;
+        } catch (e) {}
+    }
+    return { chave: chavePadrao, nome: 'ALDINEICAR', idDono: idDono };
+}
+
+/** Gera QR, registra pedido como Aguardando PIX. Confirmação só via webhook. */
+async function gerarPixERegistrarPedido() {
+    try {
+        const inputQtd = document.getElementById('vendaQtd');
+        const inputNome = document.getElementById('vendaNome');
+        const inputTel = document.getElementById('vendaTel');
+
+        if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
+            alert('Preencha seu nome e telefone!');
+            return;
+        }
+        const qtd = parseInt(inputQtd && inputQtd.value, 10) || 1;
+        if (qtd < 1 || qtd > estoqueDisponivelSelecionado) {
+            alert('Quantidade inválida.');
+            return;
+        }
+
+        const total = qtd * precoUnitarioSelecionado;
+        const txid = 'VND' + Date.now().toString().slice(-10);
+        const idVenda = 'VND-' + Math.floor(100000 + Math.random() * 900000);
+        const nomeCliente = inputNome.value.trim();
+        const telCliente = inputTel.value.trim();
+
+        const infoPix = await obterChavePixLoja();
+        if (!infoPix.idDono) {
+            alert('Não foi possível identificar a loja.');
+            return;
+        }
+
+        const payload = montarPayloadPixCompra({
+            chave: infoPix.chave,
+            nome: infoPix.nome,
+            cidade: 'SATIRO DIAS',
+            valor: total,
+            txid: txid
         });
 
-        // 2. Estrutura da venda padronizada com a tag limpa
-        const novoRegistroVenda = {
-            id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
+        // 1) Registra pedido AGUARDANDO (estoque NÃO baixa ainda — só no webhook)
+        const { data: dadosAtuais, error: erroBusca } = await supabaseClient
+            .from('user_data')
+            .select('historico')
+            .eq('user_id', infoPix.idDono)
+            .single();
+        if (erroBusca) throw new Error('Erro ao conectar na oficina.');
+
+        let hist = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
+        hist.unshift({
+            id_venda: idVenda,
             data: new Date().toLocaleDateString('pt-BR'),
-            status: 'Concluído',
-            tipo_registro: 'VENDA_DIRETA_BALCAO', 
+            status: 'Aguardando PIX',
+            tipo_registro: 'VENDA_DIRETA_BALCAO',
+            pagamento: 'PIX',
+            pix_txid: txid,
+            pix_chave: infoPix.chave,
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
             veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
-            quantidade: qtdComprada,
+            produto_id: produtoSelecionadoParaCompra,
+            quantidade: qtd,
             valor_unitario: precoUnitarioSelecionado,
-            total_pago: totalVenda,
-            lucro: totalVenda
-        };
-        
-        listaHistoricoGeral.unshift(novoRegistroVenda);
+            total_pago: total,
+            lucro: total
+        });
 
-        // 3. Grava de volta no Supabase
-        const { error: erroUpdate } = await supabaseClient
+        const { error: erroUp } = await supabaseClient
             .from('user_data')
-            .update({
-                materiais: listaMateriais,
-                historico: listaHistoricoGeral,
-                updated_at: new Date()
-            })
-            .eq('user_id', idDonoVenda);
+            .update({ historico: hist, updated_at: new Date() })
+            .eq('user_id', infoPix.idDono);
+        if (erroUp) throw erroUp;
 
-        if (erroUpdate) throw erroUpdate;
+        dadosCompraPendente = { idVenda, txid, total, qtd, nome: nomeCliente };
 
-        alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
-        fecharModalCompraDinamica();
+        // 2) Mostra QR
+        document.getElementById('etapaDadosCompra').style.display = 'none';
+        document.getElementById('etapaPixCompra').style.display = 'block';
+        document.getElementById('pixValorGrande').innerText = 'R$ ' + total.toFixed(2);
+        document.getElementById('pixCopiaCola').value = payload;
+        const pid = document.getElementById('pixPedidoId');
+        if (pid) pid.innerText = 'Pedido: ' + idVenda + ' · TXID: ' + txid;
 
-        // Recarrega as listagens locais após um pequeno delay para o banco propagar
-        setTimeout(() => {
-            if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
-            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
-        }, 500);
+        setTimeout(function() { desenharQrPix(payload); }, 50);
 
     } catch (err) {
         console.error(err);
-        alert(`Não foi possível concluir: ${err.message}`);
+        alert('Erro ao gerar PIX: ' + (err.message || err));
     }
+}
+
+// Mantido só por compatibilidade — NÃO deve ser chamado pelo cliente
+async function processarBaixaEstoqueEPix() {
+    alert('A confirmação do pagamento é feita automaticamente pelo webhook. Pague o PIX no app do banco.');
 }
 
 
@@ -2948,13 +3030,20 @@ async function processarWebhookPix(payload) {
         let hist = Array.isArray(data.historico) ? data.historico : [];
         const txid = payload.txid || payload.pix_txid || payload.id_venda;
         let found = false;
+        let produtoParaBaixa = null;
+        let qtdBaixa = 0;
         hist = hist.map(item => {
             if (!item) return item;
             const match = (txid && (item.pix_txid === txid || item.id_venda === txid))
                 || (payload.id_venda && item.id_venda === payload.id_venda);
             if (match) {
                 found = true;
-                item.status = payload.status || 'Pago PIX';
+                // Só baixa estoque se ainda estava aguardando
+                if ((item.status || '') === 'Aguardando PIX' && item.produto_id) {
+                    produtoParaBaixa = item.produto_id;
+                    qtdBaixa = parseInt(item.quantidade) || 1;
+                }
+                item.status = 'Pago PIX';
                 item.pagamento = 'PIX';
                 item.webhook_confirmado_em = new Date().toISOString();
             }
@@ -2980,6 +3069,16 @@ async function processarWebhookPix(payload) {
         if (!found) return { ok: false, error: 'venda não encontrada' };
 
         await supabaseClient.from('user_data').update({ historico: hist, updated_at: new Date() }).eq('user_id', uid);
+        // Baixa estoque somente na confirmação do webhook
+        if (typeof produtoParaBaixa !== 'undefined' && produtoParaBaixa) {
+            try {
+                const { data: prod } = await supabaseClient.from('produtos_loja').select('estoque').eq('id', produtoParaBaixa).maybeSingle();
+                if (prod) {
+                    const novo = Math.max(0, (parseInt(prod.estoque)||0) - (qtdBaixa||1));
+                    await supabaseClient.from('produtos_loja').update({ estoque: novo }).eq('id', produtoParaBaixa);
+                }
+            } catch(e) { console.warn('baixa estoque webhook', e); }
+        }
         if (uid === usuarioAtualId) {
             historico = hist;
             if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
