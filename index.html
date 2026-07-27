@@ -11,6 +11,7 @@
   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
 
     <style>
@@ -187,12 +188,13 @@ function mostrarSecao(id) {
            <div class="sidebar">
             <div>
                 <h2>Menu</h2>
+                <button id="btn-menu-dashboard" onclick="mostrarAba('dashboard')" class="active">📊 Dashboard</button>
                 <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
                 <button onclick="mostrarAba('materiais')">📦 Materiais</button>
                 <button onclick="mostrarAba('clientes')">👤 Clientes</button>
                 <button onclick="mostrarAba('historico')">📋 Histórico</button>
                 <button onclick="mostrarAba('loja')">Minha Loja</button>
-              <button onclick="mostrarSecao('secao-vendas'); renderizarListaVendasExclusiva();">💰 Vendas de Produtos</button>
+                <button onclick="mostrarAba('vendas')">💰 Vendas de Produtos</button>
                 <button onclick="abrirModalOficina()" style="background:#f9f9f9; border: 1px dashed #bbb;">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -208,6 +210,81 @@ function mostrarSecao(id) {
                 <div class="main-layout">
                     <div class="aba-container">
                         
+
+                        <!-- DASHBOARD -->
+                        <div id="aba-dashboard" style="display:none;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+                                <div>
+                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">Dashboard Financeiro</h2>
+                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Faturamento e gastos calculados a partir do histórico de orçamentos e vendas.</p>
+                                </div>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <select id="filtroAnoDashboard" onchange="renderDashboard()" style="padding:10px 14px; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:13px; background:white; color:#0f172a; cursor:pointer;">
+                                    </select>
+                                    <button onclick="renderDashboard()" style="padding:10px 16px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; color:#0f172a;">🔄 Atualizar</button>
+                                </div>
+                            </div>
+
+                            <!-- KPI Cards -->
+                            <div class="dash-kpis">
+                                <div class="dash-kpi kpi-green">
+                                    <div class="dash-kpi-label">Faturamento do Ano</div>
+                                    <div class="dash-kpi-value" id="kpi-faturamento">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-faturamento-sub">0 orçamentos pagos/concluídos</div>
+                                </div>
+                                <div class="dash-kpi kpi-red">
+                                    <div class="dash-kpi-label">Gasto em Materiais</div>
+                                    <div class="dash-kpi-value" id="kpi-materiais">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-materiais-sub">Custo total do período</div>
+                                </div>
+                                <div class="dash-kpi kpi-blue">
+                                    <div class="dash-kpi-label">Lucro Estimado</div>
+                                    <div class="dash-kpi-value" id="kpi-lucro">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-lucro-sub">Faturamento − Materiais</div>
+                                </div>
+                                <div class="dash-kpi kpi-purple">
+                                    <div class="dash-kpi-label">Mês Atual</div>
+                                    <div class="dash-kpi-value" id="kpi-mes-atual">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-mes-atual-sub">Faturamento deste mês</div>
+                                </div>
+                            </div>
+
+                            <!-- Chart -->
+                            <div class="dash-chart-card">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+                                    <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0;">Faturamento x Gastos por Mês</h3>
+                                    <div style="display:flex; gap:16px; font-size:12px; font-weight:600;">
+                                        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; border-radius:3px; background:#10b981; display:inline-block;"></span> Faturamento</span>
+                                        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; border-radius:3px; background:#e11d48; display:inline-block;"></span> Materiais</span>
+                                    </div>
+                                </div>
+                                <div style="position:relative; height:320px; width:100%;">
+                                    <canvas id="graficoFinanceiro"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Tabela resumo mensal -->
+                            <div class="dash-chart-card" style="margin-top:24px;">
+                                <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0 0 16px 0;">Resumo Mensal</h3>
+                                <div style="overflow-x:auto;">
+                                    <table class="dash-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Mês</th>
+                                                <th>Faturamento</th>
+                                                <th>Materiais</th>
+                                                <th>Lucro</th>
+                                                <th>Qtd. OS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabela-resumo-mensal">
+                                            <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="aba-materiais">
                             <div class="categorias-materiais" id="botoesCategorias">
                                 <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
@@ -417,7 +494,7 @@ function mostrarSecao(id) {
             <p id="textoConfirmacao" style="margin-bottom:20px; font-size:15px; color:#666;">Deseja realmente excluir?</p>
             <div style="display:flex; gap:10px;">
                 <button onclick="fecharConfirmacao()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#ddd; font-weight:bold; cursor:pointer;">Cancelar</button>
-                <button id="btnConfirmarAcao" onclick="confirmarAcaoExclusao()" style="flex:1; padding:14px; border:none; border-radius:12px; background:#d40000; color:white; font-weight:bold; cursor:pointer;">Excluir</button>
+                <button id="btnConfirmarAcao" style="flex:1; padding:14px; border:none; border-radius:12px; background:#d40000; color:white; font-weight:bold; cursor:pointer;">Excluir</button>
             </div>
         </div>
     </div>

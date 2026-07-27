@@ -1223,32 +1223,54 @@ async function editarProduto(id) {
     }
 
    function mostrarAba(nome) {
-    // 1. Esconde todas as abas
-    document.getElementById('aba-materiais').style.display = 'none';
-    document.getElementById('aba-clientes').style.display = 'none';
-    document.getElementById('aba-historico').style.display = 'none';
-    document.getElementById('aba-maoobra').style.display = 'none';
-    document.getElementById('aba-loja').style.display = 'none';
-    
-    // NOVA LINHA: Adicionamos a aba de vendas na lista de ocultação
-    const abaVendas = document.getElementById('aba-vendas');
-    if (abaVendas) abaVendas.style.display = 'none';
+    const abas = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vendas'];
+    abas.forEach(id => {
+        const el = document.getElementById('aba-' + id);
+        if (el) el.style.display = 'none';
+    });
+    // secao-vendas (estrutura antiga duplicada)
+    const secaoVendas = document.getElementById('secao-vendas');
+    if (secaoVendas) secaoVendas.style.display = 'none';
 
-    // 2. Mostra a aba selecionada
+    // Destacar botão ativo no menu
+    document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+    const btnMap = {
+        dashboard: 'btn-menu-dashboard',
+        maoobra: 'btn-menu-maoobra'
+    };
+    if (btnMap[nome]) {
+        const btn = document.getElementById(btnMap[nome]);
+        if (btn) btn.classList.add('active');
+    } else {
+        document.querySelectorAll('.sidebar button').forEach(b => {
+            if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + nome + "'")) {
+                b.classList.add('active');
+            }
+        });
+    }
+
+    if (nome === 'dashboard') {
+        const el = document.getElementById('aba-dashboard');
+        if (el) { el.style.display = 'block'; renderDashboard(); }
+    }
     if (nome === 'materiais') document.getElementById('aba-materiais').style.display = 'block';
     if (nome === 'clientes') document.getElementById('aba-clientes').style.display = 'block';
     if (nome === 'historico') document.getElementById('aba-historico').style.display = 'block';
     if (nome === 'maoobra') document.getElementById('aba-maoobra').style.display = 'block';
     if (nome === 'loja') {
         document.getElementById('aba-loja').style.display = 'block';
-        carregarProdutosDaLoja();
+        if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
+        else if (typeof carregarProdutosDaLoja === 'function') carregarProdutosDaLoja();
     }
-    
-    // NOVA LINHA: Lógica para mostrar a aba de vendas e carregar os dados
     if (nome === 'vendas') {
+        if (secaoVendas) {
+            secaoVendas.style.display = 'block';
+            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
+        }
+        const abaVendas = document.getElementById('aba-vendas');
         if (abaVendas) {
             abaVendas.style.display = 'block';
-            renderizarListaVendasExclusiva(); // Carrega os dados ao abrir
+            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
         }
     }
 }
@@ -1550,14 +1572,7 @@ async function editarProduto(id) {
         acaoConfirmada = callback;
     }
     function fecharConfirmacao(){ document.getElementById('modalConfirmar').style.display='none'; }
-    
-    function confirmarAcaoExclusao() {
-        if (acaoConfirmada) {
-            acaoConfirmada();
-            acaoConfirmada = null;
-        }
-        fecharConfirmacao();
-    }
+    document.getElementById('btnConfirmarAcao').addEventListener('click', function(){ if(acaoConfirmada) acaoConfirmada(); fecharConfirmacao(); });
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
     async function deletarCliente(index){ abrirConfirmacao('Deseja excluir este registro de cliente?', async function(){ clientes.splice(index,1); renderClientes(); await salvarNoBanco(); }); }
@@ -1583,7 +1598,7 @@ async function editarProduto(id) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
                 const algumaAtiva = abas.some(id => document.getElementById(id).style.display === 'block');
-                if (!algumaAtiva) mostrarAba('materiais');
+                if (!algumaAtiva) mostrarAba('dashboard');
             } else {
                 document.getElementById('loginOverlay').style.display = 'flex';
                 toggleTab('login');
@@ -2366,3 +2381,212 @@ function renderizarVendas(vendas) {
 }
 
 
+
+
+// ========================================================
+// DASHBOARD FINANCEIRO - Faturamento x Gastos em Materiais
+// ========================================================
+let graficoFinanceiroInstance = null;
+
+function parseDataHistorico(dataStr) {
+    if (!dataStr) return null;
+    // Formatos: "26/07/2026, 15:30:00" | "26/07/2026" | ISO
+    try {
+        if (dataStr.includes('/')) {
+            const parte = dataStr.split(',')[0].trim();
+            const [dia, mes, ano] = parte.split('/').map(Number);
+            if (dia && mes && ano) return new Date(ano, mes - 1, dia);
+        }
+        const d = new Date(dataStr);
+        if (!isNaN(d.getTime())) return d;
+    } catch (e) {}
+    return null;
+}
+
+function extrairValorFaturamento(item) {
+    // Vendas diretas da vitrine
+    if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') {
+        let v = item.total_pago || item.valor_total || item.totalCobrado || 0;
+        if (typeof v === 'string') v = parseFloat(v.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+        return parseFloat(v) || 0;
+    }
+    return parseFloat(item.totalCobrado) || parseFloat(item.total) || 0;
+}
+
+function extrairCustoMateriais(item) {
+    if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'LOJA_VIRTUAL') {
+        // Na venda direta o "custo" pode ser 0 se não houver markup separado; usa 0
+        return 0;
+    }
+    let c = item.totalMateriaisCalculado !== undefined ? item.totalMateriaisCalculado : (item.totalMateriais || 0);
+    return parseFloat(c) || 0;
+}
+
+function calcularDadosMensais(anoFiltro) {
+    const meses = Array.from({ length: 12 }, () => ({ faturamento: 0, materiais: 0, qtd: 0 }));
+    const lista = Array.isArray(historico) ? historico : [];
+
+    lista.forEach(item => {
+        const data = parseDataHistorico(item.data);
+        if (!data) return;
+        if (data.getFullYear() !== anoFiltro) return;
+
+        const mes = data.getMonth(); // 0-11
+        const fat = extrairValorFaturamento(item);
+        const mat = extrairCustoMateriais(item);
+
+        meses[mes].faturamento += fat;
+        meses[mes].materiais += mat;
+        meses[mes].qtd += 1;
+    });
+
+    return meses;
+}
+
+function formatarBRL(valor) {
+    return 'R$ ' + (valor || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function popularSelectAnos() {
+    const select = document.getElementById('filtroAnoDashboard');
+    if (!select) return;
+
+    const anos = new Set();
+    const agora = new Date().getFullYear();
+    anos.add(agora);
+
+    (historico || []).forEach(item => {
+        const d = parseDataHistorico(item.data);
+        if (d) anos.add(d.getFullYear());
+    });
+
+    const listaAnos = Array.from(anos).sort((a, b) => b - a);
+    const valorAtual = select.value ? parseInt(select.value) : agora;
+
+    select.innerHTML = listaAnos.map(a =>
+        `<option value="${a}" ${a === valorAtual ? 'selected' : ''}>${a}</option>`
+    ).join('');
+}
+
+function renderDashboard() {
+    const canvas = document.getElementById('graficoFinanceiro');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    popularSelectAnos();
+
+    const select = document.getElementById('filtroAnoDashboard');
+    const ano = select ? parseInt(select.value) || new Date().getFullYear() : new Date().getFullYear();
+    const dados = calcularDadosMensais(ano);
+
+    const labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const fatData = dados.map(m => m.faturamento);
+    const matData = dados.map(m => m.materiais);
+
+    // Totais do ano
+    const totalFat = fatData.reduce((s, v) => s + v, 0);
+    const totalMat = matData.reduce((s, v) => s + v, 0);
+    const totalLucro = totalFat - totalMat;
+    const totalQtd = dados.reduce((s, m) => s + m.qtd, 0);
+
+    // Mês atual
+    const mesAtualIdx = new Date().getMonth();
+    const fatMesAtual = (new Date().getFullYear() === ano) ? dados[mesAtualIdx].faturamento : 0;
+    const qtdMesAtual = (new Date().getFullYear() === ano) ? dados[mesAtualIdx].qtd : 0;
+
+    // KPIs
+    const elFat = document.getElementById('kpi-faturamento');
+    const elMat = document.getElementById('kpi-materiais');
+    const elLucro = document.getElementById('kpi-lucro');
+    const elMes = document.getElementById('kpi-mes-atual');
+    const elFatSub = document.getElementById('kpi-faturamento-sub');
+    const elMesSub = document.getElementById('kpi-mes-atual-sub');
+
+    if (elFat) elFat.innerText = formatarBRL(totalFat);
+    if (elMat) elMat.innerText = formatarBRL(totalMat);
+    if (elLucro) elLucro.innerText = formatarBRL(totalLucro);
+    if (elMes) elMes.innerText = formatarBRL(fatMesAtual);
+    if (elFatSub) elFatSub.innerText = totalQtd + ' registro(s) no período';
+    if (elMesSub) elMesSub.innerText = qtdMesAtual + ' registro(s) neste mês';
+
+    // Tabela mensal
+    const tbody = document.getElementById('tabela-resumo-mensal');
+    if (tbody) {
+        const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        let html = '';
+        dados.forEach((m, i) => {
+            if (m.qtd === 0 && m.faturamento === 0 && m.materiais === 0) return;
+            const lucro = m.faturamento - m.materiais;
+            html += `<tr>
+                <td>${nomesMes[i]}/${ano}</td>
+                <td class="val-pos">${formatarBRL(m.faturamento)}</td>
+                <td class="val-neg">${formatarBRL(m.materiais)}</td>
+                <td class="${lucro >= 0 ? 'val-pos' : 'val-neg'}">${formatarBRL(lucro)}</td>
+                <td>${m.qtd}</td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Nenhum dado em ${ano}</td></tr>`;
+    }
+
+    // Gráfico
+    if (graficoFinanceiroInstance) {
+        graficoFinanceiroInstance.destroy();
+    }
+
+    graficoFinanceiroInstance = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Faturamento',
+                    data: fatData,
+                    backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 28
+                },
+                {
+                    label: 'Gastos em Materiais',
+                    data: matData,
+                    backgroundColor: 'rgba(225, 29, 72, 0.8)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 28
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': R$ ' + ctx.parsed.y.toFixed(2).replace('.', ',');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { weight: '600', size: 11 }, color: '#64748b' }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        font: { size: 11 },
+                        color: '#94a3b8',
+                        callback: function(v) {
+                            if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(1) + 'k';
+                            return 'R$ ' + v;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
