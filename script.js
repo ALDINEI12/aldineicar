@@ -2440,27 +2440,134 @@ function custoMateriaisOrc(item) {
     return parseFloat(c) || 0;
 }
 
-function calcularDadosMensaisSeparados(anoFiltro) {
-    const meses = Array.from({ length: 12 }, () => ({
-        fatOrc: 0, materiais: 0, vendas: 0, qtdOrc: 0, qtdVendas: 0
-    }));
-    const lista = Array.isArray(historico) ? historico : [];
+function obterPeriodoDashboard() {
+    const inputIni = document.getElementById('dashDataInicio');
+    const inputFim = document.getElementById('dashDataFim');
+    let ini = inputIni && inputIni.value ? new Date(inputIni.value + 'T00:00:00') : null;
+    let fim = inputFim && inputFim.value ? new Date(inputFim.value + 'T23:59:59') : null;
 
+    // Se nada definido, padrão = ano atual
+    if (!ini && !fim) {
+        const ano = new Date().getFullYear();
+        ini = new Date(ano, 0, 1);
+        fim = new Date(ano, 11, 31, 23, 59, 59);
+        if (inputIni) inputIni.value = `${ano}-01-01`;
+        if (inputFim) inputFim.value = `${ano}-12-31`;
+    } else if (ini && !fim) {
+        fim = new Date();
+        fim.setHours(23, 59, 59, 999);
+        if (inputFim) inputFim.value = fim.toISOString().slice(0, 10);
+    } else if (!ini && fim) {
+        ini = new Date(fim.getFullYear(), 0, 1);
+        if (inputIni) inputIni.value = ini.toISOString().slice(0, 10);
+    }
+
+    if (ini && fim && ini > fim) {
+        const tmp = ini; ini = fim; fim = tmp;
+        if (inputIni) inputIni.value = ini.toISOString().slice(0, 10);
+        if (inputFim) inputFim.value = fim.toISOString().slice(0, 10);
+    }
+    return { ini, fim };
+}
+
+function definirPeriodoRapido(tipo) {
+    const inputIni = document.getElementById('dashDataInicio');
+    const inputFim = document.getElementById('dashDataFim');
+    if (!inputIni || !inputFim) return;
+
+    const hoje = new Date();
+    let ini, fim;
+
+    if (tipo === 'mes') {
+        ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    } else if (tipo === 'ano') {
+        ini = new Date(hoje.getFullYear(), 0, 1);
+        fim = new Date(hoje.getFullYear(), 11, 31);
+    } else {
+        // tudo: varre histórico
+        let minT = null, maxT = null;
+        (historico || []).forEach(item => {
+            const d = parseDataHistorico(item.data);
+            if (!d) return;
+            const t = d.getTime();
+            if (minT === null || t < minT) minT = t;
+            if (maxT === null || t > maxT) maxT = t;
+        });
+        ini = minT !== null ? new Date(minT) : new Date(hoje.getFullYear(), 0, 1);
+        fim = maxT !== null ? new Date(maxT) : hoje;
+    }
+
+    const fmt = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+    inputIni.value = fmt(ini);
+    inputFim.value = fmt(fim);
+    renderDashboard();
+}
+
+function dataNoPeriodo(data, ini, fim) {
+    if (!data) return false;
+    const t = data.getTime();
+    if (ini && t < ini.getTime()) return false;
+    if (fim && t > fim.getTime()) return false;
+    return true;
+}
+
+function calcularDadosPorPeriodo(ini, fim) {
+    // Agrega por mês dentro do período (para o gráfico)
+    const mapa = {}; // chave YYYY-MM
+    let totalFatOrc = 0, totalMat = 0, totalVendas = 0, qtdOrc = 0, qtdVendas = 0;
+
+    const lista = Array.isArray(historico) ? historico : [];
     lista.forEach(item => {
         const data = parseDataHistorico(item.data);
-        if (!data || data.getFullYear() !== anoFiltro) return;
-        const m = data.getMonth();
+        if (!dataNoPeriodo(data, ini, fim)) return;
+
+        const chave = data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0');
+        if (!mapa[chave]) mapa[chave] = { fatOrc: 0, materiais: 0, vendas: 0, qtdOrc: 0, qtdVendas: 0, label: '' };
+        const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
 
         if (isRegistroVenda(item)) {
-            meses[m].vendas += valorVenda(item);
-            meses[m].qtdVendas += 1;
+            const v = valorVenda(item);
+            mapa[chave].vendas += v;
+            mapa[chave].qtdVendas += 1;
+            totalVendas += v;
+            qtdVendas += 1;
         } else {
-            meses[m].fatOrc += valorOrcamento(item);
-            meses[m].materiais += custoMateriaisOrc(item);
-            meses[m].qtdOrc += 1;
+            const status = (item.status || '').toString().trim().toLowerCase();
+            if (status !== 'pago') return;
+            const fat = valorOrcamento(item);
+            const mat = custoMateriaisOrc(item);
+            mapa[chave].fatOrc += fat;
+            mapa[chave].materiais += mat;
+            mapa[chave].qtdOrc += 1;
+            totalFatOrc += fat;
+            totalMat += mat;
+            qtdOrc += 1;
         }
     });
-    return meses;
+
+    const chaves = Object.keys(mapa).sort();
+    return {
+        totalFatOrc, totalMat, totalVendas, qtdOrc, qtdVendas,
+        labels: chaves.map(k => mapa[k].label),
+        fatOrc: chaves.map(k => mapa[k].fatOrc),
+        materiais: chaves.map(k => mapa[k].materiais),
+        vendas: chaves.map(k => mapa[k].vendas),
+        linhas: chaves.map(k => ({
+            label: mapa[k].label,
+            fatOrc: mapa[k].fatOrc,
+            materiais: mapa[k].materiais,
+            vendas: mapa[k].vendas,
+            qtdOrc: mapa[k].qtdOrc,
+            qtdVendas: mapa[k].qtdVendas
+        }))
+    };
 }
 
 function formatarBRL(valor) {
@@ -2468,17 +2575,9 @@ function formatarBRL(valor) {
     return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function popularSelectAnos() {
-    const select = document.getElementById('filtroAnoDashboard');
-    if (!select) return;
-    const anos = new Set([new Date().getFullYear()]);
-    (historico || []).forEach(item => {
-        const d = parseDataHistorico(item.data);
-        if (d) anos.add(d.getFullYear());
-    });
-    const lista = Array.from(anos).sort((a, b) => b - a);
-    const atual = select.value ? parseInt(select.value, 10) : new Date().getFullYear();
-    select.innerHTML = lista.map(a => `<option value="${a}" ${a === atual ? 'selected' : ''}>${a}</option>`).join('');
+function formatarDataBR(d) {
+    if (!d) return '--';
+    return d.toLocaleDateString('pt-BR');
 }
 
 function renderDashboard() {
@@ -2489,41 +2588,30 @@ function renderDashboard() {
         return;
     }
 
-    popularSelectAnos();
-    const select = document.getElementById('filtroAnoDashboard');
-    const ano = select ? (parseInt(select.value, 10) || new Date().getFullYear()) : new Date().getFullYear();
-    const dados = calcularDadosMensaisSeparados(ano);
+    const { ini, fim } = obterPeriodoDashboard();
+    const dados = calcularDadosPorPeriodo(ini, fim);
 
-    const labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    const fatOrc = dados.map(m => m.fatOrc);
-    const mat = dados.map(m => m.materiais);
-    const vendas = dados.map(m => m.vendas);
-
-    const totalFatOrc = fatOrc.reduce((s, v) => s + v, 0);
-    const totalMat = mat.reduce((s, v) => s + v, 0);
-    const totalVendas = vendas.reduce((s, v) => s + v, 0);
-    const totalLucro = totalFatOrc - totalMat;
-    const totalQtdOrc = dados.reduce((s, m) => s + m.qtdOrc, 0);
-    const totalQtdVendas = dados.reduce((s, m) => s + m.qtdVendas, 0);
+    const labelEl = document.getElementById('dashPeriodoLabel');
+    if (labelEl) {
+        labelEl.innerText = 'Período: ' + formatarDataBR(ini) + '  →  ' + formatarDataBR(fim);
+    }
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    set('kpi-fat-orc', formatarBRL(totalFatOrc));
-    set('kpi-materiais', formatarBRL(totalMat));
-    set('kpi-vendas', formatarBRL(totalVendas));
-    set('kpi-lucro', formatarBRL(totalLucro));
-    set('kpi-fat-orc-sub', totalQtdOrc + ' orçamento(s) no ano');
-    set('kpi-materiais-sub', 'Custo dos orçamentos');
-    set('kpi-vendas-sub', totalQtdVendas + ' venda(s) no ano');
+    set('kpi-fat-orc', formatarBRL(dados.totalFatOrc));
+    set('kpi-materiais', formatarBRL(dados.totalMat));
+    set('kpi-vendas', formatarBRL(dados.totalVendas));
+    set('kpi-lucro', formatarBRL(dados.totalFatOrc - dados.totalMat));
+    set('kpi-fat-orc-sub', dados.qtdOrc + ' orçamento(s) pago(s) no período');
+    set('kpi-materiais-sub', 'Materiais das OS pagas no período');
+    set('kpi-vendas-sub', dados.qtdVendas + ' venda(s) no período');
 
     const tbody = document.getElementById('tabela-resumo-mensal');
     if (tbody) {
-        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         let html = '';
-        dados.forEach((m, i) => {
-            if (!m.qtdOrc && !m.qtdVendas && !m.fatOrc && !m.materiais && !m.vendas) return;
+        dados.linhas.forEach(m => {
             const lucro = m.fatOrc - m.materiais;
             html += `<tr>
-                <td>${nomes[i]}/${ano}</td>
+                <td>${m.label}</td>
                 <td class="val-pos">${formatarBRL(m.fatOrc)}</td>
                 <td class="val-neg">${formatarBRL(m.materiais)}</td>
                 <td class="${lucro >= 0 ? 'val-pos' : 'val-neg'}">${formatarBRL(lucro)}</td>
@@ -2532,10 +2620,15 @@ function renderDashboard() {
                 <td>${m.qtdVendas}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado em ${ano}</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado neste período</td></tr>`;
     }
 
     if (graficoFinanceiroInstance) graficoFinanceiroInstance.destroy();
+
+    const labels = dados.labels.length ? dados.labels : ['Sem dados'];
+    const fatOrc = dados.labels.length ? dados.fatOrc : [0];
+    const mat = dados.labels.length ? dados.materiais : [0];
+    const vendas = dados.labels.length ? dados.vendas : [0];
 
     graficoFinanceiroInstance = new Chart(canvas, {
         type: 'bar',
@@ -2543,7 +2636,7 @@ function renderDashboard() {
             labels,
             datasets: [
                 {
-                    label: 'Orçamentos',
+                    label: 'Orçamentos (Pagos)',
                     data: fatOrc,
                     backgroundColor: 'rgba(16, 185, 129, 0.85)',
                     borderRadius: 6,
@@ -2595,3 +2688,4 @@ function renderDashboard() {
         }
     });
 }
+
