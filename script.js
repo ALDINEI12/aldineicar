@@ -2048,43 +2048,12 @@ async function carregarProdutosVitrinePublica(idOficina) {
 }
 
 // ========================================================
-// COMPRA PIX SIMPLES
-// - Gera QR com a chave PIX do dono (Configurar Oficina)
-// - Status inicial: Aguardando PIX
-// - Confirmação: dono clica "✓ Recebi" OU webhook (se configurado)
-// - Fechar o modal NÃO confirma pagamento
+// SISTEMA DE ESTOQUE E COMPRA VIA PIX - ALDINEICAR (IDs BLINDADOS)
 // ========================================================
 let produtoSelecionadoParaCompra = null;
 let precoUnitarioSelecionado = 0;
 let estoqueDisponivelSelecionado = 0;
 let nomeProdutoSelecionado = "";
-
-function pixCRC16(payload) {
-    let crc = 0xFFFF;
-    for (let i = 0; i < payload.length; i++) {
-        crc ^= payload.charCodeAt(i) << 8;
-        for (let j = 0; j < 8; j++) {
-            crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
-            crc &= 0xFFFF;
-        }
-    }
-    return crc.toString(16).toUpperCase().padStart(4, '0');
-}
-function pixTLV(id, value) {
-    const v = String(value);
-    return id + String(v.length).padStart(2, '0') + v;
-}
-function gerarPayloadPixSimples({ chave, nome, cidade, valor, txid }) {
-    const chaveLimpa = String(chave || '').replace(/\s/g, '');
-    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
-    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
-        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
-        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
-    payload += pixCRC16(payload);
-    return payload;
-}
 
 function abrirModalCompra(id, nome, preco, estoque) {
     produtoSelecionadoParaCompra = id;
@@ -2093,7 +2062,7 @@ function abrirModalCompra(id, nome, preco, estoque) {
     nomeProdutoSelecionado = nome;
 
     if (estoqueDisponivelSelecionado <= 0) {
-        alert('Desculpe, este produto está esgotado no momento!');
+        alert("Desculpe, este produto está esgotado no momento!");
         return;
     }
 
@@ -2102,58 +2071,44 @@ function abrirModalCompra(id, nome, preco, estoque) {
 
     const divModal = document.createElement('div');
     divModal.id = 'modalCompraProdutoDinamico';
-    divModal.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(4px);';
-
+    divModal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);";
+    
     divModal.innerHTML = `
-      <div style="background:#1c1c1e;padding:24px;border-radius:12px;width:90%;max-width:440px;max-height:92vh;overflow-y:auto;border:1px solid #2c2c2e;color:#fff;font-family:sans-serif;">
-        <div id="etapaDadosCompra">
-          <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;">Finalizar Compra</h3>
-          <p style="font-weight:700;color:#22c55e;margin:8px 0 2px;font-size:16px;">${nome}</p>
-          <p style="font-size:13px;color:#22c55e;margin:0;">Preço unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
-          <p style="font-size:12px;color:#a1a1aa;margin:4px 0 0;">Estoque: ${estoqueDisponivelSelecionado} un.</p>
-          <hr style="border:0;border-top:1px solid #2c2c2e;margin:16px 0;">
-          <div style="margin-bottom:14px;">
-            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">Quantidade</label>
-            <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;font-weight:600;">
-          </div>
-          <div style="background:#2c2c2e;padding:12px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;">
-            <span style="font-size:14px;color:#a1a1aa;font-weight:600;">Total</span>
-            <span id="vendaTotalExibicao" style="font-weight:800;color:#22c55e;font-size:18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">Seu Nome</label>
-            <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;">
-          </div>
-          <div style="margin-bottom:20px;">
-            <label style="display:block;margin-bottom:6px;font-size:13px;color:#a1a1aa;font-weight:600;">WhatsApp</label>
-            <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%;padding:10px;background:#2c2c2e;border:1px solid #3a3a3c;border-radius:8px;color:#fff;">
-          </div>
-          <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button type="button" onclick="fecharModalCompraDinamica()" style="background:#3a3a3c;color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;">Cancelar</button>
-            <button type="button" onclick="gerarPixSimplesERegistrar()" style="background:#22c55e;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer;">Gerar PIX →</button>
-          </div>
-        </div>
+        <div style="background:#1c1c1e; padding:24px; border-radius:12px; width:90%; max-width:420px; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 1px solid #2c2c2e; color: #ffffff; font-family: sans-serif;">
+            <h3 style="margin-top:0; color:#ffffff; font-size: 18px; font-weight: 700;">Finalizar Compra</h3>
+            <p style="font-weight:700; color:#22c55e; margin-top: 8px; font-size: 16px;">${nome}</p>
+            <p style="font-size:13px; color:#22c55e; margin-top: 2px;">Preço Unitário: R$ ${precoUnitarioSelecionado.toFixed(2)}</p>
+            <p style="font-size:12px; color:#a1a1aa; margin-top: 2px;">Disponível no Estoque: ${estoqueDisponivelSelecionado} un.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #2c2c2e; margin: 16px 0;">
+            
+            <div style="margin-bottom: 14px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Quantidade:</label>
+                <input type="number" id="vendaQtd" value="1" min="1" max="${estoqueDisponivelSelecionado}" oninput="calcularTotalCompraDinamica()" onchange="calcularTotalCompraDinamica()" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff; font-weight: 600;">
+            </div>
 
-        <div id="etapaPixCompra" style="display:none;">
-          <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;">Pague com PIX</h3>
-          <p style="font-size:13px;color:#a1a1aa;margin:0 0 12px;">Escaneie o QR ou copie o código no app do banco.</p>
-          <div style="text-align:center;background:#09090b;border-radius:12px;padding:16px;border:1px solid #27272a;margin-bottom:14px;">
-            <p style="margin:0 0 8px;font-size:12px;color:#a1a1aa;font-weight:600;">TOTAL A PAGAR</p>
-            <p id="pixValorGrande" style="margin:0 0 14px;font-size:28px;font-weight:800;color:#22c55e;">R$ 0,00</p>
-            <div id="pixQrBox" style="display:flex;justify-content:center;margin-bottom:12px;min-height:200px;align-items:center;"></div>
-            <p style="margin:0 0 6px;font-size:11px;color:#71717a;">PIX Copia e Cola</p>
-            <textarea id="pixCopiaCola" readonly style="width:100%;height:70px;font-size:10px;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:8px;padding:8px;resize:none;"></textarea>
-            <button type="button" onclick="copiarPixCopiaCola()" style="margin-top:8px;width:100%;padding:10px;background:#3f3f46;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">📋 Copiar código PIX</button>
-          </div>
-          <p id="pixChaveInfo" style="font-size:11px;color:#a1a1aa;margin:0 0 8px;"></p>
-          <p id="pixPedidoId" style="font-size:11px;color:#64748b;margin:0 0 14px;"></p>
-          <div style="background:#422006;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:14px;">
-            <p style="margin:0;font-size:12px;color:#fde68a;line-height:1.45;"><b>Pedido aguardando pagamento.</b><br>Fechar esta tela <u>não</u> confirma o pagamento. A oficina confirma quando o valor cair na conta (ou via webhook, se configurado).</p>
-          </div>
-          <button type="button" onclick="fecharModalCompraDinamica()" style="width:100%;background:#3a3a3c;color:#fff;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;">Fechar</button>
+            <div style="background:#2c2c2e; padding:12px; border-radius:8px; margin-bottom:16px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 14px; color: #a1a1aa; font-weight: 600;">Total a Pagar:</span>
+                <span id="vendaTotalExibicao" style="font-weight:800; color:#22c55e; font-size: 18px;">R$ ${precoUnitarioSelecionado.toFixed(2)}</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Nome:</label>
+                <input type="text" id="vendaNome" placeholder="Digite seu nome" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:6px; font-size: 13px; color: #a1a1aa; font-weight:600;">Seu Telefone (WhatsApp):</label>
+                <input type="text" id="vendaTel" placeholder="(75) 99999-9999" style="width:100%; padding:10px; background: #2c2c2e; border:1px solid #3a3a3c; border-radius:8px; color: #ffffff;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="fecharModalCompraDinamica()" style="background:#3a3a3c; color:#ffffff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size: 13px; cursor:pointer;">Cancelar</button>
+                <button onclick="processarBaixaEstoqueEPix()" style="background:#22c55e; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; font-size: 13px; cursor:pointer;">Pagar via PIX</button>
+            </div>
         </div>
-      </div>
     `;
+
     document.body.appendChild(divModal);
 }
 
@@ -2161,226 +2116,134 @@ function calcularTotalCompraDinamica() {
     const inputQtd = document.getElementById('vendaQtd');
     const txtTotal = document.getElementById('vendaTotalExibicao');
     if (!inputQtd || !txtTotal) return;
+
     let qtd = parseInt(inputQtd.value) || 1;
     if (qtd > estoqueDisponivelSelecionado) {
+        alert(`Quantidade máxima em estoque: ${estoqueDisponivelSelecionado}`);
         qtd = estoqueDisponivelSelecionado;
         inputQtd.value = qtd;
     }
-    if (qtd < 1) { qtd = 1; inputQtd.value = 1; }
-    txtTotal.innerText = 'R$ ' + (qtd * precoUnitarioSelecionado).toFixed(2);
+    if (qtd < 1) {
+        qtd = 1;
+        inputQtd.value = 1;
+    }
+
+    const total = qtd * precoUnitarioSelecionado;
+    txtTotal.innerText = `R$ ${total.toFixed(2)}`;
 }
 
 function fecharModalCompraDinamica() {
-    // Só fecha a tela — NÃO altera status da venda
     const modal = document.getElementById('modalCompraProdutoDinamico');
     if (modal) modal.remove();
 }
 
-function copiarPixCopiaCola() {
-    const ta = document.getElementById('pixCopiaCola');
-    if (!ta || !ta.value) return;
-    navigator.clipboard.writeText(ta.value).then(function() {
-        alert('Código PIX copiado!');
-    }).catch(function() {
-        ta.select();
-        document.execCommand('copy');
-        alert('Código PIX copiado!');
-    });
-}
+async function processarBaixaEstoqueEPix() {
+    const inputQtd = document.getElementById('vendaQtd');
+    const inputNome = document.getElementById('vendaNome');
+    const inputTel = document.getElementById('vendaTel');
 
-function obterIdLojaAtual() {
-    if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) return idOficinaDaLojaAtual;
-    const p = new URLSearchParams(window.location.search);
-    return p.get('id') || p.get('loja') || p.get('user_id') || null;
-}
-
-async function obterPixDaOficina(idDono) {
-    try {
-        const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idDono).single();
-        if (data && data.dados_oficina && data.dados_oficina.pix) {
-            const pix = String(data.dados_oficina.pix).trim();
-            if (pix) {
-                return {
-                    chave: pix.replace(/\s/g, ''),
-                    nome: data.dados_oficina.nome || 'ALDINEICAR'
-                };
-            }
-        }
-    } catch (e) {}
-    if (typeof dadosOficina !== 'undefined' && dadosOficina && dadosOficina.pix) {
-        return {
-            chave: String(dadosOficina.pix).replace(/\s/g, ''),
-            nome: dadosOficina.nome || 'ALDINEICAR'
-        };
+    if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
+        alert("Por favor, preencha seu nome e telefone para contato!");
+        return;
     }
-    return null;
-}
 
-function desenharQrSimples(payload) {
-    const box = document.getElementById('pixQrBox');
-    if (!box) return;
-    box.innerHTML = '';
-    if (typeof QRCode !== 'undefined') {
-        const canvas = document.createElement('canvas');
-        canvas.style.background = '#fff';
-        canvas.style.borderRadius = '8px';
-        canvas.style.padding = '8px';
-        box.appendChild(canvas);
-        QRCode.toCanvas(canvas, payload, { width: 200, margin: 2 }, function(err) {
-            if (err) {
-                const img = document.createElement('img');
-                img.width = 200; img.height = 200;
-                img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
-                img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
-                box.innerHTML = '';
-                box.appendChild(img);
-            }
-        });
-    } else {
-        const img = document.createElement('img');
-        img.width = 200; img.height = 200;
-        img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
-        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
-        box.appendChild(img);
-    }
-}
+    const qtdComprada = parseInt(inputQtd.value) || 1;
+    const nomeCliente = inputNome.value.trim();
+    const telCliente = inputTel.value.trim();
+    const totalVenda = qtdComprada * precoUnitarioSelecionado;
 
-async function gerarPixSimplesERegistrar() {
     try {
-        const inputQtd = document.getElementById('vendaQtd');
-        const inputNome = document.getElementById('vendaNome');
-        const inputTel = document.getElementById('vendaTel');
-
-        if (!inputNome || !inputTel || !inputNome.value.trim() || !inputTel.value.trim()) {
-            alert('Preencha seu nome e telefone!');
-            return;
+        // Tenta descobrir o ID do dono da loja por todas as vias possíveis
+        let idDonoVenda = null;
+        
+        if (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual) {
+            idDonoVenda = idOficinaDaLojaAtual;
+        } else if (typeof dadosOficina !== 'undefined' && dadosOficina) {
+            idDonoVenda = dadosOficina.user_id || dadosOficina.id || dadosOficina.uid;
+        } else if (typeof supabaseClient.auth.user === 'function' && supabaseClient.auth.user()) {
+            idDonoVenda = supabaseClient.auth.user().id;
+        } else if (supabaseClient.auth.session && supabaseClient.auth.session()) {
+            idDonoVenda = supabaseClient.auth.session().user?.id;
         }
 
-        const qtd = parseInt(inputQtd && inputQtd.value, 10) || 1;
-        if (qtd < 1 || qtd > estoqueDisponivelSelecionado) {
-            alert('Quantidade inválida.');
-            return;
+        // Se ainda assim não achar, tenta pegar de algum parâmetro na URL do site (?id=...)
+        if (!idDonoVenda) {
+            const urlParams = new URLSearchParams(window.location.search);
+            idDonoVenda = urlParams.get('id') || urlParams.get('user_id');
         }
 
-        const idDono = obterIdLojaAtual();
-        if (!idDono) {
-            alert('Loja não identificada. Use o link da vitrine (?id=...).');
-            return;
+        if (!idDonoVenda) {
+            throw new Error("Não foi possível identificar o ID do proprietário desta loja para registrar a venda.");
         }
 
-        const infoPix = await obterPixDaOficina(idDono);
-        if (!infoPix || !infoPix.chave) {
-            alert('Esta oficina ainda não cadastrou a chave PIX.\n\nDono: Configurar Oficina → campo PIX → Salvar.');
-            return;
-        }
-
-        const total = qtd * precoUnitarioSelecionado;
-        const idVenda = 'VND-' + Math.floor(100000 + Math.random() * 900000);
-        const txid = idVenda.replace(/-/g, '').substring(0, 25);
-        const nomeCliente = inputNome.value.trim();
-        const telCliente = inputTel.value.trim();
-
-        const payload = gerarPayloadPixSimples({
-            chave: infoPix.chave,
-            nome: infoPix.nome,
-            cidade: 'SATIRO DIAS',
-            valor: total,
-            txid: txid
-        });
-
-        // APENAS registra como Aguardando — NÃO confirma, NÃO baixa estoque
+        // Busca o registro atual do usuário no banco
         const { data: dadosAtuais, error: erroBusca } = await supabaseClient
             .from('user_data')
-            .select('historico')
-            .eq('user_id', idDono)
+            .select('*')
+            .eq('user_id', idDonoVenda)
             .single();
-        if (erroBusca) throw new Error('Erro ao conectar na oficina.');
 
-        let hist = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
-        hist.unshift({
-            id_venda: idVenda,
+        if (erroBusca) throw new Error("Erro ao conectar à base de dados da oficina.");
+
+        let listaMateriais = Array.isArray(dadosAtuais.materiais) ? dadosAtuais.materiais : (Array.isArray(dadosAtuais.materials) ? dadosAtuais.materials : []);
+        let listaHistoricoGeral = Array.isArray(dadosAtuais.historico) ? dadosAtuais.historico : [];
+
+        // 1. Atualiza o estoque na lista de materiais
+        listaMateriais = listaMateriais.map(item => {
+            if (item.id === produtoSelecionadoParaCompra) {
+                let estoqueAtual = parseInt(item.qtd || item.quantidade || item.estoque || 0);
+                if (estoqueAtual < qtdComprada) {
+                    throw new Error(`Estoque insuficiente. Disponível: ${estoqueAtual} un.`);
+                }
+                item.qtd = estoqueAtual - qtdComprada;
+                if (item.hasOwnProperty('quantidade')) item.quantidade = estoqueAtual - qtdComprada;
+                if (item.hasOwnProperty('estoque')) item.estoque = estoqueAtual - qtdComprada;
+            }
+            return item;
+        });
+
+        // 2. Estrutura da venda padronizada com a tag limpa
+        const novoRegistroVenda = {
+            id_venda: 'VND-' + Math.floor(100000 + Math.random() * 900000),
             data: new Date().toLocaleDateString('pt-BR'),
-            status: 'Aguardando PIX',
-            tipo_registro: 'VENDA_DIRETA_BALCAO',
-            pagamento: 'PIX',
-            pix_txid: txid,
-            pix_chave: infoPix.chave,
+            status: 'Concluído',
+            tipo_registro: 'VENDA_DIRETA_BALCAO', 
             cliente: { nome: nomeCliente, tel: telCliente, endereco: 'Vitrine Virtual' },
             veiculo: { modelo: 'Balcão / Vitrine', placa: '---' },
             produto_nome: nomeProdutoSelecionado,
-            produto_id: produtoSelecionadoParaCompra,
-            quantidade: qtd,
+            quantidade: qtdComprada,
             valor_unitario: precoUnitarioSelecionado,
-            total_pago: total,
-            lucro: total
-        });
+            total_pago: totalVenda,
+            lucro: totalVenda
+        };
+        
+        listaHistoricoGeral.unshift(novoRegistroVenda);
 
-        const { error: erroUp } = await supabaseClient
+        // 3. Grava de volta no Supabase
+        const { error: erroUpdate } = await supabaseClient
             .from('user_data')
-            .update({ historico: hist, updated_at: new Date() })
-            .eq('user_id', idDono);
-        if (erroUp) throw erroUp;
+            .update({
+                materiais: listaMateriais,
+                historico: listaHistoricoGeral,
+                updated_at: new Date()
+            })
+            .eq('user_id', idDonoVenda);
 
-        document.getElementById('etapaDadosCompra').style.display = 'none';
-        document.getElementById('etapaPixCompra').style.display = 'block';
-        document.getElementById('pixValorGrande').innerText = 'R$ ' + total.toFixed(2);
-        document.getElementById('pixCopiaCola').value = payload;
-        const chaveEl = document.getElementById('pixChaveInfo');
-        if (chaveEl) chaveEl.innerHTML = 'Chave PIX: <b style="color:#fff;">' + infoPix.chave + '</b>';
-        const pid = document.getElementById('pixPedidoId');
-        if (pid) pid.innerText = 'Pedido: ' + idVenda;
+        if (erroUpdate) throw erroUpdate;
 
-        setTimeout(function() { desenharQrSimples(payload); }, 40);
+        alert(`Perfeito, ${nomeCliente}!\nSua compra foi processada com sucesso no sistema da ALDINEICAR.\n\nEfetue o pagamento de R$ ${totalVenda.toFixed(2)} via PIX.`);
+        fecharModalCompraDinamica();
+
+        // Recarrega as listagens locais após um pequeno delay para o banco propagar
+        setTimeout(() => {
+            if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idDonoVenda);
+            if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
+        }, 500);
 
     } catch (err) {
         console.error(err);
-        alert('Erro ao gerar PIX: ' + (err.message || err));
+        alert(`Não foi possível concluir: ${err.message}`);
     }
-}
-
-// Compatibilidade: antigo botão não deve mais confirmar sozinho
-async function processarBaixaEstoqueEPix() {
-    alert('Use "Gerar PIX". O pagamento só é confirmado pelo dono (botão Recebi) ou pelo webhook.');
-}
-
-/** Dono confirma que o valor caiu na conta */
-async function confirmarPagamentoVenda(idxHist) {
-    if (idxHist < 0 || idxHist >= historico.length) {
-        if (typeof mostrarToast === 'function') mostrarToast('Venda não encontrada.', 'erro');
-        return;
-    }
-    const venda = historico[idxHist];
-    if ((venda.status || '') === 'Pago PIX') {
-        if (typeof mostrarToast === 'function') mostrarToast('Esta venda já está paga.', 'aviso');
-        return;
-    }
-    const total = parseFloat(venda.total_pago || 0) || 0;
-    const nomeCli = (venda.cliente && venda.cliente.nome) || '';
-    const ok = confirm('Confirmar recebimento de R$ ' + total.toFixed(2) + '?\n\nCliente: ' + nomeCli + '\nProduto: ' + (venda.produto_nome || ''));
-    if (!ok) return;
-
-    venda.status = 'Pago PIX';
-    venda.pagamento = 'PIX';
-    venda.confirmado_em = new Date().toISOString();
-    venda.confirmado_por = 'oficina';
-
-    if (venda.produto_id) {
-        try {
-            const { data: prod } = await supabaseClient
-                .from('produtos_loja')
-                .select('estoque')
-                .eq('id', venda.produto_id)
-                .maybeSingle();
-            if (prod) {
-                const novo = Math.max(0, (parseInt(prod.estoque) || 0) - (parseInt(venda.quantidade) || 1));
-                await supabaseClient.from('produtos_loja').update({ estoque: novo }).eq('id', venda.produto_id);
-            }
-        } catch (e) { console.warn(e); }
-    }
-
-    await salvarNoBanco();
-    renderizarListaVendasExclusiva();
-    if (typeof mostrarToast === 'function') mostrarToast('Pagamento confirmado!', 'sucesso');
 }
 
 
@@ -2451,15 +2314,6 @@ async function renderizarListaVendasExclusiva() {
             const statusVenda = venda.status || 'Concluído';
             const idVenda = venda.id_venda || ('#' + idxHist);
 
-            const aguardando = String(statusVenda).toLowerCase().includes('aguardando');
-            const badgeBg = aguardando ? '#fef3c7' : (String(statusVenda).toLowerCase().includes('pago') ? '#ecfdf5' : '#f1f5f9');
-            const badgeFg = aguardando ? '#b45309' : (String(statusVenda).toLowerCase().includes('pago') ? '#059669' : '#475569');
-            let acoes = '';
-            if (aguardando) {
-                acoes += `<button onclick="confirmarPagamentoVenda(${idxHist})" title="Confirmar que o PIX caiu na conta" style="background:#22c55e;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px;">✓ Recebi</button>`;
-            }
-            acoes += `<button onclick="deletarVendaPorIndice(${idxHist})" title="Excluir" style="background:#fee2e2;color:#dc2626;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;">🗑️</button>`;
-
             linhasHTML += `
                 <tr>
                     <td style="color:#64748b;">${idVenda}</td>
@@ -2468,8 +2322,10 @@ async function renderizarListaVendasExclusiva() {
                     <td style="color:#059669; font-weight:600;">${nomeProduto}</td>
                     <td>${quantidadeItem}</td>
                     <td style="font-weight:700;">R$ ${valorTotal.toFixed(2)}</td>
-                    <td><span style="background:${badgeBg};color:${badgeFg};padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;">${statusVenda}</span></td>
-                    <td style="white-space:nowrap;">${acoes}</td>
+                    <td><span style="background:#ecfdf5; color:#059669; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">${statusVenda}</span></td>
+                    <td>
+                        <button onclick="deletarVendaPorIndice(${idxHist})" title="Excluir venda" style="background:#fee2e2; color:#dc2626; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:14px;">🗑️</button>
+                    </td>
                 </tr>`;
         });
 
@@ -2959,9 +2815,8 @@ function obterLinkVitrine() {
 
 function obterWebhookUrl() {
     if (!usuarioAtualId) return '';
-    // Endpoint público via Supabase REST + função client-side processador
-    // Formato: use esta URL no provedor de pagamento (Mercado Pago, etc.)
-    return 'https://nhqipyzikujszddoxlir.supabase.co/functions/v1/pix-webhook?user_id=' + usuarioAtualId;
+    // URL CURTA para caber no campo do Mercado Pago
+    return 'https://nhqipyzikujszddoxlir.supabase.co/functions/v1/mp-hook/' + usuarioAtualId;
 }
 
 function atualizarCardLinkVitrine() {
@@ -3092,19 +2947,13 @@ async function processarWebhookPix(payload) {
         let hist = Array.isArray(data.historico) ? data.historico : [];
         const txid = payload.txid || payload.pix_txid || payload.id_venda;
         let found = false;
-        let produtoParaBaixa = null;
-        let qtdBaixa = 0;
         hist = hist.map(item => {
             if (!item) return item;
             const match = (txid && (item.pix_txid === txid || item.id_venda === txid))
                 || (payload.id_venda && item.id_venda === payload.id_venda);
             if (match) {
                 found = true;
-                if (String(item.status || '').includes('Aguardando') && item.produto_id) {
-                    produtoParaBaixa = item.produto_id;
-                    qtdBaixa = parseInt(item.quantidade) || 1;
-                }
-                item.status = 'Pago PIX';
+                item.status = payload.status || 'Pago PIX';
                 item.pagamento = 'PIX';
                 item.webhook_confirmado_em = new Date().toISOString();
             }
@@ -3130,15 +2979,6 @@ async function processarWebhookPix(payload) {
         if (!found) return { ok: false, error: 'venda não encontrada' };
 
         await supabaseClient.from('user_data').update({ historico: hist, updated_at: new Date() }).eq('user_id', uid);
-        if (produtoParaBaixa) {
-            try {
-                const { data: prod } = await supabaseClient.from('produtos_loja').select('estoque').eq('id', produtoParaBaixa).maybeSingle();
-                if (prod) {
-                    const novo = Math.max(0, (parseInt(prod.estoque)||0) - (qtdBaixa||1));
-                    await supabaseClient.from('produtos_loja').update({ estoque: novo }).eq('id', produtoParaBaixa);
-                }
-            } catch (e) {}
-        }
         if (uid === usuarioAtualId) {
             historico = hist;
             if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
