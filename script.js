@@ -1252,7 +1252,11 @@ async function editarProduto(id) {
     if (nome === 'maoobra') { document.getElementById('aba-maoobra').style.display = 'block'; return; }
     if (nome === 'agenda') {
         const el = document.getElementById('aba-agenda');
-        if (el) { el.style.display = 'block'; renderAgenda(); }
+        if (el) {
+            el.style.display = 'block';
+            if (typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
+            renderAgenda();
+        }
         return;
     }
     if (nome === 'loja') {
@@ -1946,6 +1950,15 @@ async function enviarOrcamentoCliente() {
         alert('A data não pode ser no passado.');
         return;
     }
+    // Garante que a data ainda está na disponibilidade da oficina
+    try {
+        const dispCheck = __dispClienteCache || obterDisponibilidadePadrao();
+        if (typeof diaEstaDisponivel === 'function' && !diaEstaDisponivel(dataAg, dispCheck)) {
+            alert('Esta data não está mais disponível. Escolha outra.');
+            if (typeof carregarDatasDisponiveisCliente === 'function') carregarDatasDisponiveisCliente();
+            return;
+        }
+    } catch (e) {}
     if (!idOficinaDaLojaAtual) {
         alert('Identificador da oficina ausente.');
         return;
@@ -2051,7 +2064,7 @@ async function carregarProdutosVitrinePublica(idOficina) {
 // COMPRA PIX SIMPLES
 // - Gera QR com a chave PIX do dono (Configurar Oficina)
 // - Status inicial: Aguardando PIX
-// - Confirmação: APENAS o dono clica "✓ Recebi" na aba Vendas
+// - Confirmação: dono clica "✓ Recebi" OU webhook (se configurado)
 // - Fechar o modal NÃO confirma pagamento
 // ========================================================
 let produtoSelecionadoParaCompra = null;
@@ -2074,60 +2087,14 @@ function pixTLV(id, value) {
     const v = String(value);
     return id + String(v.length).padStart(2, '0') + v;
 }
-function limparChavePix(chave) {
-    const c = String(chave || '').trim();
-    if (!c) return '';
-    if (c.includes('@')) return c.toLowerCase().replace(/\s/g, '');
-    const soDigitos = c.replace(/\D/g, '');
-    // CPF (11) / CNPJ (14) / telefone (10-13)
-    if (soDigitos.length === 11 || soDigitos.length === 14) return soDigitos;
-    if (soDigitos.length >= 10 && soDigitos.length <= 13) return soDigitos;
-    // chave aleatória (EVP) — remove espaços
-    return c.replace(/\s/g, '');
-}
-
-function soAlfanumerico(s) {
-    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
-}
-
 function gerarPayloadPixSimples({ chave, nome, cidade, valor, txid }) {
-    const chaveLimpa = limparChavePix(chave);
-    if (!chaveLimpa) throw new Error('Chave PIX vazia. Cadastre em Configurar Oficina.');
-
-    let nomeLimpo = soAlfanumerico(nome || 'ALDINEICAR').substring(0, 25);
-    if (!nomeLimpo) nomeLimpo = 'ALDINEICAR';
-    // EMV exige nome sem espaços extras problemáticos — usa até 25 chars
-    nomeLimpo = nomeLimpo.replace(/\s+/g, ' ').substring(0, 25);
-
-    let cidadeLimpa = soAlfanumerico(cidade || 'SAO PAULO').toUpperCase().substring(0, 15);
-    if (!cidadeLimpa) cidadeLimpa = 'SAO PAULO';
-    // Cidade sem espaços no padrão mais aceito pelos apps
-    cidadeLimpa = cidadeLimpa.replace(/\s+/g, '').substring(0, 15) || 'SAOPAULO';
-
-    let tx = String(txid || ('PED' + Date.now())).replace(/[^a-zA-Z0-9]/g, '');
-    if (tx.length < 1) tx = 'PEDIDO';
-    tx = tx.substring(0, 25);
-
-    const valorNum = Number(valor);
-    if (!(valorNum > 0)) throw new Error('Valor do PIX inválido.');
-    const valorStr = valorNum.toFixed(2);
-
-    // Merchant Account Information (ID 26)
+    const chaveLimpa = String(chave || '').replace(/\s/g, '');
+    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
     const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
-
-    // 01 = Point of Initiation: 12 = dinâmico (com valor)
-    let payload = '';
-    payload += pixTLV('00', '01');
-    payload += pixTLV('01', '12');
-    payload += pixTLV('26', mai);
-    payload += pixTLV('52', '0000');
-    payload += pixTLV('53', '986');
-    payload += pixTLV('54', valorStr);
-    payload += pixTLV('58', 'BR');
-    payload += pixTLV('59', nomeLimpo);
-    payload += pixTLV('60', cidadeLimpa);
-    payload += pixTLV('62', pixTLV('05', tx));
-    payload += '6304';
+    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
+        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
+        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
     payload += pixCRC16(payload);
     return payload;
 }
@@ -2329,7 +2296,7 @@ async function gerarPixSimplesERegistrar() {
         const payload = gerarPayloadPixSimples({
             chave: infoPix.chave,
             nome: infoPix.nome,
-            cidade: 'SAO PAULO',
+            cidade: 'SATIRO DIAS',
             valor: total,
             txid: txid
         });
@@ -2708,10 +2675,6 @@ function calcularDadosPorPeriodo(ini, fim) {
         mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
 
         if (isRegistroVenda(item)) {
-            // Só vendas CONFIRMADAS como pagas (não conta Aguardando PIX)
-            const st = (item.status || '').toString().trim().toLowerCase();
-            const paga = st === 'pago' || st === 'pago pix' || st.includes('pago');
-            if (!paga) return;
             const v = valorVenda(item);
             mapa[chave].vendas += v;
             mapa[chave].qtdVendas += 1;
@@ -2870,6 +2833,255 @@ function renderDashboard() {
 
 
 // ========================================================
+// DISPONIBILIDADE DA AGENDA
+// ========================================================
+const HORARIOS_PADRAO_AGENDA = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
+const NOMES_DIA_AGENDA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function obterDisponibilidadePadrao() {
+    return {
+        diasSemana: { '0': false, '1': true, '2': true, '3': true, '4': true, '5': true, '6': false },
+        horarios: HORARIOS_PADRAO_AGENDA.slice(),
+        bloqueados: []
+    };
+}
+
+function obterDisponibilidadeOficina(fonte) {
+    const base = obterDisponibilidadePadrao();
+    const src = fonte || (typeof dadosOficina !== 'undefined' ? dadosOficina : null);
+    if (!src || !src.disponibilidade) return base;
+    const d = src.disponibilidade;
+    return {
+        diasSemana: Object.assign({}, base.diasSemana, d.diasSemana || {}),
+        horarios: Array.isArray(d.horarios) && d.horarios.length ? d.horarios.slice() : base.horarios,
+        bloqueados: Array.isArray(d.bloqueados) ? d.bloqueados.slice() : []
+    };
+}
+
+function dataISO(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+}
+
+function formatarDataBR_ISO(iso) {
+    if (!iso) return '';
+    const p = iso.split('-');
+    if (p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
+}
+
+function diaEstaDisponivel(isoDate, disp) {
+    if (!isoDate || !disp) return false;
+    if ((disp.bloqueados || []).includes(isoDate)) return false;
+    const dt = new Date(isoDate + 'T12:00:00');
+    if (isNaN(dt.getTime())) return false;
+    const wd = String(dt.getDay());
+    return !!(disp.diasSemana && disp.diasSemana[wd]);
+}
+
+function listarProximasDatasDisponiveis(disp, diasFrente) {
+    const out = [];
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const limite = diasFrente || 60;
+    for (let i = 0; i <= limite && out.length < 40; i++) {
+        const d = new Date(hoje);
+        d.setDate(hoje.getDate() + i);
+        const iso = dataISO(d);
+        if (diaEstaDisponivel(iso, disp)) out.push(iso);
+    }
+    return out;
+}
+
+function renderPainelDisponibilidade() {
+    const boxDias = document.getElementById('disp-dias-semana');
+    const boxHoras = document.getElementById('disp-horarios');
+    const boxBloq = document.getElementById('disp-lista-bloqueados');
+    if (!boxDias || !boxHoras) return;
+
+    const disp = obterDisponibilidadeOficina();
+    if (!dadosOficina.disponibilidade) dadosOficina.disponibilidade = disp;
+
+    boxDias.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+        const on = !!(disp.diasSemana && disp.diasSemana[String(i)]);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = NOMES_DIA_AGENDA[i];
+        btn.style.cssText = 'padding:10px 14px;border-radius:10px;border:1px solid ' + (on ? '#10b981' : '#e2e8f0') +
+            ';background:' + (on ? '#d1fae5' : '#f8fafc') + ';color:' + (on ? '#065f46' : '#64748b') +
+            ';font-weight:700;font-size:13px;cursor:pointer;';
+        btn.onclick = (function(dia) {
+            return function() {
+                const d = obterDisponibilidadeOficina();
+                d.diasSemana[String(dia)] = !d.diasSemana[String(dia)];
+                dadosOficina.disponibilidade = d;
+                renderPainelDisponibilidade();
+            };
+        })(i);
+        boxDias.appendChild(btn);
+    }
+
+    boxHoras.innerHTML = '';
+    HORARIOS_PADRAO_AGENDA.forEach(function(h) {
+        const on = (disp.horarios || []).indexOf(h) >= 0;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = h;
+        btn.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid ' + (on ? '#3b82f6' : '#e2e8f0') +
+            ';background:' + (on ? '#dbeafe' : '#f8fafc') + ';color:' + (on ? '#1d4ed8' : '#64748b') +
+            ';font-weight:700;font-size:12px;cursor:pointer;';
+        btn.onclick = (function(hora) {
+            return function() {
+                const d = obterDisponibilidadeOficina();
+                const idx = d.horarios.indexOf(hora);
+                if (idx >= 0) d.horarios.splice(idx, 1);
+                else d.horarios.push(hora);
+                d.horarios.sort();
+                dadosOficina.disponibilidade = d;
+                renderPainelDisponibilidade();
+            };
+        })(h);
+        boxHoras.appendChild(btn);
+    });
+
+    if (boxBloq) {
+        const lista = (disp.bloqueados || []).slice().sort();
+        if (lista.length === 0) {
+            boxBloq.innerHTML = '<span style="font-size:12px;color:#94a3b8;">Nenhuma data bloqueada.</span>';
+        } else {
+            boxBloq.innerHTML = lista.map(function(iso) {
+                return '<span style="display:inline-flex;align-items:center;gap:6px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:6px 10px;border-radius:20px;font-size:12px;font-weight:700;">'
+                    + formatarDataBR_ISO(iso)
+                    + ' <button type="button" onclick="desbloquearDataDisponibilidade(\'' + iso + '\')" style="border:none;background:transparent;color:#b91c1c;cursor:pointer;font-weight:800;">✕</button></span>';
+            }).join('');
+        }
+    }
+}
+
+function bloquearDataDisponibilidade() {
+    const input = document.getElementById('disp-data-bloquear');
+    if (!input || !input.value) {
+        alert('Escolha uma data para bloquear.');
+        return;
+    }
+    const d = obterDisponibilidadeOficina();
+    if (d.bloqueados.indexOf(input.value) < 0) d.bloqueados.push(input.value);
+    d.bloqueados.sort();
+    dadosOficina.disponibilidade = d;
+    input.value = '';
+    renderPainelDisponibilidade();
+}
+
+function desbloquearDataDisponibilidade(iso) {
+    const d = obterDisponibilidadeOficina();
+    d.bloqueados = (d.bloqueados || []).filter(function(x) { return x !== iso; });
+    dadosOficina.disponibilidade = d;
+    renderPainelDisponibilidade();
+}
+
+async function salvarDisponibilidadeAgenda() {
+    if (!dadosOficina.disponibilidade) {
+        dadosOficina.disponibilidade = obterDisponibilidadePadrao();
+    }
+    try {
+        if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+        if (typeof mostrarToast === 'function') mostrarToast('Disponibilidade salva!', 'sucesso');
+        else alert('Disponibilidade salva!');
+    } catch (e) {
+        alert('Erro ao salvar: ' + (e.message || e));
+    }
+}
+
+let __dispClienteCache = null;
+
+async function carregarDatasDisponiveisCliente() {
+    const selData = document.getElementById('cliOrcData');
+    const selHora = document.getElementById('cliOrcHora');
+    if (!selData) return;
+
+    selData.innerHTML = '<option value="">Carregando...</option>';
+    if (selHora) selHora.innerHTML = '<option value="">Escolha a data primeiro</option>';
+
+    try {
+        let disp = obterDisponibilidadePadrao();
+        const id = (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual)
+            ? idOficinaDaLojaAtual
+            : (new URLSearchParams(window.location.search).get('id')
+                || new URLSearchParams(window.location.search).get('loja'));
+
+        if (id) {
+            const { data } = await supabaseClient
+                .from('user_data')
+                .select('dados_oficina, historico')
+                .eq('user_id', id)
+                .single();
+            if (data && data.dados_oficina) {
+                disp = obterDisponibilidadeOficina(data.dados_oficina);
+            }
+            window.__histAgendaCliente = Array.isArray(data && data.historico) ? data.historico : [];
+        }
+        __dispClienteCache = disp;
+
+        const datas = listarProximasDatasDisponiveis(disp, 60);
+        if (datas.length === 0) {
+            selData.innerHTML = '<option value="">Sem datas disponíveis no momento</option>';
+            return;
+        }
+        selData.innerHTML = '<option value="">Selecione a data</option>' + datas.map(function(iso) {
+            const dt = new Date(iso + 'T12:00:00');
+            const nomeDia = NOMES_DIA_AGENDA[dt.getDay()];
+            return '<option value="' + iso + '">' + nomeDia + ' · ' + formatarDataBR_ISO(iso) + '</option>';
+        }).join('');
+    } catch (e) {
+        console.error(e);
+        selData.innerHTML = '<option value="">Erro ao carregar datas</option>';
+    }
+}
+
+function atualizarHorariosCliente() {
+    const selData = document.getElementById('cliOrcData');
+    const selHora = document.getElementById('cliOrcHora');
+    if (!selData || !selHora) return;
+
+    const iso = selData.value;
+    if (!iso) {
+        selHora.innerHTML = '<option value="">Escolha a data primeiro</option>';
+        return;
+    }
+
+    const disp = __dispClienteCache || obterDisponibilidadePadrao();
+    if (!diaEstaDisponivel(iso, disp)) {
+        selHora.innerHTML = '<option value="">Dia indisponível</option>';
+        return;
+    }
+
+    // Horários já ocupados (agendamentos não cancelados)
+    const ocupados = {};
+    (window.__histAgendaCliente || []).forEach(function(item) {
+        if (!item || item.tipo_registro !== 'AGENDAMENTO') return;
+        if ((item.status || '') === 'Cancelado') return;
+        const ag = item.agendamento || {};
+        if (ag.data === iso && ag.hora) ocupados[ag.hora] = true;
+    });
+
+    const livres = (disp.horarios || HORARIOS_PADRAO_AGENDA).filter(function(h) {
+        return !ocupados[h];
+    });
+
+    if (livres.length === 0) {
+        selHora.innerHTML = '<option value="">Sem horários livres neste dia</option>';
+        return;
+    }
+    selHora.innerHTML = '<option value="">Selecione o horário</option>' + livres.map(function(h) {
+        return '<option value="' + h + '">' + h + '</option>';
+    }).join('');
+}
+
+
+// ========================================================
 // AGENDA ONLINE
 // ========================================================
 let filtroAgendaAtual = 'todos';
@@ -2973,7 +3185,11 @@ function prepararMinDataAgendamento() {
 function abrirModalOrcamentoCliente() {
     const modal = document.getElementById('modal-orcamento-cliente');
     if (modal) modal.style.display = 'flex';
-    prepararMinDataAgendamento();
+    if (typeof carregarDatasDisponiveisCliente === 'function') {
+        carregarDatasDisponiveisCliente();
+    } else if (typeof prepararMinDataAgendamento === 'function') {
+        prepararMinDataAgendamento();
+    }
 }
 
 
@@ -3008,8 +3224,10 @@ function obterLinkVitrine() {
 }
 
 function obterWebhookUrl() {
-    // Webhook desativado — confirmação só pelo dono (botão Recebi)
-    return '';
+    if (!usuarioAtualId) return '';
+    // Endpoint público via Supabase REST + função client-side processador
+    // Formato: use esta URL no provedor de pagamento (Mercado Pago, etc.)
+    return 'https://nhqipyzikujszddoxlir.supabase.co/functions/v1/pix-webhook?user_id=' + usuarioAtualId;
 }
 
 function atualizarCardLinkVitrine() {
@@ -3253,6 +3471,14 @@ function pixTLV(id, value) {
     const v = String(value);
     return id + String(v.length).padStart(2, '0') + v;
 }
-function gerarPayloadPix(opts) {
-    return gerarPayloadPixSimples(opts);
+function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
+    const chaveLimpa = String(chave).replace(/\s/g, '');
+    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
+    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
+        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
+        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
+    payload += pixCRC16(payload);
+    return payload;
 }
