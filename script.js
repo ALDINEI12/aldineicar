@@ -2051,7 +2051,7 @@ async function carregarProdutosVitrinePublica(idOficina) {
 // COMPRA PIX SIMPLES
 // - Gera QR com a chave PIX do dono (Configurar Oficina)
 // - Status inicial: Aguardando PIX
-// - Confirmação: dono clica "✓ Recebi" OU webhook (se configurado)
+// - Confirmação: APENAS o dono clica "✓ Recebi" na aba Vendas
 // - Fechar o modal NÃO confirma pagamento
 // ========================================================
 let produtoSelecionadoParaCompra = null;
@@ -2074,14 +2074,60 @@ function pixTLV(id, value) {
     const v = String(value);
     return id + String(v.length).padStart(2, '0') + v;
 }
+function limparChavePix(chave) {
+    const c = String(chave || '').trim();
+    if (!c) return '';
+    if (c.includes('@')) return c.toLowerCase().replace(/\s/g, '');
+    const soDigitos = c.replace(/\D/g, '');
+    // CPF (11) / CNPJ (14) / telefone (10-13)
+    if (soDigitos.length === 11 || soDigitos.length === 14) return soDigitos;
+    if (soDigitos.length >= 10 && soDigitos.length <= 13) return soDigitos;
+    // chave aleatória (EVP) — remove espaços
+    return c.replace(/\s/g, '');
+}
+
+function soAlfanumerico(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+}
+
 function gerarPayloadPixSimples({ chave, nome, cidade, valor, txid }) {
-    const chaveLimpa = String(chave || '').replace(/\s/g, '');
-    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const chaveLimpa = limparChavePix(chave);
+    if (!chaveLimpa) throw new Error('Chave PIX vazia. Cadastre em Configurar Oficina.');
+
+    let nomeLimpo = soAlfanumerico(nome || 'ALDINEICAR').substring(0, 25);
+    if (!nomeLimpo) nomeLimpo = 'ALDINEICAR';
+    // EMV exige nome sem espaços extras problemáticos — usa até 25 chars
+    nomeLimpo = nomeLimpo.replace(/\s+/g, ' ').substring(0, 25);
+
+    let cidadeLimpa = soAlfanumerico(cidade || 'SAO PAULO').toUpperCase().substring(0, 15);
+    if (!cidadeLimpa) cidadeLimpa = 'SAO PAULO';
+    // Cidade sem espaços no padrão mais aceito pelos apps
+    cidadeLimpa = cidadeLimpa.replace(/\s+/g, '').substring(0, 15) || 'SAOPAULO';
+
+    let tx = String(txid || ('PED' + Date.now())).replace(/[^a-zA-Z0-9]/g, '');
+    if (tx.length < 1) tx = 'PEDIDO';
+    tx = tx.substring(0, 25);
+
+    const valorNum = Number(valor);
+    if (!(valorNum > 0)) throw new Error('Valor do PIX inválido.');
+    const valorStr = valorNum.toFixed(2);
+
+    // Merchant Account Information (ID 26)
     const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
-    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
-        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
-        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
+
+    // 01 = Point of Initiation: 12 = dinâmico (com valor)
+    let payload = '';
+    payload += pixTLV('00', '01');
+    payload += pixTLV('01', '12');
+    payload += pixTLV('26', mai);
+    payload += pixTLV('52', '0000');
+    payload += pixTLV('53', '986');
+    payload += pixTLV('54', valorStr);
+    payload += pixTLV('58', 'BR');
+    payload += pixTLV('59', nomeLimpo);
+    payload += pixTLV('60', cidadeLimpa);
+    payload += pixTLV('62', pixTLV('05', tx));
+    payload += '6304';
     payload += pixCRC16(payload);
     return payload;
 }
@@ -2283,7 +2329,7 @@ async function gerarPixSimplesERegistrar() {
         const payload = gerarPayloadPixSimples({
             chave: infoPix.chave,
             nome: infoPix.nome,
-            cidade: 'SATIRO DIAS',
+            cidade: 'SAO PAULO',
             valor: total,
             txid: txid
         });
@@ -2662,6 +2708,10 @@ function calcularDadosPorPeriodo(ini, fim) {
         mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
 
         if (isRegistroVenda(item)) {
+            // Só vendas CONFIRMADAS como pagas (não conta Aguardando PIX)
+            const st = (item.status || '').toString().trim().toLowerCase();
+            const paga = st === 'pago' || st === 'pago pix' || st.includes('pago');
+            if (!paga) return;
             const v = valorVenda(item);
             mapa[chave].vendas += v;
             mapa[chave].qtdVendas += 1;
@@ -2958,10 +3008,8 @@ function obterLinkVitrine() {
 }
 
 function obterWebhookUrl() {
-    if (!usuarioAtualId) return '';
-    // Endpoint público via Supabase REST + função client-side processador
-    // Formato: use esta URL no provedor de pagamento (Mercado Pago, etc.)
-    return 'https://nhqipyzikujszddoxlir.supabase.co/functions/v1/pix-webhook?user_id=' + usuarioAtualId;
+    // Webhook desativado — confirmação só pelo dono (botão Recebi)
+    return '';
 }
 
 function atualizarCardLinkVitrine() {
@@ -3205,14 +3253,6 @@ function pixTLV(id, value) {
     const v = String(value);
     return id + String(v.length).padStart(2, '0') + v;
 }
-function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
-    const chaveLimpa = String(chave).replace(/\s/g, '');
-    const nomeLimpo = (nome || 'ALDINEICAR').substring(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const cidadeLimpa = (cidade || 'SATIRO DIAS').substring(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
-    const mai = pixTLV('00', 'BR.GOV.BCB.PIX') + pixTLV('01', chaveLimpa);
-    let payload = pixTLV('00','01') + pixTLV('26', mai) + pixTLV('52','0000') + pixTLV('53','986')
-        + pixTLV('54', Number(valor).toFixed(2)) + pixTLV('58','BR') + pixTLV('59', nomeLimpo)
-        + pixTLV('60', cidadeLimpa) + pixTLV('62', pixTLV('05', (txid||'***').substring(0,25))) + '6304';
-    payload += pixCRC16(payload);
-    return payload;
+function gerarPayloadPix(opts) {
+    return gerarPayloadPixSimples(opts);
 }

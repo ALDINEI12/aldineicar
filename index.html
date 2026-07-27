@@ -457,10 +457,9 @@ function mostrarSecao(id) {
             <button id="btn-toggle-notif" onclick="alternarNotificacoes()" style="padding:10px 14px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">🔔 Notificações</button>
         </div>
         <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;">
-            <p style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin:0 0 6px 0;">🔌 Webhook PIX (confirmação automática)</p>
-            <p id="texto-webhook-url" style="font-size:12px; word-break:break-all; margin:0 0 8px 0; color:#cbd5e1;">—</p>
-            <p style="font-size:11px; color:#94a3b8; margin:0 0 8px 0;">Secret: <code id="texto-webhook-secret" style="color:#fbbf24;">—</code></p>
-            <button onclick="copiarWebhookInfo()" style="padding:8px 12px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">📋 Copiar URL do Webhook</button>
+            <p style="font-size:12px; color:#cbd5e1; margin:0; line-height:1.45;">💳 Pagamentos PIX: o cliente paga pelo QR. Você confirma em <b style="color:#fff;">Vendas → ✓ Recebi</b> quando o valor cair na conta.</p>
+            <span id="texto-webhook-url" style="display:none;"></span>
+            <span id="texto-webhook-secret" style="display:none;"></span>
         </div>
     </div>
     <div id="vitrine-produtos" class="grid-produtos">
@@ -475,7 +474,7 @@ function mostrarSecao(id) {
         <input type="hidden" id="editandoId">
         
         <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">URL da Imagem do Produto</label>
-        <input type="text" id="prodImgUrl" placeholder="https://exemplo.com/imagem.jpg" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+        <textarea id="prodImgUrl" rows="3" placeholder="Cole o link completo da imagem" style="width:100%;margin-bottom:15px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;resize:vertical;word-break:break-all;font-family:inherit;"></textarea>
         
         <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Nome do Produto</label>
         <input type="text" id="prodNome" placeholder="Ex: Par de Pastilhas de Freio" style="width: 100%; margin-bottom: 15px; padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
