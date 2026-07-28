@@ -2549,3 +2549,139 @@ body.modo-vitrine-publica #visao-cliente-externo {
 body.modo-vitrine-publica #visao-cliente-externo {
     background: #0a0a0b !important;
 }
+
+
+/* =========================================================
+   ANIMAÇÕES DE ABERTURA
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal-content, .menu-mais-sheet, .menu-mais-panel,
+  .menu-mais-backdrop, .vt-card, .resumo {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Modais genéricos */
+.modal {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.modal.aberto {
+  opacity: 1;
+}
+.modal .modal-content,
+.modal > div[style*="background"] {
+  transform: translateY(28px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 0.28s ease;
+}
+.modal.aberto .modal-content,
+.modal.aberto > div[style*="background"] {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Modal produto (estrutura própria) */
+#modal-cadastro-produto {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#modal-cadastro-produto.aberto {
+  opacity: 1;
+}
+#modal-cadastro-produto > div {
+  transform: translateY(28px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 0.28s ease;
+}
+#modal-cadastro-produto.aberto > div {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Modal orçamento cliente / compra */
+#modal-orcamento-cliente,
+#modalCompraProduto {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#modal-orcamento-cliente.aberto,
+#modalCompraProduto.aberto {
+  opacity: 1;
+}
+#modal-orcamento-cliente > div,
+#modalCompraProduto > div {
+  transform: translateY(28px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 0.28s ease;
+}
+#modal-orcamento-cliente.aberto > div,
+#modalCompraProduto.aberto > div {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Menu Mais — bottom sheet */
+.menu-mais-sheet {
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.menu-mais-sheet.aberto {
+  opacity: 1;
+}
+.menu-mais-backdrop {
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.menu-mais-sheet.aberto .menu-mais-backdrop {
+  opacity: 1;
+}
+.menu-mais-panel {
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.menu-mais-sheet.aberto .menu-mais-panel {
+  transform: translateY(0);
+}
+
+/* Resumo mobile */
+.resumo.resumo-anim {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.28s ease, transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.resumo.resumo-anim.aberto {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Cards da vitrine — entrada em cascata */
+.vt-card {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: vtCardIn 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.vt-card:nth-child(1) { animation-delay: 0.02s; }
+.vt-card:nth-child(2) { animation-delay: 0.05s; }
+.vt-card:nth-child(3) { animation-delay: 0.08s; }
+.vt-card:nth-child(4) { animation-delay: 0.11s; }
+.vt-card:nth-child(5) { animation-delay: 0.14s; }
+.vt-card:nth-child(6) { animation-delay: 0.17s; }
+.vt-card:nth-child(7) { animation-delay: 0.2s; }
+.vt-card:nth-child(8) { animation-delay: 0.23s; }
+.vt-card:nth-child(n+9) { animation-delay: 0.26s; }
+
+@keyframes vtCardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Chips filtro — leve feedback */
+.vt-chip {
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.vt-chip:active { transform: scale(0.96); }

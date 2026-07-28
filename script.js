@@ -4529,3 +4529,168 @@ function aplicarTextosVitrinePublica(oficina) {
         }
     }
 }
+
+
+// ========================================================
+// ANIMAÇÕES — abrir / fechar com classe .aberto
+// ========================================================
+function animAbrirModal(el, displayMode) {
+    if (!el) return;
+    displayMode = displayMode || 'flex';
+    el.style.display = displayMode;
+    // força reflow para a transição rodar
+    void el.offsetWidth;
+    el.classList.add('aberto');
+}
+
+function animFecharModal(el, delay) {
+    if (!el) return;
+    delay = delay || 280;
+    el.classList.remove('aberto');
+    setTimeout(function() {
+        if (!el.classList.contains('aberto')) {
+            el.style.display = 'none';
+        }
+    }, delay);
+}
+
+// Material
+function abrirModal() {
+    const m = document.getElementById('modal');
+    animAbrirModal(m, 'block');
+    const c = m && m.querySelector('.modal-content');
+    if (c) c.scrollTop = 0;
+}
+
+function fecharModalEspecifico(idModal) {
+    const modal = document.getElementById(idModal);
+    animFecharModal(modal);
+}
+
+function fecharModal() {
+    animFecharModal(document.getElementById('modal'));
+}
+
+function fecharModalMaterial() {
+    animFecharModal(document.getElementById('modal'));
+}
+
+// Produto loja
+function prepararNovoProduto() {
+    const idEl = document.getElementById('editandoId');
+    if (idEl) idEl.value = '';
+    const tit = document.getElementById('titulo-modal-produto');
+    if (tit) tit.innerText = 'Novo Produto';
+    ['prodNome','prodPreco','prodDesc','prodEstoque'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    if (typeof limparFotoProduto === 'function') limparFotoProduto();
+    if (typeof preencherSelectCategoriasLoja === 'function') {
+        preencherSelectCategoriasLoja(typeof categoriaLojaAtual !== 'undefined' && categoriaLojaAtual !== 'Todos' ? categoriaLojaAtual : null);
+    }
+    animAbrirModal(document.getElementById('modal-cadastro-produto'), 'block');
+}
+
+function fecharModalProduto() {
+    animFecharModal(document.getElementById('modal-cadastro-produto'));
+}
+
+// Agenda
+function abrirModalNovoAgendamento() {
+    const modal = document.getElementById('modal-novo-agendamento');
+    if (!modal) return;
+    var n = document.getElementById('agdNome'); if (n) n.value = '';
+    var t = document.getElementById('agdTel'); if (t) t.value = '';
+    var v = document.getElementById('agdVeiculo'); if (v) v.value = '';
+    var s = document.getElementById('agdServico'); if (s) s.value = '';
+    var o = document.getElementById('agdObs'); if (o) o.value = '';
+    const inputData = document.getElementById('agdData');
+    if (inputData && typeof _hojeISO === 'function') {
+        const hoje = _hojeISO();
+        inputData.min = hoje;
+        inputData.value = hoje;
+    }
+    if (typeof preencherHorariosNovoAgendamento === 'function') preencherHorariosNovoAgendamento();
+    animAbrirModal(modal, 'block');
+    const c = modal.querySelector('.modal-content');
+    if (c) c.scrollTop = 0;
+}
+
+function fecharModalNovoAgendamento() {
+    animFecharModal(document.getElementById('modal-novo-agendamento'));
+}
+
+// Oficina
+function abrirModalOficina() {
+    if (typeof atualizarInputsOficina === 'function') atualizarInputsOficina();
+    animAbrirModal(document.getElementById('modalOficina'), 'flex');
+}
+function fecharModalOficina() {
+    animFecharModal(document.getElementById('modalOficina'));
+}
+
+// Orçamento cliente (vitrine)
+function abrirModalOrcamentoCliente() {
+    animAbrirModal(document.getElementById('modal-orcamento-cliente'), 'flex');
+}
+function fecharModalOrcamentoCliente() {
+    animFecharModal(document.getElementById('modal-orcamento-cliente'));
+}
+
+// Menu Mais
+function toggleMenuMais() {
+    const sheet = document.getElementById('menu-mais-sheet');
+    if (!sheet) return;
+    const aberto = sheet.classList.contains('aberto');
+    if (aberto) {
+        sheet.classList.remove('aberto');
+        setTimeout(function() {
+            if (!sheet.classList.contains('aberto')) sheet.style.display = 'none';
+        }, 300);
+    } else {
+        sheet.style.display = 'flex';
+        void sheet.offsetWidth;
+        sheet.classList.add('aberto');
+    }
+}
+
+// Resumo mobile com animação (se existir)
+(function patchResumoAnim() {
+    if (typeof window.abrirResumoMobile !== 'function') return;
+    const orig = window.abrirResumoMobile;
+    window.abrirResumoMobile = function() {
+        const r = document.querySelector('.resumo');
+        if (!r) return orig.apply(this, arguments);
+        const visivel = r.style.display === 'block' || r.classList.contains('aberto');
+        if (visivel) {
+            r.classList.remove('aberto');
+            setTimeout(function() {
+                r.style.display = 'none';
+            }, 280);
+        } else {
+            r.classList.add('resumo-anim');
+            r.style.display = 'block';
+            void r.offsetWidth;
+            r.classList.add('aberto');
+        }
+    };
+})();
+
+
+// Garante animação também na edição de produto
+(function() {
+    const _prepEdit = typeof prepararEdicaoProduto === 'function' ? prepararEdicaoProduto : null;
+    if (!_prepEdit) return;
+    // re-wrap after our definition in anim block - force open with anim
+    const openProd = function() {
+        animAbrirModal(document.getElementById('modal-cadastro-produto'), 'block');
+    };
+    // patch display assignments is hard; hook after async edit loads
+    const orig = prepararEdicaoProduto;
+    window.prepararEdicaoProduto = async function() {
+        const r = await orig.apply(this, arguments);
+        openProd();
+        return r;
+    };
+})();
