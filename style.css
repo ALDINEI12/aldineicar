@@ -1902,16 +1902,16 @@ html, body {
     }
 }
 
-/* Top actions materiais — 2 botões lado a lado, sem sobrepor */
+/* Top actions materiais — 3 botões sem sobrepor */
 #top-actions-materiais {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
     max-width: 100%;
 }
 #top-actions-materiais button {
-    flex: 1 1 0;
+    flex: 1 1 calc(33.33% - 8px);
     min-width: 0 !important;
     justify-content: center;
     white-space: nowrap;
@@ -1923,7 +1923,8 @@ html, body {
         margin-bottom: 4px;
     }
     #top-actions-materiais button {
-        padding: 10px 8px !important;
-        font-size: 12px !important;
+        flex: 1 1 calc(50% - 8px);
+        padding: 10px 6px !important;
+        font-size: 11px !important;
     }
 }
