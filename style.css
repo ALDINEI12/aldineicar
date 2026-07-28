@@ -2181,7 +2181,10 @@ html, body {
 .cat-loja-chip.is-active .cat-loja-del { color: #fca5a5; }
 .cat-loja-del:hover { color: #ef4444; }
 
-/* Vitrine pública: nunca mostrar UI da oficina */
+/* Vitrine pública */
+body.modo-vitrine-publica {
+    background: #09090b !important;
+}
 body.modo-vitrine-publica #bottom-nav,
 body.modo-vitrine-publica #menu-mais-sheet,
 body.modo-vitrine-publica #appContainer,
@@ -2198,6 +2201,9 @@ body.modo-vitrine-publica .resumo {
 body.modo-vitrine-publica #visao-cliente-externo {
     display: flex !important;
     visibility: visible !important;
+    opacity: 1 !important;
     min-height: 100vh;
     min-height: 100dvh;
+    background: #09090b !important;
+    color: #fafafa !important;
 }

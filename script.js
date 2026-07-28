@@ -1863,76 +1863,105 @@ window.addEventListener('error', function(e) {
 function verificarModoCliente() {
     const parametrosUrl = new URLSearchParams(window.location.search);
     const idLoja = parametrosUrl.get('id') || parametrosUrl.get('loja') || parametrosUrl.get('user_id');
+    if (!idLoja) return false;
 
-    if (idLoja) {
-        idOficinaDaLojaAtual = idLoja;
-        window.__modoClienteVitrine = true;
-        document.documentElement.classList.add('modo-vitrine-publica');
-        document.body.classList.add('modo-vitrine-publica');
-        const estiloEsconder = document.createElement('style');
-        estiloEsconder.id = 'estilo-modo-cliente';
-        estiloEsconder.innerHTML = `
-            html.modo-vitrine-publica, body.modo-vitrine-publica {
-                background: #09090b !important;
-                overflow-x: hidden !important;
+    idOficinaDaLojaAtual = idLoja;
+    window.__modoClienteVitrine = true;
+
+    const aplicarModoVitrine = () => {
+        try {
+            document.documentElement.classList.add('modo-vitrine-publica');
+            if (document.body) document.body.classList.add('modo-vitrine-publica');
+        } catch (e) {}
+
+        if (!document.getElementById('estilo-modo-cliente')) {
+            const estiloEsconder = document.createElement('style');
+            estiloEsconder.id = 'estilo-modo-cliente';
+            estiloEsconder.textContent = `
+                html.modo-vitrine-publica, body.modo-vitrine-publica {
+                    background: #09090b !important;
+                    margin: 0 !important;
+                    min-height: 100%;
+                }
+                body.modo-vitrine-publica #loginOverlay,
+                body.modo-vitrine-publica #appContainer,
+                body.modo-vitrine-publica #btn-resumo-flutuante,
+                body.modo-vitrine-publica #bottom-nav,
+                body.modo-vitrine-publica #menu-mais-sheet,
+                body.modo-vitrine-publica .bottom-nav,
+                body.modo-vitrine-publica .menu-mais-sheet,
+                body.modo-vitrine-publica .sidebar,
+                body.modo-vitrine-publica .resumo,
+                body.modo-vitrine-publica #modal,
+                body.modo-vitrine-publica #modalOficina,
+                body.modo-vitrine-publica #modal-cadastro-produto,
+                body.modo-vitrine-publica #modal-novo-agendamento,
+                body.modo-vitrine-publica #modalConfirmar,
+                body.modo-vitrine-publica #toast-container {
+                    display: none !important;
+                    visibility: hidden !important;
+                    pointer-events: none !important;
+                }
+                body.modo-vitrine-publica #visao-cliente-externo {
+                    display: flex !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    flex-direction: column !important;
+                    min-height: 100vh !important;
+                    min-height: 100dvh !important;
+                    position: relative !important;
+                    z-index: 50 !important;
+                    background: #09090b !important;
+                    color: #fafafa !important;
+                }
+            `;
+            document.head.appendChild(estiloEsconder);
+        }
+
+        const hideIds = [
+            'loginOverlay', 'appContainer', 'btn-resumo-flutuante',
+            'bottom-nav', 'menu-mais-sheet', 'modal', 'modalOficina',
+            'modal-cadastro-produto', 'modal-novo-agendamento', 'modalConfirmar'
+        ];
+        hideIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.setProperty('display', 'none', 'important');
+                el.style.setProperty('visibility', 'hidden', 'important');
             }
-            body.modo-vitrine-publica > *:not(#visao-cliente-externo):not(#modal-orcamento-cliente):not(#modalCompraProduto):not(#modal-compra):not(script):not(style) {
-                display: none !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-            }
-            #loginOverlay, #appContainer, #btn-resumo-flutuante,
-            #bottom-nav, #menu-mais-sheet, .bottom-nav, .menu-mais-sheet,
-            .sidebar, .resumo, #toast-container,
-            #modal, #modalOficina, #modal-cadastro-produto, #modalConfirmacao,
-            #modal-novo-agendamento {
-                display: none !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-            }
-            #visao-cliente-externo {
-                display: flex !important;
-                visibility: visible !important;
-                flex-direction: column !important;
-                min-height: 100vh !important;
-                min-height: 100dvh !important;
-                position: relative !important;
-                z-index: 1 !important;
-                background: #09090b !important;
-            }
-            #modal-orcamento-cliente, #modalCompraProduto, #modal-compra, [id^="modal-compra"] {
-                z-index: 100000 !important;
-            }
-        `;
-        document.head.appendChild(estiloEsconder);
-        const hideApp = () => {
-            const hideIds = ['loginOverlay','appContainer','btn-resumo-flutuante','bottom-nav','menu-mais-sheet','modal','modalOficina','modal-cadastro-produto','modal-novo-agendamento'];
-            hideIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
-            });
-            document.querySelectorAll('.bottom-nav, .menu-mais-sheet, .resumo').forEach(el => {
-                el.style.display = 'none';
-                el.style.visibility = 'hidden';
-            });
-            const visao = document.getElementById('visao-cliente-externo');
-            if (visao) {
-                visao.style.display = 'flex';
-                visao.style.flexDirection = 'column';
-                visao.style.visibility = 'visible';
-                visao.style.minHeight = '100vh';
-            }
-        };
-        hideApp();
-        setTimeout(hideApp, 100);
-        setTimeout(hideApp, 500);
-        setTimeout(hideApp, 1200);
+        });
+        document.querySelectorAll('.bottom-nav, .menu-mais-sheet').forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+        });
+
+        const visao = document.getElementById('visao-cliente-externo');
+        if (visao) {
+            visao.style.setProperty('display', 'flex', 'important');
+            visao.style.setProperty('visibility', 'visible', 'important');
+            visao.style.setProperty('opacity', '1', 'important');
+            visao.style.flexDirection = 'column';
+            visao.style.minHeight = '100vh';
+            visao.style.background = '#09090b';
+        }
+    };
+
+    const iniciar = () => {
+        aplicarModoVitrine();
+        setTimeout(aplicarModoVitrine, 50);
+        setTimeout(aplicarModoVitrine, 300);
         setTimeout(() => {
-            if (typeof carregarProdutosVitrinePublica === 'function') carregarProdutosVitrinePublica(idLoja);
-        }, 400);
-        return true;
+            if (typeof carregarProdutosVitrinePublica === 'function') {
+                carregarProdutosVitrinePublica(idLoja);
+            }
+        }, 350);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', iniciar);
+    } else {
+        iniciar();
     }
-    return false;
+    return true;
 }
 
 // Inicializa a checagem
