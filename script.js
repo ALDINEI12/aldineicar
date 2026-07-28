@@ -872,19 +872,20 @@ async function editarProduto(id) {
         filtrados.forEach(({ item, index }) => {
             lista.innerHTML += `
                 <div class="card mat-card${item.qtd > 0 ? ' mat-card-ativo' : ''}">
-                    <div class="mat-card-top">
-                        <span class="mat-cat">${item.cat || ''}</span>
+                    <div class="mat-line1">
+                        <h3 class="mat-nome">${item.nome}</h3>
                         <div class="mat-card-menu">
-                            <button type="button" class="mat-icon-btn" onclick="editarMaterial(${index})" title="Editar">✏️</button>
-                            <button type="button" class="mat-icon-btn mat-icon-del" onclick="deletarMaterial(${index})" title="Excluir">🗑️</button>
+                            <button type="button" class="mat-icon-btn" onclick="editarMaterial(${index})">✏️</button>
+                            <button type="button" class="mat-icon-btn mat-icon-del" onclick="deletarMaterial(${index})">🗑️</button>
                         </div>
                     </div>
-                    <h3 class="mat-nome">${item.nome}</h3>
-                    <div class="mat-preco">R$ ${Number(item.valor).toFixed(2)}</div>
-                    <div class="controls">
-                        <button type="button" class="btn-minus" onclick="menos(${index})">−</button>
-                        <div class="qtd">${item.qtd}</div>
-                        <button type="button" class="btn-plus" onclick="mais(${index})">+</button>
+                    <div class="mat-line2">
+                        <span class="mat-preco">R$ ${Number(item.valor).toFixed(2)}</span>
+                        <div class="controls">
+                            <button type="button" class="btn-minus" onclick="menos(${index})">−</button>
+                            <div class="qtd">${item.qtd}</div>
+                            <button type="button" class="btn-plus" onclick="mais(${index})">+</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -3269,7 +3270,7 @@ function renderAgenda() {
 
         const eHoje = _agendamentoEHoje(item);
         const eAtrasado = _agendamentoEstaAtrasado(item);
-        let cardClass = 'agenda-card';
+        let cardClass = 'ag-item';
         if (eAtrasado) cardClass += ' atrasado';
         else if (eHoje) cardClass += ' hoje';
 
@@ -3278,30 +3279,29 @@ function renderAgenda() {
             const dt = new Date(ag.data + 'T12:00:00');
             const nomeDia = (typeof NOMES_DIA_AGENDA !== 'undefined' ? NOMES_DIA_AGENDA[dt.getDay()] : '') || '';
             const labelDia = eHoje ? 'Hoje · ' + formatarDataBR_ISO(ag.data) : (nomeDia + ' · ' + formatarDataBR_ISO(ag.data));
-            html += '<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin:8px 0 4px 2px;">' + labelDia + '</div>';
+            html += '<div class="ag-day">' + labelDia + '</div>';
         }
 
         const tel = cliente.tel || '';
         const telLimpo = String(tel).replace(/\D/g, '');
         const nomeOficina = (typeof dadosOficina !== 'undefined' && dadosOficina.nome) ? dadosOficina.nome : 'ALDINEICAR';
         const msgWa = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Sobre seu agendamento em ' + (ag.label || '') + ' — ' + nomeOficina);
-        const msgLembrar = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Lembrete: seu horário está marcado para ' + (ag.label || '') + '. Qualquer dúvida, estamos à disposição. — ' + nomeOficina);
+        const msgLembrar = encodeURIComponent('Olá ' + (cliente.nome || '') + '! Lembrete: seu horário está marcado para ' + (ag.label || '') + '. — ' + nomeOficina);
 
         let extraBadge = '';
         if (eAtrasado) extraBadge = '<span class="agenda-badge agenda-badge-atrasado">Atrasado</span>';
         else if (eHoje) extraBadge = '<span class="agenda-badge agenda-badge-hoje">Hoje</span>';
 
-        html += '<div class="' + cardClass + '"><div class="agenda-card-left"><div class="agenda-data-box">'
-            + '<span class="agenda-dia">' + ((ag.data_br || '--').split('/')[0] || '--') + '</span>'
-            + '<span class="agenda-mes">' + ((ag.data_br || '').split('/')[1] || '') + '/' + ((ag.data_br || '').split('/')[2] || '') + '</span>'
-            + '<span class="agenda-hora">' + (ag.hora || '--:--') + '</span></div></div>'
-            + '<div class="agenda-card-body"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
-            + '<div><span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
-            + '<h3 style="margin:8px 0 4px;font-size:16px;color:#0f172a;">' + (cliente.nome || 'Cliente') + '</h3>'
-            + '<p style="margin:0;font-size:13px;color:#64748b;">📱 ' + (tel || '—') + ' · 🚗 ' + (veiculo.modelo || '—') + '</p></div>'
-            + '<span style="font-size:11px;color:#94a3b8;">' + (item.id_agendamento || '') + '</span></div>'
-            + '<p style="margin:12px 0 0;font-size:13px;background:#f8fafc;padding:10px;border-radius:8px;"><strong>Serviço:</strong> ' + (veiculo.tipo_servico || '—') + (item.obs ? ' · ' + item.obs : '') + '</p>'
-            + '<div class="agenda-acoes">';
+        html += '<div class="' + cardClass + '">'
+            + '<div class="ag-item-main">'
+            + '<div class="ag-hora">' + (ag.hora || '--:--') + '</div>'
+            + '<div class="ag-info">'
+            + '<div class="ag-nome">' + (cliente.nome || 'Cliente') + '</div>'
+            + '<div class="ag-sub">' + (veiculo.modelo || '—') + (veiculo.tipo_servico ? ' · ' + veiculo.tipo_servico : '') + '</div>'
+            + '</div>'
+            + '<span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
+            + '</div>'
+            + '<details class="ag-mais"><summary>Ações</summary><div class="ag-acoes">';
 
         if (status === 'Agendado') {
             html += '<button onclick="alterarStatusAgendamento(' + idx + ',\'Confirmado\')" class="agenda-btn agenda-btn-ok">✓ Confirmar</button>'
@@ -3312,7 +3312,7 @@ function renderAgenda() {
                 + '<button onclick="alterarStatusAgendamento(' + idx + ',\'Cancelado\')" class="agenda-btn agenda-btn-cancel">✕ Cancelar</button>';
         }
         if (status !== 'Cancelado' && status !== 'Concluído') {
-            html += '<button onclick="converterAgendamentoEmOrcamento(' + idx + ')" class="agenda-btn agenda-btn-convert">📋 Virar Orçamento</button>';
+            html += '<button onclick="converterAgendamentoEmOrcamento(' + idx + ')" class="agenda-btn agenda-btn-convert">📋 Orçamento</button>';
         }
         if (telLimpo) {
             html += '<a href="https://wa.me/55' + telLimpo + '?text=' + msgWa + '" target="_blank" class="agenda-btn agenda-btn-wa">📱 WhatsApp</a>';
@@ -3320,9 +3320,10 @@ function renderAgenda() {
                 html += '<a href="https://wa.me/55' + telLimpo + '?text=' + msgLembrar + '" target="_blank" class="agenda-btn agenda-btn-lembrar">🔔 Lembrar</a>';
             }
         }
-        html += '<button onclick="deletarAgendamento(' + idx + ')" class="agenda-btn agenda-btn-del">🗑️</button></div></div></div>';
+        html += '<button onclick="deletarAgendamento(' + idx + ')" class="agenda-btn agenda-btn-del">🗑️</button>'
+            + '</div></details></div>';
     });
-    container.innerHTML = html;
+        container.innerHTML = html;
 }
 
 async function alterarStatusAgendamento(idx, novoStatus) {
