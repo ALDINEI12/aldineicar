@@ -33,6 +33,9 @@
     let categoriaLojaAtual = 'Todos';
     let produtosLoja = [];
     let acaoConfirmada = null;
+    let fotosOrcamentoAtual = [];      // base64[] no painel (orçamento)
+    let fotosAgendamentoCliente = [];  // base64[] na vitrine (opcional)
+    const MAX_FOTOS_SERVICO = 4;
 
     const configuracoesProfissoes = {
         pintor: {
@@ -1033,10 +1036,12 @@ async function editarProduto(id) {
             
             deslocamento: custoDesloc,
             totalCobrado: valorCobrado,
-            lucro: valorCobrado - totalMateriais - custoDesloc
+            lucro: valorCobrado - totalMateriais - custoDesloc,
+            fotos: (fotosOrcamentoAtual && fotosOrcamentoAtual.length) ? fotosOrcamentoAtual.slice() : []
         };
         
         historico.unshift(novoOrcamento);
+        if (typeof limparFotosOrcamento === 'function') limparFotosOrcamento();
         
         const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
         if(!clienteExiste && clienteNome !== 'Sem nome') {
@@ -1101,6 +1106,7 @@ async function editarProduto(id) {
                         <div><span>Custos</span><b>R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b></div>
                         <div class="${lucroReal >= 0 ? 'pos' : 'neg'}"><span>Lucro</span><b>R$ ${lucroReal.toFixed(2).replace('.', ',')}</b></div>
                     </div>
+                    ${(item.fotos && item.fotos.length) ? '<div class="hist-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto '+(fi+1)+'" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : ''}
                     <details class="hist-detalhes">
                         <summary>Detalhes e ações</summary>
                         <div class="hist-detalhes-body">
@@ -1201,6 +1207,11 @@ async function editarProduto(id) {
 
         if (item.mao_obra && typeof maoObraItens !== 'undefined') {
             maoObraItens = [...item.mao_obra];
+        }
+
+        if (typeof fotosOrcamentoAtual !== 'undefined') {
+            fotosOrcamentoAtual = (item.fotos && Array.isArray(item.fotos)) ? item.fotos.slice() : [];
+            if (typeof renderFotosOrcamento === 'function') renderFotosOrcamento();
         }
 
         setTimeout(() => {
@@ -1607,40 +1618,21 @@ async function editarProduto(id) {
     function abrirConfirmacao(texto, callback){
         const modal = document.getElementById('modalConfirmar');
         const textoEl = document.getElementById('textoConfirmacao');
+        if (modal) modal.style.display = 'block';
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
-        if (!modal) return;
-        // Usa animação (.aberto). Sem a classe o modal fica opacity:0 e
-        // cobre a tela inteira — parece que o site "travou".
-        if (typeof animAbrirModal === 'function') {
-            animAbrirModal(modal, 'flex');
-        } else {
-            modal.style.display = 'flex';
-            modal.classList.add('aberto');
-        }
     }
     function fecharConfirmacao(){
         const modal = document.getElementById('modalConfirmar');
-        if (!modal) return;
-        if (typeof animFecharModal === 'function') {
-            animFecharModal(modal);
-        } else {
-            modal.classList.remove('aberto');
-            modal.style.display = 'none';
-        }
+        if (modal) modal.style.display = 'none';
     }
     function confirmarAcaoExclusao() {
-        const fn = (typeof acaoConfirmada === 'function') ? acaoConfirmada : null;
-        acaoConfirmada = null;
-        fecharConfirmacao();
-        if (fn) {
-            try {
-                const r = fn();
-                if (r && typeof r.then === 'function') r.catch(function(err){ console.error(err); });
-            } catch (err) {
-                console.error(err);
-            }
+        if (typeof acaoConfirmada === 'function') {
+            const fn = acaoConfirmada;
+            acaoConfirmada = null;
+            fn();
         }
+        fecharConfirmacao();
     }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
@@ -1653,6 +1645,7 @@ async function editarProduto(id) {
             document.getElementById('veiculoPlaca').value = ''; document.getElementById('veiculoAno').value = '';
             document.getElementById('veiculoCor').value = ''; document.getElementById('nomeAvaliador').value = '';
             document.getElementById('valorCliente').value = '';
+            if (typeof limparFotosOrcamento === 'function') limparFotosOrcamento();
             render(); renderMaoObra(); atualizarResumo(); await salvarNoBanco();
         });
     }
@@ -2122,7 +2115,8 @@ async function enviarOrcamentoCliente() {
             agendamento: { data: dataAg, hora: horaAg, data_br: dataBR, label: dataBR + ' às ' + horaAg },
             cliente: { nome, endereco: 'Agendamento Online', tel: telefone, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
             veiculo: { modelo: veiculo || '---', placa: '---', ano: '', cor: '', avaliador: 'Agendamento Online', tipo_servico: desc },
-            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: 0, lucro: 0
+            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: 0, lucro: 0,
+            fotos: (typeof fotosAgendamentoCliente !== 'undefined' && fotosAgendamentoCliente.length) ? fotosAgendamentoCliente.slice() : []
         };
         listaHistorico.unshift(novoAgendamento);
         const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
@@ -2139,6 +2133,7 @@ async function enviarOrcamentoCliente() {
         ['cliOrcNome','cliOrcTelefone','cliOrcVeiculo','cliOrcDescricao','cliOrcData','cliOrcHora'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
         });
+        if (typeof limparFotosAgendamento === 'function') limparFotosAgendamento();
         if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
             historico.unshift(novoAgendamento);
             if (typeof renderAgenda === 'function') renderAgenda();
@@ -3409,6 +3404,7 @@ function renderAgenda() {
             + '</div>'
             + '<span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
             + '</div>'
+            + ((item.fotos && item.fotos.length) ? '<div class="ag-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : '')
             + '<details class="ag-mais"><summary>Ações</summary><div class="ag-acoes">';
 
         if (status === 'Agendado') {
@@ -3467,6 +3463,10 @@ function converterAgendamentoEmOrcamento(idx) {
     setVal('veiculoAno', veiculo.ano || '');
     setVal('veiculoCor', veiculo.cor || '');
     setVal('tipoServico', veiculo.tipo_servico || '');
+    if (typeof fotosOrcamentoAtual !== 'undefined') {
+        fotosOrcamentoAtual = (item.fotos && Array.isArray(item.fotos)) ? item.fotos.slice() : [];
+        if (typeof renderFotosOrcamento === 'function') renderFotosOrcamento();
+    }
     setVal('valorCliente', '');
     materiais.forEach(m => { m.qtd = 0; });
     maoObraItens = [];
@@ -4712,4 +4712,129 @@ function toggleMenuMais() {
         openProd();
         return r;
     };
+})();
+
+
+// ========================================================
+// FOTOS DO SERVIÇO — orçamento (painel) + agendamento (vitrine)
+// ========================================================
+function renderFotosPreview(containerId, lista, onRemoveName) {
+    const box = document.getElementById(containerId);
+    if (!box) return;
+    if (!lista || !lista.length) {
+        box.innerHTML = '';
+        return;
+    }
+    box.innerHTML = lista.map(function(src, i) {
+        return '<div class="foto-thumb">'
+            + '<img src="' + src + '" alt="Foto ' + (i + 1) + '" onclick="abrirLightboxFoto(this.src)">'
+            + '<button type="button" class="foto-thumb-del" title="Remover" onclick="' + onRemoveName + '(' + i + ')">×</button>'
+            + '</div>';
+    }).join('');
+}
+
+function renderFotosOrcamento() {
+    renderFotosPreview('fotosOrcamentoPreview', fotosOrcamentoAtual, 'removerFotoOrcamento');
+}
+
+function renderFotosAgendamento() {
+    renderFotosPreview('fotosAgendamentoPreview', fotosAgendamentoCliente, 'removerFotoAgendamento');
+}
+
+function removerFotoOrcamento(i) {
+    if (i < 0 || i >= fotosOrcamentoAtual.length) return;
+    fotosOrcamentoAtual.splice(i, 1);
+    renderFotosOrcamento();
+}
+
+function removerFotoAgendamento(i) {
+    if (i < 0 || i >= fotosAgendamentoCliente.length) return;
+    fotosAgendamentoCliente.splice(i, 1);
+    renderFotosAgendamento();
+}
+
+function limparFotosOrcamento() {
+    fotosOrcamentoAtual = [];
+    const inp = document.getElementById('fotosOrcamentoFile');
+    if (inp) inp.value = '';
+    renderFotosOrcamento();
+}
+
+function limparFotosAgendamento() {
+    fotosAgendamentoCliente = [];
+    const inp = document.getElementById('fotosAgendamentoFile');
+    if (inp) inp.value = '';
+    renderFotosAgendamento();
+}
+
+async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
+    maxFotos = maxFotos || MAX_FOTOS_SERVICO || 4;
+    if (!files || !files.length) return;
+    const restantes = maxFotos - listaRef.length;
+    if (restantes <= 0) {
+        if (typeof mostrarToast === 'function') mostrarToast('Máximo de ' + maxFotos + ' fotos.', 'aviso');
+        else alert('Máximo de ' + maxFotos + ' fotos.');
+        return;
+    }
+    const arr = Array.from(files).slice(0, restantes);
+    try {
+        if (typeof mostrarToast === 'function') mostrarToast('Processando foto(s)...', 'aviso');
+        for (let i = 0; i < arr.length; i++) {
+            const file = arr[i];
+            if (!file || !file.type || file.type.indexOf('image/') !== 0) continue;
+            const dataUrl = await redimensionarImagemArquivo(file, 800, 0.65);
+            listaRef.push(dataUrl);
+        }
+        renderFn();
+        if (typeof mostrarToast === 'function') mostrarToast('Foto(s) adicionada(s)!', 'sucesso');
+    } catch (e) {
+        console.error(e);
+        if (typeof mostrarToast === 'function') mostrarToast('Não foi possível usar esta imagem.', 'erro');
+        else alert('Não foi possível usar esta imagem.');
+    }
+}
+
+async function onFotosOrcamentoChange(input) {
+    await adicionarFotosArquivos(input && input.files, fotosOrcamentoAtual, renderFotosOrcamento, MAX_FOTOS_SERVICO);
+    if (input) input.value = '';
+}
+
+async function onFotosAgendamentoChange(input) {
+    await adicionarFotosArquivos(input && input.files, fotosAgendamentoCliente, renderFotosAgendamento, MAX_FOTOS_SERVICO);
+    if (input) input.value = '';
+}
+
+function abrirLightboxFoto(src) {
+    if (!src) return;
+    let lb = document.getElementById('foto-lightbox');
+    if (!lb) {
+        lb = document.createElement('div');
+        lb.id = 'foto-lightbox';
+        lb.className = 'foto-lightbox';
+        lb.innerHTML = '<button type="button" class="foto-lightbox-fechar" onclick="fecharLightboxFoto()">Fechar</button><img alt="Foto ampliada">';
+        lb.addEventListener('click', function(e) {
+            if (e.target === lb) fecharLightboxFoto();
+        });
+        document.body.appendChild(lb);
+    }
+    const img = lb.querySelector('img');
+    if (img) img.src = src;
+    lb.classList.add('aberto');
+}
+
+function fecharLightboxFoto() {
+    const lb = document.getElementById('foto-lightbox');
+    if (lb) lb.classList.remove('aberto');
+}
+
+// Ao abrir modal da vitrine, limpa fotos anteriores
+(function patchAbrirModalOrcamentoClienteFotos() {
+    const orig = typeof abrirModalOrcamentoCliente === 'function' ? abrirModalOrcamentoCliente : null;
+    if (!orig || orig.__fotosPatched) return;
+    window.abrirModalOrcamentoCliente = function() {
+        if (typeof limparFotosAgendamento === 'function') limparFotosAgendamento();
+        const r = orig.apply(this, arguments);
+        return r;
+    };
+    window.abrirModalOrcamentoCliente.__fotosPatched = true;
 })();

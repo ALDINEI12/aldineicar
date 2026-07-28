@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
@@ -73,6 +73,18 @@
         
         <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
         <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito..." style="width: 100%; height: 80px; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
+
+        <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:14px;">
+            <p style="font-size:12px; font-weight:700; color:#a1a1aa; margin:0 0 8px 0;">📸 Fotos do problema <span style="font-weight:500;color:#71717a;">(opcional)</span></p>
+            <p style="font-size:11px; color:#71717a; margin:0 0 10px 0;">Envie fotos para a oficina avaliar melhor. Até 4 imagens.</p>
+            <div id="fotosAgendamentoPreview" class="fotos-grid fotos-grid-dark"></div>
+            <div class="fotos-acoes">
+                <label class="btn-foto-add btn-foto-add-dark" for="fotosAgendamentoFile">📷 Tirar / escolher foto</label>
+                <input type="file" id="fotosAgendamentoFile" accept="image/*" capture="environment" multiple class="prod-foto-input" onchange="onFotosAgendamentoChange(this)">
+                <button type="button" class="btn-foto-limpar btn-foto-limpar-dark" onclick="limparFotosAgendamento()">Limpar</button>
+            </div>
+        </div>
+
         <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:18px;">
             <p style="font-size:12px; font-weight:700; color:#e11d48; margin:0 0 12px 0;">📅 Preferência de Agendamento</p>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -635,6 +647,19 @@ function mostrarSecao(id) {
                                     <input type="text" id="nomeAvaliador" placeholder="Avaliador">
                                 </div>
                                 <input type="text" id="tipoServico" placeholder="Tipo de serviço (Ex: Pintura geral)">
+                            </div>
+                        </details>
+
+                        <details class="resumo-grupo" open>
+                            <summary>📸 Fotos do serviço</summary>
+                            <div class="resumo-grupo-body">
+                                <p class="resumo-label" style="margin-bottom:8px;">Opcional — até 4 fotos (câmera ou galeria)</p>
+                                <div id="fotosOrcamentoPreview" class="fotos-grid"></div>
+                                <div class="fotos-acoes">
+                                    <label class="btn-foto-add" for="fotosOrcamentoFile">📷 Adicionar foto</label>
+                                    <input type="file" id="fotosOrcamentoFile" accept="image/*" capture="environment" multiple class="prod-foto-input" onchange="onFotosOrcamentoChange(this)">
+                                    <button type="button" class="btn-foto-limpar" onclick="limparFotosOrcamento()">Limpar fotos</button>
+                                </div>
                             </div>
                         </details>
 
