@@ -1237,6 +1237,20 @@ async function editarProduto(id) {
         const oc = b.getAttribute('onclick') || '';
         if (oc.includes("'" + nome + "'") || oc.includes('"' + nome + '"')) b.classList.add('active');
     });
+    // Bottom nav sync
+    document.querySelectorAll('#bottom-nav .bn-item').forEach(b => {
+        const aba = b.getAttribute('data-aba');
+        const principais = ['dashboard','materiais','agenda','loja'];
+        if (aba === nome) b.classList.add('active');
+        else if (aba === 'mais' && !principais.includes(nome)) b.classList.add('active');
+        else b.classList.remove('active');
+    });
+    // Esconde search fora de materiais
+    const search = document.querySelector('header .search');
+    if (search) search.style.display = (nome === 'materiais') ? '' : 'none';
+    // Top actions só em materiais
+    const topAct = document.querySelector('.top-actions');
+    if (topAct) topAct.style.display = (nome === 'materiais') ? 'flex' : 'none';
     if (nome === 'dashboard') {
         const btn = document.getElementById('btn-menu-dashboard');
         if (btn) btn.classList.add('active');
@@ -3088,20 +3102,29 @@ let filtroAgendaAtual = 'todos';
 let filtroPeriodoAgenda = 'todos';
 
 function filtrarAgenda(status) {
-    filtroAgendaAtual = status;
-    document.querySelectorAll('.agenda-filtro').forEach(b => {
-        b.style.background = '#f1f5f9';
-        b.style.color = '#475569';
-    });
-    const btn = document.getElementById('filtro-agenda-' + status);
-    if (btn) { btn.style.background = '#0f172a'; btn.style.color = 'white'; }
-    renderAgenda();
+    // compat: status puro
+    filtrarAgendaUnificado(status === 'todos' ? 'todos' : status);
 }
 
 function filtrarAgendaPeriodo(periodo) {
-    filtroPeriodoAgenda = periodo;
-    document.querySelectorAll('.agenda-filtro-periodo').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('filtro-periodo-' + periodo);
+    filtrarAgendaUnificado(periodo);
+}
+
+function filtrarAgendaUnificado(chave) {
+    // chave: todos | hoje | semana | atrasados | Agendado | Confirmado | Concluído
+    const periodos = ['hoje', 'semana', 'atrasados'];
+    if (chave === 'todos') {
+        filtroAgendaAtual = 'todos';
+        filtroPeriodoAgenda = 'todos';
+    } else if (periodos.includes(chave)) {
+        filtroPeriodoAgenda = chave;
+        filtroAgendaAtual = 'todos';
+    } else {
+        filtroAgendaAtual = chave;
+        filtroPeriodoAgenda = 'todos';
+    }
+    document.querySelectorAll('.agenda-chip').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('f-ag-' + chave);
     if (btn) btn.classList.add('active');
     renderAgenda();
 }
@@ -3435,6 +3458,14 @@ function abrirModalOrcamentoCliente() {
 }
 
 // ========================================================
+
+function toggleMenuMais() {
+    const sheet = document.getElementById('menu-mais-sheet');
+    if (!sheet) return;
+    const aberto = sheet.style.display === 'flex' || sheet.style.display === 'block';
+    sheet.style.display = aberto ? 'none' : 'flex';
+}
+
 // LINK VITRINE + NOTIFICAÇÕES + WEBHOOK
 // ========================================================
 let monitorNotifInterval = null;

@@ -443,3 +443,215 @@
 .sidebar button:active { transform:scale(0.98); }
 #btn-resumo-flutuante { transition: transform 0.15s ease, box-shadow 0.15s ease; }
 #btn-resumo-flutuante:active { transform:scale(0.92); }
+
+
+/* ===== FILTROS UNIFICADOS (chips) ===== */
+.agenda-filtros-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+}
+.agenda-filtros-bar::-webkit-scrollbar { display: none; }
+.agenda-chip {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.agenda-chip.active {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+}
+.agenda-chip.chip-alerta.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+.agenda-chip:hover:not(.active) { background: #e2e8f0; color: #0f172a; }
+.agenda-chip.chip-refresh { padding: 8px 12px; }
+
+/* ===== BOTTOM NAV (app style) ===== */
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    z-index: 3000;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+}
+.bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 8px 4px;
+    font-family: inherit;
+    transition: color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.bn-item .bn-icon { font-size: 20px; line-height: 1; }
+.bn-item .bn-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2px; }
+.bn-item.active { color: #fff; }
+.bn-item.active .bn-icon { transform: scale(1.08); }
+.bn-item:active { opacity: 0.7; }
+
+/* Sheet "Mais" */
+.menu-mais-sheet { position: fixed; inset: 0; z-index: 3500; }
+.menu-mais-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(9,9,11,0.45);
+    backdrop-filter: blur(3px);
+}
+.menu-mais-panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px 28px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+    animation: sheetUp 0.22s ease;
+}
+@keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+.menu-mais-handle {
+    width: 40px; height: 4px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    margin: 4px auto 14px;
+}
+.menu-mais-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px 4px;
+}
+.menu-mais-panel button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+.menu-mais-panel button:hover,
+.menu-mais-panel button:active { background: #f1f5f9; }
+.menu-mais-panel button span { font-size: 18px; width: 28px; text-align: center; }
+.menu-mais-sair { color: #e11d48 !important; margin-top: 6px; border-top: 1px solid #f1f5f9 !important; border-radius: 0 0 12px 12px !important; }
+
+/* ===== MOBILE APP LAYOUT ===== */
+@media (max-width: 992px) {
+    .bottom-nav { display: flex; }
+    .sidebar { display: none !important; }
+    .container { min-height: calc(100vh - 72px - 64px); }
+    .content {
+        padding: 14px 14px 90px !important;
+        gap: 16px !important;
+    }
+    header {
+        height: 56px !important;
+        padding: 0 14px !important;
+        flex-direction: row !important;
+        gap: 10px !important;
+        align-items: center !important;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .logo-container { justify-content: flex-start; }
+    .search {
+        width: auto !important;
+        flex: 1;
+        padding: 9px 12px !important;
+        font-size: 13px !important;
+        border-radius: 10px !important;
+    }
+    #statusRedeBadge { display: none; }
+    .top-actions {
+        position: sticky;
+        top: 56px;
+        z-index: 50;
+        background: #f8fafc;
+        padding: 8px 0;
+        margin: -4px 0 0;
+        gap: 8px !important;
+    }
+    .top-actions button {
+        flex: 1;
+        min-width: 0 !important;
+        padding: 11px 8px !important;
+        font-size: 12px !important;
+        border-radius: 10px !important;
+    }
+    .main-layout { gap: 12px !important; }
+    .cards { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .card { padding: 14px !important; min-height: 140px !important; border-radius: 14px !important; }
+    #btn-resumo-flutuante {
+        bottom: 80px !important;
+        right: 16px !important;
+        width: 54px !important;
+        height: 54px !important;
+    }
+    .btn-novo-agendamento { width: 100%; justify-content: center; }
+    #agenda-resumo-contadores { gap: 8px; }
+    .agenda-contador { flex: 1 1 calc(50% - 8px); min-width: 120px; padding: 10px 12px; }
+    .dash-kpis { gap: 10px; }
+    .dash-kpi { padding: 14px 16px; }
+    .dash-kpi-value { font-size: 18px; }
+    .cliente-item { padding: 16px !important; border-radius: 14px !important; }
+    .modal-content {
+        border-radius: 16px 16px 0 0 !important;
+        max-height: 92vh !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: auto;
+    }
+    .modal {
+        align-items: flex-end !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .agenda-card { border-radius: 14px; }
+    .agenda-data-box .agenda-dia { font-size: 22px; }
+    h2 { font-size: 18px !important; }
+}
+
+/* Desktop: hide bottom nav, keep sidebar */
+@media (min-width: 993px) {
+    .bottom-nav, .menu-mais-sheet { display: none !important; }
+}

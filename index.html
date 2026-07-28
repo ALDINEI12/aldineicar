@@ -361,23 +361,17 @@ function mostrarSecao(id) {
                                     ＋ Novo Agendamento
                                 </button>
                             </div>
-                            <div class="agenda-filtros-bar" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; align-items:center;">
-                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                    <button onclick="filtrarAgendaPeriodo('todos')" id="filtro-periodo-todos" class="agenda-filtro-periodo active">Todos</button>
-                                    <button onclick="filtrarAgendaPeriodo('hoje')" id="filtro-periodo-hoje" class="agenda-filtro-periodo">Hoje</button>
-                                    <button onclick="filtrarAgendaPeriodo('semana')" id="filtro-periodo-semana" class="agenda-filtro-periodo">Esta semana</button>
-                                    <button onclick="filtrarAgendaPeriodo('atrasados')" id="filtro-periodo-atrasados" class="agenda-filtro-periodo">Atrasados</button>
-                                </div>
-                                <span style="width:1px; height:24px; background:#e2e8f0; margin:0 4px;" class="filtro-sep"></span>
-                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                    <button onclick="filtrarAgenda('todos')" id="filtro-agenda-todos" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#0f172a; color:white; font-weight:600; font-size:12px; cursor:pointer;">Status: Todos</button>
-                                    <button onclick="filtrarAgenda('Agendado')" id="filtro-agenda-Agendado" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:12px; cursor:pointer;">Pendentes</button>
-                                    <button onclick="filtrarAgenda('Confirmado')" id="filtro-agenda-Confirmado" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:12px; cursor:pointer;">Confirmados</button>
-                                    <button onclick="filtrarAgenda('Concluído')" id="filtro-agenda-Concluído" class="agenda-filtro" style="padding:8px 14px; border-radius:8px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:12px; cursor:pointer;">Concluídos</button>
-                                    <button onclick="renderAgenda()" style="padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; background:#f1f5f9; color:#0f172a; font-weight:600; font-size:12px; cursor:pointer;">🔄</button>
-                                </div>
+                                                        <div class="agenda-filtros-bar">
+                                <button onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
+                                <button onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
+                                <button onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
+                                <button onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
+                                <button onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
+                                <button onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
+                                <button onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
+                                <button onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
                             </div>
-                            <div id="agenda-resumo-contadores" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;"></div>
+<div id="agenda-resumo-contadores" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;"></div>
                             <div id="painel-disponibilidade" style="background:white;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:20px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
                                     <h3 style="margin:0;font-size:16px;font-weight:800;color:#0f172a;">🗓️ Minha disponibilidade</h3>
@@ -660,6 +654,39 @@ function mostrarSecao(id) {
             </div>
         </div>
     </div>
+
+
+<!-- Bottom Navigation (mobile app style) -->
+<nav id="bottom-nav" class="bottom-nav" aria-label="Menu principal">
+    <button type="button" class="bn-item active" data-aba="dashboard" onclick="mostrarAba('dashboard')">
+        <span class="bn-icon">📊</span><span class="bn-label">Início</span>
+    </button>
+    <button type="button" class="bn-item" data-aba="materiais" onclick="mostrarAba('materiais')">
+        <span class="bn-icon">📦</span><span class="bn-label">Materiais</span>
+    </button>
+    <button type="button" class="bn-item" data-aba="agenda" onclick="mostrarAba('agenda')">
+        <span class="bn-icon">📅</span><span class="bn-label">Agenda</span>
+    </button>
+    <button type="button" class="bn-item" data-aba="loja" onclick="mostrarAba('loja')">
+        <span class="bn-icon">🛒</span><span class="bn-label">Loja</span>
+    </button>
+    <button type="button" class="bn-item" data-aba="mais" onclick="toggleMenuMais()">
+        <span class="bn-icon">☰</span><span class="bn-label">Mais</span>
+    </button>
+</nav>
+<div id="menu-mais-sheet" class="menu-mais-sheet" style="display:none;">
+    <div class="menu-mais-backdrop" onclick="toggleMenuMais()"></div>
+    <div class="menu-mais-panel">
+        <div class="menu-mais-handle"></div>
+        <p class="menu-mais-title">Mais opções</p>
+        <button type="button" onclick="mostrarAba('maoobra');toggleMenuMais();"><span>🔧</span> Mão de Obra</button>
+        <button type="button" onclick="mostrarAba('clientes');toggleMenuMais();"><span>👤</span> Clientes</button>
+        <button type="button" onclick="mostrarAba('historico');toggleMenuMais();"><span>📋</span> Histórico</button>
+        <button type="button" onclick="mostrarAba('vendas');toggleMenuMais();"><span>💰</span> Vendas</button>
+        <button type="button" onclick="abrirModalOficina();toggleMenuMais();"><span>⚙️</span> Configurar Oficina</button>
+        <button type="button" class="menu-mais-sair" onclick="handleLogout();toggleMenuMais();"><span>🚪</span> Sair</button>
+    </div>
+</div>
 
 </body>
 
