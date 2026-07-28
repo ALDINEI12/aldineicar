@@ -1607,21 +1607,40 @@ async function editarProduto(id) {
     function abrirConfirmacao(texto, callback){
         const modal = document.getElementById('modalConfirmar');
         const textoEl = document.getElementById('textoConfirmacao');
-        if (modal) modal.style.display = 'block';
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
+        if (!modal) return;
+        // Usa animação (.aberto). Sem a classe o modal fica opacity:0 e
+        // cobre a tela inteira — parece que o site "travou".
+        if (typeof animAbrirModal === 'function') {
+            animAbrirModal(modal, 'flex');
+        } else {
+            modal.style.display = 'flex';
+            modal.classList.add('aberto');
+        }
     }
     function fecharConfirmacao(){
         const modal = document.getElementById('modalConfirmar');
-        if (modal) modal.style.display = 'none';
+        if (!modal) return;
+        if (typeof animFecharModal === 'function') {
+            animFecharModal(modal);
+        } else {
+            modal.classList.remove('aberto');
+            modal.style.display = 'none';
+        }
     }
     function confirmarAcaoExclusao() {
-        if (typeof acaoConfirmada === 'function') {
-            const fn = acaoConfirmada;
-            acaoConfirmada = null;
-            fn();
-        }
+        const fn = (typeof acaoConfirmada === 'function') ? acaoConfirmada : null;
+        acaoConfirmada = null;
         fecharConfirmacao();
+        if (fn) {
+            try {
+                const r = fn();
+                if (r && typeof r.then === 'function') r.catch(function(err){ console.error(err); });
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
