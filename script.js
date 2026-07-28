@@ -30,6 +30,8 @@
         profissao: 'pintor'
     };
     let categoriaAtual = 'Todos';
+    let categoriaLojaAtual = 'Todos';
+    let produtosLoja = [];
     let acaoConfirmada = null;
 
     const configuracoesProfissoes = {
@@ -3548,11 +3550,9 @@ function obterWebhookUrl() {
 function atualizarCardLinkVitrine() {
     const el = document.getElementById('texto-link-vitrine');
     if (el) el.innerText = obterLinkVitrine() || 'Faça login para gerar o link.';
-    const wh = document.getElementById('texto-webhook-url');
-    if (wh) wh.innerText = obterWebhookUrl() || '—';
-    const sec = document.getElementById('texto-webhook-secret');
-    if (sec) sec.innerText = obterOuCriarWebhookSecret() || '—';
-    atualizarBotaoNotifUI();
+    atualizarUIVitrineAberta();
+    if (typeof renderBotoesCategoriasLoja === 'function') renderBotoesCategoriasLoja();
+    if (typeof atualizarBotaoNotifUI === 'function') atualizarBotaoNotifUI();
 }
 
 async function copiarLinkVitrine() {
@@ -3797,3 +3797,265 @@ function gerarPayloadPix({ chave, nome, cidade, valor, txid }) {
     payload += pixCRC16(payload);
     return payload;
 }
+
+
+// ========================================================
+// LOJA — categorias personalizadas + vitrine aberta/fechada
+// ========================================================
+function obterCategoriasLoja() {
+    if (!dadosOficina || typeof dadosOficina !== 'object') return ['Geral'];
+    if (!Array.isArray(dadosOficina.categorias_loja) || dadosOficina.categorias_loja.length === 0) {
+        dadosOficina.categorias_loja = ['Geral'];
+    }
+    // normaliza
+    dadosOficina.categorias_loja = dadosOficina.categorias_loja
+        .map(c => String(c || '').trim())
+        .filter(Boolean);
+    if (!dadosOficina.categorias_loja.length) dadosOficina.categorias_loja = ['Geral'];
+    return dadosOficina.categorias_loja;
+}
+
+function preencherSelectCategoriasLoja(selecionada) {
+    const sel = document.getElementById('prodCategoria');
+    if (!sel) return;
+    const cats = obterCategoriasLoja();
+    sel.innerHTML = cats.map(c => '<option value="' + c.replace(/"/g, '&quot;') + '">' + c + '</option>').join('');
+    if (selecionada && cats.includes(selecionada)) sel.value = selecionada;
+    else sel.value = cats[0];
+}
+
+function renderBotoesCategoriasLoja() {
+    const box = document.getElementById('botoesCategoriasLoja');
+    if (!box) return;
+    const cats = obterCategoriasLoja();
+    let html = '<button type="button" id="btn-cat-loja-Todos" class="' + (categoriaLojaAtual === 'Todos' ? 'active btn-green' : '') + '" onclick="filtrarProdutosLoja(\'Todos\')">Todos</button>';
+    cats.forEach(c => {
+        const active = categoriaLojaAtual === c ? ' active' : '';
+        const safe = c.replace(/'/g, "\\'");
+        html += '<button type="button" id="btn-cat-loja-' + c.replace(/[^a-zA-Z0-9_-]/g, '_') + '" class="' + active + '" onclick="filtrarProdutosLoja(\'' + safe + '\')">' + c + '</button>';
+    });
+    box.innerHTML = html;
+}
+
+function filtrarProdutosLoja(cat) {
+    categoriaLojaAtual = cat || 'Todos';
+    renderBotoesCategoriasLoja();
+    if (typeof renderizarProdutosLoja === 'function') renderizarProdutosLoja();
+    else if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
+}
+
+async function promptNovaCategoriaLoja(selecionarNoModal) {
+    const nome = prompt('Nome da nova categoria da loja:');
+    if (!nome || !nome.trim()) return;
+    const cat = nome.trim();
+    const cats = obterCategoriasLoja();
+    if (cats.some(c => c.toLowerCase() === cat.toLowerCase())) {
+        if (typeof mostrarToast === 'function') mostrarToast('Essa categoria já existe.', 'aviso');
+        else alert('Essa categoria já existe.');
+        preencherSelectCategoriasLoja(cat);
+        return;
+    }
+    cats.push(cat);
+    dadosOficina.categorias_loja = cats;
+    if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    renderBotoesCategoriasLoja();
+    preencherSelectCategoriasLoja(cat);
+    if (typeof mostrarToast === 'function') mostrarToast('Categoria "' + cat + '" criada.', 'sucesso');
+}
+
+function vitrineEstaAberta() {
+    if (!dadosOficina) return true;
+    return dadosOficina.vitrine_aberta !== false;
+}
+
+function atualizarUIVitrineAberta() {
+    const aberta = vitrineEstaAberta();
+    const badge = document.getElementById('badge-vitrine-status');
+    const btn = document.getElementById('btn-toggle-vitrine');
+    if (badge) {
+        badge.textContent = aberta ? 'Aberta' : 'Fechada';
+        badge.className = aberta ? 'badge-vitrine-on' : 'badge-vitrine-off';
+    }
+    if (btn) btn.textContent = aberta ? '⏸ Fechar vitrine' : '▶ Abrir vitrine';
+}
+
+async function alternarVitrineAberta() {
+    if (!dadosOficina) dadosOficina = {};
+    dadosOficina.vitrine_aberta = !vitrineEstaAberta();
+    atualizarUIVitrineAberta();
+    if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    if (typeof mostrarToast === 'function') {
+        mostrarToast(dadosOficina.vitrine_aberta ? 'Vitrine aberta ao público.' : 'Vitrine fechada.', 'sucesso');
+    }
+}
+
+// Override preparação / salvar com categoria
+function prepararNovoProduto() {
+    const idEl = document.getElementById('editandoId');
+    if (idEl) idEl.value = '';
+    const tit = document.getElementById('titulo-modal-produto');
+    if (tit) tit.innerText = 'Novo Produto';
+    ['prodImgUrl','prodNome','prodPreco','prodDesc','prodEstoque'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    preencherSelectCategoriasLoja(categoriaLojaAtual !== 'Todos' ? categoriaLojaAtual : null);
+    const modal = document.getElementById('modal-cadastro-produto');
+    if (modal) modal.style.display = 'block';
+}
+
+async function prepararEdicaoProduto(id, nome, preco, descricao, estoque, imagem_url, categoria) {
+    let prod = null;
+    if (typeof produtosLoja !== 'undefined' && Array.isArray(produtosLoja)) {
+        prod = produtosLoja.find(p => String(p.id) === String(id));
+    }
+    if (!prod && id) {
+        try {
+            const { data } = await supabaseClient.from('produtos_loja').select('*').eq('id', id).single();
+            prod = data;
+        } catch (e) {}
+    }
+    document.getElementById('titulo-modal-produto').innerText = 'Editar Produto';
+    document.getElementById('editandoId').value = id || (prod && prod.id) || '';
+    document.getElementById('prodImgUrl').value = (prod && prod.imagem_url) || (imagem_url && imagem_url !== 'null' ? imagem_url : '') || '';
+    document.getElementById('prodNome').value = (prod && prod.nome) || nome || '';
+    document.getElementById('prodPreco').value = (prod && prod.preco) != null ? prod.preco : (preco || '');
+    document.getElementById('prodDesc').value = (prod && prod.descricao) || (descricao && descricao !== 'null' ? descricao : '') || '';
+    document.getElementById('prodEstoque').value = (prod && prod.estoque) != null ? prod.estoque : (estoque || 0);
+    preencherSelectCategoriasLoja((prod && prod.categoria) || categoria || 'Geral');
+    document.getElementById('modal-cadastro-produto').style.display = 'block';
+}
+
+async function salvarProdutoLoja() {
+    const id = document.getElementById('editandoId').value;
+    const nome = (document.getElementById('prodNome').value || '').trim();
+    const preco = parseFloat(document.getElementById('prodPreco').value);
+    const descricao = document.getElementById('prodDesc').value || '';
+    const estoque = parseInt(document.getElementById('prodEstoque').value, 10) || 0;
+    const imagem_url = document.getElementById('prodImgUrl').value || '';
+    const catEl = document.getElementById('prodCategoria');
+    let categoria = catEl ? (catEl.value || '').trim() : 'Geral';
+    if (!categoria) categoria = 'Geral';
+
+    if (!nome || isNaN(preco)) {
+        if (typeof mostrarToast === 'function') mostrarToast('Preencha nome e preço.', 'erro');
+        else alert('Preencha nome e preço.');
+        return;
+    }
+
+    // garante categoria na lista
+    const cats = obterCategoriasLoja();
+    if (!cats.includes(categoria)) {
+        cats.push(categoria);
+        dadosOficina.categorias_loja = cats;
+        if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    }
+
+    const user_id = usuarioAtualId;
+    if (!user_id) {
+        if (typeof mostrarToast === 'function') mostrarToast('Faça login para salvar.', 'erro');
+        return;
+    }
+
+    const dadosProduto = { nome, preco, descricao, estoque, imagem_url, user_id, categoria };
+
+    try {
+        if (id) {
+            const { error } = await supabaseClient.from('produtos_loja').update(dadosProduto).eq('id', id);
+            if (error) throw error;
+            if (typeof mostrarToast === 'function') mostrarToast('Produto atualizado!', 'sucesso');
+        } else {
+            const { error } = await supabaseClient.from('produtos_loja').insert([dadosProduto]);
+            if (error) throw error;
+            if (typeof mostrarToast === 'function') mostrarToast('Produto cadastrado!', 'sucesso');
+        }
+        fecharModalProduto();
+        if (typeof carregarProdutosLoja === 'function') await carregarProdutosLoja();
+        else if (typeof carregarProdutosDaLoja === 'function') await carregarProdutosDaLoja();
+        renderBotoesCategoriasLoja();
+    } catch (error) {
+        console.error(error);
+        if (typeof mostrarToast === 'function') mostrarToast('Erro: ' + (error.message || error), 'erro');
+        else alert('Erro: ' + (error.message || error));
+    }
+}
+
+function fecharModalProduto() {
+    const m = document.getElementById('modal-cadastro-produto');
+    if (m) m.style.display = 'none';
+}
+
+// Patch carregarProdutosLoja para popular produtosLoja e filtrar
+const _carregarProdutosLojaOriginal = typeof carregarProdutosLoja === 'function' ? carregarProdutosLoja : null;
+async function carregarProdutosLoja() {
+    const container = document.getElementById('vitrine-produtos');
+    if (!container) return;
+    container.innerHTML = '<p style="color:#64748b;padding:16px;text-align:center;">Carregando...</p>';
+    const user_id = usuarioAtualId;
+    if (!user_id) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('produtos_loja')
+            .select('*')
+            .eq('user_id', user_id)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        produtosLoja = data || [];
+
+        // importa categorias dos produtos existentes
+        const cats = obterCategoriasLoja();
+        produtosLoja.forEach(p => {
+            if (p.categoria && !cats.includes(p.categoria)) cats.push(p.categoria);
+        });
+        dadosOficina.categorias_loja = cats;
+        renderBotoesCategoriasLoja();
+        renderizarProdutosLoja();
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p style="color:#ef4444;padding:16px;">Erro ao carregar produtos.</p>';
+    }
+}
+
+function renderizarProdutosLoja() {
+    const vitrine = document.getElementById('vitrine-produtos');
+    if (!vitrine) return;
+    const filtrados = (produtosLoja || []).filter(p => {
+        if (categoriaLojaAtual === 'Todos') return true;
+        return (p.categoria || 'Geral') === categoriaLojaAtual;
+    });
+    if (!filtrados.length) {
+        vitrine.innerHTML = '<p class="lista-vazia" style="grid-column:1/-1;">Nenhum produto nesta categoria.</p>';
+        return;
+    }
+    vitrine.innerHTML = filtrados.map(prod => {
+        const img = prod.imagem_url
+            ? '<img src="' + prod.imagem_url + '" alt="" style="width:100%;height:110px;object-fit:cover;border-radius:8px;margin-bottom:8px;background:#f1f5f9;">'
+            : '<div style="width:100%;height:80px;background:#f1f5f9;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px;">Sem foto</div>';
+        const cat = prod.categoria || 'Geral';
+        return '<div class="card mat-card" style="min-height:auto;padding:10px;">'
+            + '<div class="mat-line1"><span class="mat-cat">' + cat + '</span>'
+            + '<div class="mat-card-menu">'
+            + '<button type="button" class="mat-icon-btn" onclick="prepararEdicaoProduto(\'' + prod.id + '\')">✏️</button>'
+            + '<button type="button" class="mat-icon-btn mat-icon-del" onclick="deletarProdutoLoja(\'' + prod.id + '\')">🗑️</button>'
+            + '</div></div>'
+            + img
+            + '<h3 class="mat-nome">' + (prod.nome || '') + '</h3>'
+            + '<div class="mat-line2"><span class="mat-preco">R$ ' + parseFloat(prod.preco || 0).toFixed(2) + '</span>'
+            + '<span style="font-size:11px;color:#64748b;">Est. ' + (prod.estoque || 0) + '</span></div>'
+            + '</div>';
+    }).join('');
+}
+
+// Quando abrir aba loja
+(function patchMostrarAbaLoja() {
+    const orig = window.mostrarAba;
+    if (typeof orig !== 'function') return;
+    window.mostrarAba = function(nome) {
+        orig(nome);
+        if (nome === 'loja') {
+            if (typeof atualizarCardLinkVitrine === 'function') atualizarCardLinkVitrine();
+            if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
+            if (typeof renderBotoesCategoriasLoja === 'function') renderBotoesCategoriasLoja();
+        }
+    };
+})();

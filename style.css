@@ -2021,3 +2021,122 @@ html, body {
         padding: 18px 16px !important;
     }
 }
+
+/* ===== LOJA — vitrine + categorias ===== */
+.loja-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 4px;
+}
+.loja-link-box {
+    font-size: 12px;
+    word-break: break-all;
+    margin: 0 0 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    border-radius: 8px;
+    color: #0f172a;
+    font-weight: 600;
+}
+.loja-vitrine-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.btn-loja-prim {
+    padding: 9px 12px;
+    background: #e11d48;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+}
+.btn-loja-sec {
+    padding: 9px 12px;
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+}
+.btn-loja-toggle {
+    padding: 9px 12px;
+    background: #0f172a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+}
+.badge-vitrine-on {
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+.badge-vitrine-off {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+.btn-cat-add {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+}
+#botoesCategoriasLoja {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 8px 12px 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+#botoesCategoriasLoja::-webkit-scrollbar { display: none; }
+#botoesCategoriasLoja button {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+#botoesCategoriasLoja button.active {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+}
+#aba-loja .grid-produtos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+@media (min-width: 993px) {
+    #aba-loja .grid-produtos {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
