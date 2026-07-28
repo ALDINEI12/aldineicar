@@ -4269,23 +4269,8 @@ function renderFiltrosVitrinePublica(cats) {
     box.innerHTML = all.map(c => {
         const active = categoriaVitrinePublica === c;
         const safe = String(c).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        return '<button type="button" onclick="filtrarVitrinePublica(\'' + safe + '\')" style="'
-            + 'padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '
-            + (active ? '#e11d48;background:#e11d48;color:#fff;' : '#3f3f46;background:#18181b;color:#a1a1aa;')
-            + '">' + c + '</button>';
+        return '<button type="button" class="vt-chip' + (active ? ' active' : '') + '" onclick="filtrarVitrinePublica(\'' + safe + '\')">' + c + '</button>';
     }).join('');
-}
-
-function filtrarVitrinePublica(cat) {
-    categoriaVitrinePublica = cat || 'Todos';
-    // re-render chips with current cats from cache
-    const cats = [];
-    produtosVitrinePublicaCache.forEach(p => {
-        const c = (p.categoria || 'Geral').trim();
-        if (c && !cats.includes(c)) cats.push(c);
-    });
-    renderFiltrosVitrinePublica(cats.length ? cats : ['Geral']);
-    renderVitrinePublicaFiltrada();
 }
 
 function renderVitrinePublicaFiltrada() {
@@ -4295,24 +4280,37 @@ function renderVitrinePublicaFiltrada() {
         if (categoriaVitrinePublica === 'Todos') return true;
         return (p.categoria || 'Geral') === categoriaVitrinePublica;
     });
+    const contagem = document.getElementById('vt-contagem-produtos');
+    if (contagem) {
+        contagem.textContent = lista.length ? (lista.length + (lista.length === 1 ? ' item' : ' itens')) : '';
+    }
     if (!lista.length) {
-        containerVitrine.innerHTML = '<p style="color:#a1a1aa;grid-column:1/-1;text-align:center;padding:30px;">Nenhum produto nesta categoria.</p>';
+        containerVitrine.innerHTML = '<div class="vt-empty"><div class="vt-empty-icon">🛒</div><p>Nenhum produto nesta categoria.</p></div>';
         return;
     }
-    const imgPadrao = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+    const imgPadrao = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="%2318181b" width="200" height="200"/><text x="50%" y="50%" fill="%2371717a" font-size="14" text-anchor="middle" dy=".3em">Sem foto</text></svg>');
     containerVitrine.innerHTML = lista.map(prod => {
         const urlImagem = prod.imagem_url || imgPadrao;
         const cat = prod.categoria || 'Geral';
-        const nome = (prod.nome || '').replace(/'/g, "\\'");
-        return '<div style="background:#18181b;border:1px solid #27272a;border-radius:8px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:300px;">'
-            + '<div><span style="display:inline-block;font-size:10px;font-weight:700;color:#a1a1aa;background:#27272a;padding:3px 8px;border-radius:12px;margin-bottom:8px;text-transform:uppercase;">' + cat + '</span>'
-            + '<img src="' + urlImagem + '" style="width:100%;height:130px;object-fit:cover;border-radius:6px;background:#09090b;" onerror="this.onerror=null;this.src=\'' + imgPadrao + '\';">'
-            + '<h4 style="font-size:15px;color:#fff;font-weight:700;margin:12px 0 4px;">' + (prod.nome || '') + '</h4>'
-            + '<p style="font-size:12px;color:#a1a1aa;margin:0;line-height:1.4;">' + (prod.descricao || 'Disponível.') + '</p></div>'
-            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;border-top:1px solid #27272a;padding-top:12px;">'
-            + '<span style="font-size:16px;font-weight:800;color:#e11d48;">R$ ' + parseFloat(prod.preco || 0).toFixed(2) + '</span>'
-            + '<button onclick="abrirModalCompra(\'' + prod.id + '\',\'' + nome + '\',\'' + prod.preco + '\',\'' + (prod.estoque || 0) + '\')" style="background:#22c55e;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;">Comprar</button>'
-            + '</div></div>';
+        const nomeSafe = (prod.nome || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const preco = parseFloat(prod.preco || 0).toFixed(2).replace('.', ',');
+        const estoque = parseInt(prod.estoque, 10) || 0;
+        const estoqueLbl = estoque > 0 ? (estoque + ' em estoque') : 'Consulte disponibilidade';
+        return (
+            '<article class="vt-card">'
+            + '<div class="vt-card-img-wrap">'
+            + '<span class="vt-card-cat">' + cat + '</span>'
+            + '<img class="vt-card-img" src="' + urlImagem.replace(/"/g, '&quot;') + '" alt="' + (prod.nome || '').replace(/"/g, '&quot;') + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + imgPadrao + '\';">'
+            + '</div>'
+            + '<div class="vt-card-body">'
+            + '<h3 class="vt-card-title">' + (prod.nome || '') + '</h3>'
+            + '<p class="vt-card-desc">' + (prod.descricao || 'Produto disponível na oficina.') + '</p>'
+            + '<div class="vt-card-foot">'
+            + '<div><div class="vt-card-price">R$ ' + preco + '</div>'
+            + '<div class="vt-card-stock">' + estoqueLbl + '</div></div>'
+            + '<button type="button" class="vt-card-buy" onclick="abrirModalCompra(\'' + prod.id + '\',\'' + nomeSafe + '\',\'' + prod.preco + '\',\'' + estoque + '\')">Comprar</button>'
+            + '</div></div></article>'
+        );
     }).join('');
 }
 

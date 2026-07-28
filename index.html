@@ -26,41 +26,34 @@
 </head>
 <body>
 
-   <div id="visao-cliente-externo" style="display: none; min-height: 100vh; background-color: #09090b; color: #fafafa; flex-direction: column;">
-    <header style="background: #09090b; color: white; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 72px; border-bottom: 1px solid #1e1e24; width: 100%;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">ALDINEI<span style="color: #e11d48;">CAR</span></span>
-            <span style="font-size: 11px; background: #1e1e24; color: #a1a1aa; padding: 2px 8px; border-radius: 20px; font-weight: 600; border: 1px solid #27272a;">Vitrine Oficial</span>
+   <div id="visao-cliente-externo" style="display:none; min-height:100vh; background:#0a0a0b; color:#fafafa; flex-direction:column;">
+    <header class="vt-header">
+        <div class="vt-brand">
+            <span class="vt-logo">ALDINEI<span>CAR</span></span>
+            <span class="vt-badge">Vitrine</span>
         </div>
-        <button onclick="abrirModalOrcamentoCliente()" style="background: #e11d48; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;">
-            📅 Agendar Serviço
-        </button>
+        <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">📅 Agendar</button>
     </header>
 
-    <div style="max-width: 1200px; width: 100%; margin: 25px auto 0 auto; padding: 0 20px;">
-        <div style="background: linear-gradient(135deg, #18181b 0%, #09090b 100%); border: 1px solid #27272a; padding: 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <div>
-                <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Precisa de Manutenção ou Peças Específicas?</h2>
-                <p style="font-size: 13px; color: #a1a1aa;">Escolha um produto abaixo ou envie os detalhes do seu veículo para nossa equipe.</p>
-            </div>
-            <button onclick="abrirModalOrcamentoCliente()" style="background: transparent; color: #ffffff; border: 1px solid #3f3f46; padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
-                Iniciar Agendamento
-            </button>
+    <section class="vt-hero">
+        <div class="vt-hero-inner">
+            <h1>Peças e serviços para o seu veículo</h1>
+            <p>Escolha um produto ou agende um atendimento com a oficina.</p>
+            <button type="button" class="vt-btn-outline" onclick="abrirModalOrcamentoCliente()">Solicitar orçamento</button>
         </div>
-    </div>
+    </section>
 
-    <main style="max-width: 1200px; width: 100%; margin: 0 auto; padding: 30px 20px; flex: 1;">
-        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 12px; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px;">
-            <span style="width: 4px; height: 16px; background: #e11d48; display: inline-block; border-radius: 2px;"></span>
-            Produtos & Componentes Disponíveis
-        </h3>
-        <div id="filtros-vitrine-publica" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
-        <div id="vitrine-publica-cliente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
-            </div>
+    <main class="vt-main">
+        <div class="vt-section-head">
+            <h2>Catálogo</h2>
+            <p id="vt-contagem-produtos" class="vt-count"></p>
+        </div>
+        <div id="filtros-vitrine-publica" class="vt-filtros"></div>
+        <div id="vitrine-publica-cliente" class="vt-grid"></div>
     </main>
 
-    <footer style="background: #09090b; border-top: 1px solid #1e1e24; text-align: center; padding: 20px; color: #71717a; font-size: 12px; margin-top: 40px;">
-        &copy; 2026 ALDINEICAR. Todos os direitos reservados.
+    <footer class="vt-footer">
+        <p>© 2026 ALDINEICAR · Vitrine oficial</p>
     </footer>
 </div>
 
