@@ -1201,3 +1201,235 @@
     .resumo-total-item { padding: 8px 6px; }
     .resumo-total-item strong { font-size: 12px; }
 }
+
+
+/* ===== GRUPOS DE CONTEÚDO (Dashboard / Materiais / Agenda) ===== */
+.grupo-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.grupo-card-tight { margin-bottom: 10px; }
+.grupo-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.grupo-card-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.grupo-card-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    background: #f8fafc;
+    user-select: none;
+}
+.grupo-card-summary::-webkit-details-marker { display: none; }
+.grupo-card > summary.grupo-card-summary::after {
+    content: '▾';
+    float: right;
+    color: #94a3b8;
+    font-size: 12px;
+}
+.grupo-card[open] > summary.grupo-card-summary::after { content: '▴'; }
+.grupo-card-body { padding: 12px 14px; }
+.grupo-details { border-top: 1px solid #f1f5f9; }
+.grupo-details summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+.grupo-details summary::-webkit-details-marker { display: none; }
+.grupo-details-body { padding: 0 14px 12px; }
+.grupo-hint { font-size: 12px; color: #64748b; margin: 0 0 10px; line-height: 1.4; }
+.grupo-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+}
+
+.btn-page-action {
+    background: #e11d48;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(225,29,72,0.2);
+}
+
+/* Dashboard período */
+.dash-atalhos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 14px;
+}
+.chip-periodo {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+.chip-periodo:active, .chip-periodo.active {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+}
+.dash-periodo-custom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.dash-periodo-custom label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.dash-periodo-custom input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f8fafc;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+.btn-filtrar-dash {
+    grid-column: 1 / -1;
+    padding: 10px;
+    background: #e11d48;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+.dash-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+.dash-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+.dash-chart-wrap {
+    position: relative;
+    height: 240px;
+    width: 100%;
+}
+@media (max-width: 992px) {
+    .dash-chart-wrap { height: 200px; }
+}
+
+/* Materiais categorias dentro do grupo */
+.grupo-card .categorias-materiais {
+    padding: 8px 12px 12px;
+    margin: 0 !important;
+}
+
+/* Agenda contadores dentro do grupo */
+.agenda-contadores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 0 12px 12px;
+}
+@media (max-width: 992px) {
+    .agenda-contadores { grid-template-columns: 1fr 1fr; }
+}
+.grupo-card .agenda-filtros-bar {
+    padding: 8px 12px;
+    margin: 0 !important;
+}
+
+.disp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.disp-bloquear-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.disp-bloquear-row input[type="date"] {
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+}
+.btn-bloq {
+    padding: 9px 12px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+}
+.btn-salvar-disp {
+    padding: 9px 12px;
+    background: #10b981;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+}
+.disp-bloqueados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}

@@ -1271,13 +1271,10 @@ async function editarProduto(id) {
         if (el) {
             el.style.display = 'block';
             if (typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
-            // No mobile, disponibilidade começa recolhida
-            const disp = document.getElementById('painel-disp-conteudo');
-            const btnDisp = document.getElementById('btn-toggle-disp');
-            if (disp && window.innerWidth <= 992) {
-                disp.style.display = 'none';
-                if (btnDisp) btnDisp.innerText = 'Expandir';
-            }
+            // No mobile, disponibilidade (details) começa fechada
+            const wrap = document.getElementById('painel-disponibilidade-wrap');
+            if (wrap && window.innerWidth <= 992) wrap.open = false;
+            else if (wrap) wrap.open = true;
             renderAgenda();
         }
         return;

@@ -233,75 +233,80 @@ function mostrarSecao(id) {
                     <div class="aba-container">
                         
 
-                        <!-- ===== DASHBOARD ===== -->
+                                                <!-- ===== DASHBOARD ===== -->
                         <div id="aba-dashboard" style="display:none;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
-                                <div>
-                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">Dashboard Financeiro</h2>
-                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Escolha o período e veja faturamento, materiais e lucro.</p>
-                                </div>
-                                <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; background:white; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px;">
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px; text-transform:uppercase;">Data inicial</label>
-                                        <input type="date" id="dashDataInicio" onchange="renderDashboard()" style="padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-weight:600; font-size:13px; color:#0f172a; background:#f8fafc;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px; text-transform:uppercase;">Data final</label>
-                                        <input type="date" id="dashDataFim" onchange="renderDashboard()" style="padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-weight:600; font-size:13px; color:#0f172a; background:#f8fafc;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px; text-transform:uppercase;">Atalhos</label>
-                                        <div style="display:flex; gap:6px;">
-                                            <button type="button" onclick="definirPeriodoRapido('mes')" style="padding:9px 12px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer; color:#0f172a;">Este mês</button>
-                                            <button type="button" onclick="definirPeriodoRapido('ano')" style="padding:9px 12px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer; color:#0f172a;">Este ano</button>
-                                            <button type="button" onclick="definirPeriodoRapido('tudo')" style="padding:9px 12px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer; color:#0f172a;">Tudo</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" onclick="renderDashboard()" style="padding:9px 16px; background:#e11d48; color:white; border:none; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">🔍 Filtrar</button>
+                            <div class="page-head">
+                                <div class="page-head-text">
+                                    <h2>📊 Dashboard</h2>
                                 </div>
                             </div>
-                            <p id="dashPeriodoLabel" style="font-size:13px; color:#64748b; margin:-8px 0 18px 0; font-weight:600;"></p>
+
+                            <div class="grupo-card">
+                                <div class="grupo-card-head">
+                                    <span>Período</span>
+                                    <span id="dashPeriodoLabel" class="grupo-card-sub"></span>
+                                </div>
+                                <div class="dash-atalhos">
+                                    <button type="button" class="chip-periodo" onclick="definirPeriodoRapido('mes')">Este mês</button>
+                                    <button type="button" class="chip-periodo" onclick="definirPeriodoRapido('ano')">Este ano</button>
+                                    <button type="button" class="chip-periodo" onclick="definirPeriodoRapido('tudo')">Tudo</button>
+                                </div>
+                                <details class="grupo-details">
+                                    <summary>Período personalizado</summary>
+                                    <div class="grupo-details-body dash-periodo-custom">
+                                        <div>
+                                            <label>De</label>
+                                            <input type="date" id="dashDataInicio" onchange="renderDashboard()">
+                                        </div>
+                                        <div>
+                                            <label>Até</label>
+                                            <input type="date" id="dashDataFim" onchange="renderDashboard()">
+                                        </div>
+                                        <button type="button" class="btn-filtrar-dash" onclick="renderDashboard()">Aplicar</button>
+                                    </div>
+                                </details>
+                            </div>
 
                             <div class="dash-kpis">
                                 <div class="dash-kpi kpi-green">
-                                    <div class="dash-kpi-label">Faturamento Orçamentos</div>
+                                    <div class="dash-kpi-label">Faturamento OS</div>
                                     <div class="dash-kpi-value" id="kpi-fat-orc">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-fat-orc-sub">OS com status Pago no período</div>
+                                    <div class="dash-kpi-sub" id="kpi-fat-orc-sub">Pagos no período</div>
                                 </div>
                                 <div class="dash-kpi kpi-red">
-                                    <div class="dash-kpi-label">Gasto em Materiais</div>
+                                    <div class="dash-kpi-label">Materiais</div>
                                     <div class="dash-kpi-value" id="kpi-materiais">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-materiais-sub">Materiais das OS pagas no período</div>
+                                    <div class="dash-kpi-sub" id="kpi-materiais-sub">Custo das OS</div>
                                 </div>
                                 <div class="dash-kpi kpi-orange">
-                                    <div class="dash-kpi-label">Vendas da Loja</div>
+                                    <div class="dash-kpi-label">Vendas loja</div>
                                     <div class="dash-kpi-value" id="kpi-vendas">R$ 0,00</div>
                                     <div class="dash-kpi-sub" id="kpi-vendas-sub">Vitrine / balcão</div>
                                 </div>
                                 <div class="dash-kpi kpi-blue">
-                                    <div class="dash-kpi-label">Lucro Orçamentos</div>
+                                    <div class="dash-kpi-label">Lucro OS</div>
                                     <div class="dash-kpi-value" id="kpi-lucro">R$ 0,00</div>
-                                    <div class="dash-kpi-sub">Faturamento − Materiais</div>
+                                    <div class="dash-kpi-sub">Fat. − materiais</div>
                                 </div>
                             </div>
 
-                            <div class="dash-chart-card">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
-                                    <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0;">Comparativo Mensal</h3>
-                                    <div style="display:flex; gap:14px; font-size:12px; font-weight:600; flex-wrap:wrap;">
-                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#10b981;display:inline-block;"></span> Orçamentos</span>
-                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#e11d48;display:inline-block;"></span> Materiais</span>
-                                        <span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block;"></span> Vendas Loja</span>
+                            <details class="grupo-card" open>
+                                <summary class="grupo-card-summary">📈 Comparativo mensal</summary>
+                                <div class="grupo-card-body">
+                                    <div class="dash-legend">
+                                        <span><i style="background:#10b981"></i> Orçamentos</span>
+                                        <span><i style="background:#e11d48"></i> Materiais</span>
+                                        <span><i style="background:#f59e0b"></i> Vendas</span>
+                                    </div>
+                                    <div class="dash-chart-wrap">
+                                        <canvas id="graficoFinanceiro"></canvas>
                                     </div>
                                 </div>
-                                <div style="position:relative; height:320px; width:100%;">
-                                    <canvas id="graficoFinanceiro"></canvas>
-                                </div>
-                            </div>
+                            </details>
 
-                            <div class="dash-chart-card" style="margin-top:24px;">
-                                <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin:0 0 16px 0;">Resumo Mensal</h3>
-                                <div style="overflow-x:auto;">
+                            <details class="grupo-card">
+                                <summary class="grupo-card-summary">📋 Tabela mensal</summary>
+                                <div class="grupo-card-body" style="padding:0; overflow-x:auto;">
                                     <table class="dash-table">
                                         <thead>
                                             <tr>
@@ -309,7 +314,7 @@ function mostrarSecao(id) {
                                                 <th>Orçamentos</th>
                                                 <th>Materiais</th>
                                                 <th>Lucro OS</th>
-                                                <th>Vendas Loja</th>
+                                                <th>Vendas</th>
                                                 <th>Qtd OS</th>
                                                 <th>Qtd Vendas</th>
                                             </tr>
@@ -319,10 +324,10 @@ function mostrarSecao(id) {
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
+                            </details>
                         </div>
 
-                        <!-- ===== VENDAS ===== -->
+<!-- ===== VENDAS ===== -->
                         <div id="aba-vendas" style="display:none;">
                             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
                                 <div>
@@ -362,37 +367,41 @@ function mostrarSecao(id) {
                                 </div>
                                 <button onclick="abrirModalNovoAgendamento()" class="btn-novo-agendamento">＋ Novo</button>
                             </div>
-                                                        <div class="agenda-filtros-bar">
-                                <button onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
-                                <button onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
-                                <button onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
-                                <button onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
-                                <button onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
-                                <button onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
-                                <button onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
-                                <button onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
-                            </div>
-<div id="agenda-resumo-contadores" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px;"></div>
-                            <div id="painel-disponibilidade" style="background:white;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:20px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
-                                    <h3 style="margin:0;font-size:16px;font-weight:800;color:#0f172a;">🗓️ Minha disponibilidade</h3>
-                                    <button type="button" onclick="togglePainelDisponibilidade()" id="btn-toggle-disp" style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:#475569;">Recolher</button>
+                                                                                    <div class="grupo-card grupo-card-tight">
+                                <div class="grupo-card-head"><span>Filtrar</span></div>
+                                <div class="agenda-filtros-bar">
+                                    <button onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
+                                    <button onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
+                                    <button onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
+                                    <button onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
+                                    <button onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
+                                    <button onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
+                                    <button onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
+                                    <button onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
                                 </div>
-                                <div id="painel-disp-conteudo">
-                                    <p style="margin:0 0 16px;font-size:13px;color:#64748b;">Marque os dias da semana em que você atende. Bloqueie datas específicas. O cliente só verá datas livres na vitrine.</p>
-                                    <p style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;margin:0 0 8px;">Dias da semana</p>
-                                    <div id="disp-dias-semana" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
-                                    <p style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;margin:0 0 8px;">Horários de atendimento</p>
-                                    <div id="disp-horarios" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
-                                    <p style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;margin:0 0 8px;">Bloquear data específica</p>
-                                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">
-                                        <input type="date" id="disp-data-bloquear" style="padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-weight:600;">
-                                        <button type="button" onclick="bloquearDataDisponibilidade()" style="padding:10px 14px;background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Bloquear</button>
-                                        <button type="button" onclick="salvarDisponibilidadeAgenda()" style="padding:10px 16px;background:#10b981;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">💾 Salvar disponibilidade</button>
+                                <div id="agenda-resumo-contadores" class="agenda-contadores"></div>
+                            </div>
+
+                            <details class="grupo-card" id="painel-disponibilidade-wrap">
+                                <summary class="grupo-card-summary">🗓️ Minha disponibilidade</summary>
+                                <div class="grupo-card-body" id="painel-disponibilidade">
+                                    <div id="painel-disp-conteudo">
+                                        <p class="grupo-hint">Dias e horários em que você atende. O cliente só vê datas livres.</p>
+                                        <p class="grupo-label">Dias da semana</p>
+                                        <div id="disp-dias-semana" class="disp-chips"></div>
+                                        <p class="grupo-label">Horários</p>
+                                        <div id="disp-horarios" class="disp-chips"></div>
+                                        <p class="grupo-label">Bloquear data</p>
+                                        <div class="disp-bloquear-row">
+                                            <input type="date" id="disp-data-bloquear">
+                                            <button type="button" onclick="bloquearDataDisponibilidade()" class="btn-bloq">Bloquear</button>
+                                            <button type="button" onclick="salvarDisponibilidadeAgenda()" class="btn-salvar-disp">💾 Salvar</button>
+                                        </div>
+                                        <div id="disp-lista-bloqueados" class="disp-bloqueados"></div>
                                     </div>
-                                    <div id="disp-lista-bloqueados" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
                                 </div>
-                            </div>
+                            </details>
+
                             <div id="lista-agenda" class="agenda-lista">
                                 <p style="color:#94a3b8; text-align:center; padding:40px;">Carregando...</p>
                             </div>
@@ -428,20 +437,31 @@ function mostrarSecao(id) {
                             </div>
                         </div>
 
-<div id="aba-materiais">
-                            <div class="categorias-materiais" id="botoesCategorias">
-                                <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
-                                <button onclick="filtrarCategoria('Primer')">Primer</button>
-                                <button onclick="filtrarCategoria('Tintas')">Tintas</button>
-                                <button onclick="filtrarCategoria('Verniz')">Verniz</button>
-                                <button onclick="filtrarCategoria('Massa')">Massa</button>
-                                <button onclick="filtrarCategoria('Thinner')">Thinner</button>
-                                <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+                        <div id="aba-materiais">
+                            <div class="page-head">
+                                <div class="page-head-text">
+                                    <h2>📦 Materiais</h2>
+                                </div>
+                                <button type="button" class="btn-page-action" onclick="abrirModal()">＋ Novo</button>
+                            </div>
+                            <div class="grupo-card grupo-card-tight">
+                                <div class="grupo-card-head">
+                                    <span>Categorias</span>
+                                </div>
+                                <div class="categorias-materiais" id="botoesCategorias">
+                                    <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
+                                    <button onclick="filtrarCategoria('Primer')">Primer</button>
+                                    <button onclick="filtrarCategoria('Tintas')">Tintas</button>
+                                    <button onclick="filtrarCategoria('Verniz')">Verniz</button>
+                                    <button onclick="filtrarCategoria('Massa')">Massa</button>
+                                    <button onclick="filtrarCategoria('Thinner')">Thinner</button>
+                                    <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
+                                </div>
                             </div>
                             <div class="cards" id="lista"></div>
                         </div>
-                        
-                        <div id="aba-maoobra" style="display:none">
+
+<div id="aba-maoobra" style="display:none">
                             <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
                             
                             <div id="conteudo-mao-obra-real">
