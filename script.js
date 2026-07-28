@@ -3622,6 +3622,7 @@ function atualizarCardLinkVitrine() {
     const el = document.getElementById('texto-link-vitrine');
     if (el) el.innerText = obterLinkVitrine() || 'Faça login para gerar o link.';
     atualizarUIVitrineAberta();
+    if (typeof preencherCamposTextosVitrineAdmin === 'function') preencherCamposTextosVitrineAdmin();
     if (typeof renderBotoesCategoriasLoja === 'function') renderBotoesCategoriasLoja();
     if (typeof atualizarBotaoNotifUI === 'function') atualizarBotaoNotifUI();
 }
@@ -4228,6 +4229,8 @@ async function carregarProdutosVitrinePublica(idOficina) {
             oficina = data && data.dados_oficina ? data.dados_oficina : null;
         } catch (e) {}
 
+        if (typeof aplicarTextosVitrinePublica === 'function') aplicarTextosVitrinePublica(oficina || {});
+
         if (oficina && oficina.vitrine_aberta === false) {
             containerVitrine.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#a1a1aa;">'
                 + '<div style="font-size:36px;margin-bottom:10px;">🔒</div>'
@@ -4441,4 +4444,57 @@ async function prepararEdicaoProduto(id, nome, preco, descricao, estoque, imagem
         preencherSelectCategoriasLoja((prod && prod.categoria) || categoria || 'Geral');
     }
     document.getElementById('modal-cadastro-produto').style.display = 'block';
+}
+
+
+// ========================================================
+// Textos da vitrine (editáveis no painel da oficina)
+// ========================================================
+function obterTextosVitrine() {
+    const d = (typeof dadosOficina === 'object' && dadosOficina) ? dadosOficina : {};
+    return {
+        titulo: (d.vitrine_hero_titulo || '').trim() || 'Peças e serviços para o seu veículo',
+        sub: (d.vitrine_hero_sub || '').trim() || 'Escolha um produto ou agende um atendimento com a oficina.',
+        nome: (d.nome || 'ALDINEICAR').trim()
+    };
+}
+
+function preencherCamposTextosVitrineAdmin() {
+    const t = obterTextosVitrine();
+    const elT = document.getElementById('vitrineHeroTitulo');
+    const elS = document.getElementById('vitrineHeroSub');
+    if (elT) elT.value = (dadosOficina && dadosOficina.vitrine_hero_titulo) || t.titulo;
+    if (elS) elS.value = (dadosOficina && dadosOficina.vitrine_hero_sub) || t.sub;
+}
+
+async function salvarTextosVitrine() {
+    if (!dadosOficina) dadosOficina = {};
+    const elT = document.getElementById('vitrineHeroTitulo');
+    const elS = document.getElementById('vitrineHeroSub');
+    dadosOficina.vitrine_hero_titulo = (elT && elT.value || '').trim();
+    dadosOficina.vitrine_hero_sub = (elS && elS.value || '').trim();
+    if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    if (typeof mostrarToast === 'function') mostrarToast('Textos da vitrine salvos!', 'sucesso');
+    else alert('Textos salvos!');
+}
+
+function aplicarTextosVitrinePublica(oficina) {
+    const d = oficina || {};
+    const titulo = (d.vitrine_hero_titulo || '').trim() || 'Peças e serviços para o seu veículo';
+    const sub = (d.vitrine_hero_sub || '').trim() || 'Escolha um produto ou agende um atendimento com a oficina.';
+    const nome = (d.nome || 'ALDINEICAR').trim();
+    const elT = document.getElementById('vt-hero-titulo');
+    const elS = document.getElementById('vt-hero-sub');
+    const elN = document.getElementById('vt-header-nome');
+    if (elT) elT.textContent = titulo;
+    if (elS) elS.textContent = sub;
+    if (elN) {
+        // destaca última parte em vermelho se possível
+        if (nome.toUpperCase().endsWith('CAR') && nome.length > 3) {
+            const base = nome.slice(0, -3);
+            elN.innerHTML = base + '<span>CAR</span>';
+        } else {
+            elN.textContent = nome;
+        }
+    }
 }

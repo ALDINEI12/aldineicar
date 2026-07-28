@@ -2270,24 +2270,27 @@ body.modo-vitrine-publica #visao-cliente-externo {
 .vt-header {
     position: sticky;
     top: 0;
-    z-index: 40;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 12px 16px;
     padding-top: calc(12px + env(safe-area-inset-top, 0px));
-    background: rgba(10, 10, 11, 0.92);
-    backdrop-filter: blur(10px);
+    background: #0a0a0b;
     border-bottom: 1px solid #1f1f23;
+    /* fica fixo no scroll — título + Agendar sempre visíveis */
 }
-.vt-brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.vt-brand { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
 .vt-logo {
     font-size: 18px;
     font-weight: 800;
     letter-spacing: -0.4px;
     color: #fff;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 .vt-logo span { color: #e11d48; }
 .vt-badge {

@@ -29,7 +29,7 @@
    <div id="visao-cliente-externo" style="display:none; min-height:100vh; background:#0a0a0b; color:#fafafa; flex-direction:column;">
     <header class="vt-header">
         <div class="vt-brand">
-            <span class="vt-logo">ALDINEI<span>CAR</span></span>
+            <span class="vt-logo" id="vt-header-nome">ALDINEI<span>CAR</span></span>
             <span class="vt-badge">Vitrine</span>
         </div>
         <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">📅 Agendar</button>
@@ -37,8 +37,8 @@
 
     <section class="vt-hero">
         <div class="vt-hero-inner">
-            <h1>Peças e serviços para o seu veículo</h1>
-            <p>Escolha um produto ou agende um atendimento com a oficina.</p>
+            <h1 id="vt-hero-titulo">Peças e serviços para o seu veículo</h1>
+            <p id="vt-hero-sub">Escolha um produto ou agende um atendimento com a oficina.</p>
             <button type="button" class="vt-btn-outline" onclick="abrirModalOrcamentoCliente()">Solicitar orçamento</button>
         </div>
     </section>
@@ -510,6 +510,18 @@ function mostrarSecao(id) {
                                         <button type="button" class="btn-loja-toggle" id="btn-toggle-vitrine" onclick="alternarVitrineAberta()">⏸ Fechar vitrine</button>
                                     </div>
                                     <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Compartilhe o link com clientes. Use o botão para abrir ou pausar a vitrine.</p>
+                                </div>
+                            </div>
+
+                            <div class="grupo-card">
+                                <div class="grupo-card-head"><span>✏️ Textos da vitrine</span></div>
+                                <div class="grupo-card-body">
+                                    <label class="loja-label">Título principal</label>
+                                    <input type="text" id="vitrineHeroTitulo" placeholder="Peças e serviços para o seu veículo" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <label class="loja-label">Subtítulo</label>
+                                    <textarea id="vitrineHeroSub" placeholder="Escolha um produto ou agende um atendimento..." style="width:100%;height:64px;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;resize:none;"></textarea>
+                                    <button type="button" class="btn-loja-prim" onclick="salvarTextosVitrine()">💾 Salvar textos da vitrine</button>
+                                    <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública que o cliente vê.</p>
                                 </div>
                             </div>
 
