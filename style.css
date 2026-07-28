@@ -76,8 +76,8 @@
         .resumo button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:10px; font-weight:700; font-size: 14px; cursor:pointer; transition: all 0.15s ease; }
         
         /* Modais */
-        .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9, 9, 11, 0.4); backdrop-filter: blur(4px); align-items:center; justify-content:center; z-index:999; }
-        .modal-content { background:#09090b; padding:32px; border-radius:12px; width:90%; max-width:420px; color: white; max-height: 85vh; overflow-y: auto; border: 1px solid #27272a; }
+        .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(9, 9, 11, 0.55); z-index:9999; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:24px 12px; box-sizing:border-box; }
+        .modal-content { background:#09090b; padding:32px; border-radius:12px; width:100%; max-width:420px; color: white; border: 1px solid #27272a; margin: auto; position:relative; }
         .modal-content h3 { font-size: 16px; margin-bottom: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; }
         .modal-content input, .modal-content select { width:100%; padding:12px; margin:6px 0 16px 0; border:1px solid #27272a; border-radius:8px; color: white; background: #141416; font-size: 14px; }
         .modal-content input:focus, .modal-content select:focus { outline: none; border-color: #f43f5e; }
@@ -1969,5 +1969,55 @@ html, body {
         overscroll-behavior: contain;
         padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
         margin-bottom: 0 !important;
+    }
+}
+
+
+/* =========================================================
+   MODAL SCROLL iOS — o OVERLAY rola (não o content interno)
+   ========================================================= */
+.modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    background: rgba(9, 9, 11, 0.55) !important;
+    z-index: 9999 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+}
+.modal-content {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 12px auto 40px auto !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    -webkit-transform: translateZ(0);
+}
+@media (max-width: 992px) {
+    .modal {
+        align-items: flex-start !important;
+        padding-top: 24px !important;
+        padding-bottom: 48px !important;
+    }
+    .modal-content {
+        border-radius: 14px !important;
+        margin-top: 8px !important;
+        margin-bottom: 80px !important; /* espaço extra para teclado */
+        padding: 18px 16px !important;
     }
 }

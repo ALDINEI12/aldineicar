@@ -1426,15 +1426,15 @@ async function editarProduto(id) {
     function abrirModal(){
         const m = document.getElementById('modal');
         if (!m) return;
-        m.style.display = 'flex';
+        m.style.display = 'block';
         const c = m.querySelector('.modal-content');
         if (c) { c.scrollTop = 0; }
-        document.body.style.overflow = 'hidden';
+        /* body unlock — iOS scroll */
     }
     function fecharModalMaterial(){
         const m = document.getElementById('modal');
         if (m) m.style.display = 'none';
-        document.body.style.overflow = '';
+        /* body unlock */
     }
     function fecharModal() {
     // Altere 'modal' para 'modal-cadastro-produto'
@@ -1605,7 +1605,7 @@ async function editarProduto(id) {
     function abrirConfirmacao(texto, callback){
         const modal = document.getElementById('modalConfirmar');
         const textoEl = document.getElementById('textoConfirmacao');
-        if (modal) modal.style.display = 'flex';
+        if (modal) modal.style.display = 'block';
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
     }
@@ -2565,7 +2565,7 @@ function fecharModalEspecifico(idModal) {
     if (modal) {
         modal.style.display = 'none';
     }
-    document.body.style.overflow = '';
+    /* body unlock */
 }
 function fecharModal() {
     fecharModalEspecifico('modal');
@@ -3409,16 +3409,16 @@ function abrirModalNovoAgendamento() {
     inputData.min = hoje;
     inputData.value = hoje;
     preencherHorariosNovoAgendamento();
-    modal.style.display = 'flex';
+    modal.style.display = 'block';
     const c = modal.querySelector('.modal-content');
     if (c) c.scrollTop = 0;
-    document.body.style.overflow = 'hidden';
+    /* body unlock — iOS scroll */
 }
 
 function fecharModalNovoAgendamento() {
     const modal = document.getElementById('modal-novo-agendamento');
     if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
+    /* body unlock */
 }
 
 function preencherHorariosNovoAgendamento() {
@@ -3492,7 +3492,7 @@ function prepararMinDataAgendamento() {
 
 function abrirModalOrcamentoCliente() {
     const modal = document.getElementById('modal-orcamento-cliente');
-    if (modal) modal.style.display = 'flex';
+    if (modal) modal.style.display = 'block';
     if (typeof carregarDatasDisponiveisCliente === 'function') {
         carregarDatasDisponiveisCliente();
     } else if (typeof prepararMinDataAgendamento === 'function') {
