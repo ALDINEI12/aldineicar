@@ -4257,13 +4257,44 @@ async function carregarProdutosVitrinePublica(idOficina) {
         });
         if (!cats.length) cats = ['Geral'];
 
+        window.__catsVitrinePublica = cats;
         renderFiltrosVitrinePublica(cats);
         renderVitrinePublicaFiltrada();
+        bindFiltrosVitrinePublica();
     } catch (err) {
         console.error('Erro vitrine pública:', err);
         containerVitrine.innerHTML = '<p style="color:#e11d48;grid-column:1/-1;text-align:center;">Erro ao carregar produtos.</p>';
     }
 }
+
+function filtrarVitrinePublica(cat) {
+    categoriaVitrinePublica = cat || 'Todos';
+    const cats = (window.__catsVitrinePublica && window.__catsVitrinePublica.length)
+        ? window.__catsVitrinePublica
+        : (function() {
+            const arr = [];
+            (produtosVitrinePublicaCache || []).forEach(p => {
+                const c = (p.categoria || 'Geral').trim();
+                if (c && !arr.includes(c)) arr.push(c);
+            });
+            return arr.length ? arr : ['Geral'];
+        })();
+    renderFiltrosVitrinePublica(cats);
+    renderVitrinePublicaFiltrada();
+}
+
+function bindFiltrosVitrinePublica() {
+    const box = document.getElementById('filtros-vitrine-publica');
+    if (!box || box.__boundFiltros) return;
+    box.__boundFiltros = true;
+    box.addEventListener('click', function(e) {
+        const btn = e.target.closest('button[data-cat]');
+        if (!btn) return;
+        e.preventDefault();
+        filtrarVitrinePublica(btn.getAttribute('data-cat'));
+    });
+}
+
 
 function renderFiltrosVitrinePublica(cats) {
     const box = document.getElementById('filtros-vitrine-publica');

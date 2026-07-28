@@ -513,17 +513,17 @@ function mostrarSecao(id) {
                                 </div>
                             </div>
 
-                            <div class="grupo-card">
-                                <div class="grupo-card-head"><span>✏️ Textos da vitrine</span></div>
+                            <details class="grupo-card">
+                                <summary class="grupo-card-summary">✏️ Textos da vitrine</summary>
                                 <div class="grupo-card-body">
                                     <label class="loja-label">Título principal</label>
                                     <input type="text" id="vitrineHeroTitulo" placeholder="Peças e serviços para o seu veículo" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
                                     <label class="loja-label">Subtítulo</label>
                                     <textarea id="vitrineHeroSub" placeholder="Escolha um produto ou agende um atendimento..." style="width:100%;height:64px;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;resize:none;"></textarea>
                                     <button type="button" class="btn-loja-prim" onclick="salvarTextosVitrine()">💾 Salvar textos da vitrine</button>
-                                    <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública que o cliente vê.</p>
+                                    <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública do cliente. Toque para expandir/recolher.</p>
                                 </div>
-                            </div>
+                            </details>
 
                             <div class="grupo-card grupo-card-tight">
                                 <div class="grupo-card-head">

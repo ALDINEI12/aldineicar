@@ -2268,9 +2268,11 @@ body.modo-vitrine-publica #visao-cliente-externo {
 
 /* ===== VITRINE PÚBLICA REFORMULADA ===== */
 .vt-header {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 200;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2279,8 +2281,15 @@ body.modo-vitrine-publica #visao-cliente-externo {
     padding-top: calc(12px + env(safe-area-inset-top, 0px));
     background: #0a0a0b;
     border-bottom: 1px solid #1f1f23;
-    /* fica fixo no scroll — título + Agendar sempre visíveis */
+    height: auto;
+    min-height: 56px;
+    box-sizing: border-box;
 }
+/* espaço para o header fixo não cobrir o conteúdo */
+#visao-cliente-externo {
+    padding-top: calc(56px + env(safe-area-inset-top, 0px));
+}
+
 .vt-brand { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
 .vt-logo {
     font-size: 18px;
