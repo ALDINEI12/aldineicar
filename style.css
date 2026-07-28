@@ -2566,9 +2566,11 @@ body.modo-vitrine-publica #visao-cliente-externo {
 .modal {
   opacity: 0;
   transition: opacity 0.25s ease;
+  pointer-events: none; /* não bloqueia a tela se abrir sem .aberto */
 }
 .modal.aberto {
   opacity: 1;
+  pointer-events: auto;
 }
 .modal .modal-content,
 .modal > div[style*="background"] {
@@ -2687,6 +2689,53 @@ body.modo-vitrine-publica #visao-cliente-externo {
 .vt-chip:active { transform: scale(0.96); }
 
 
+/* =========================================================
+   BOTTOM NAV — fixo no viewport (Android / iOS)
+   ========================================================= */
+#bottom-nav.bottom-nav,
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    z-index: 3000 !important;
+    /* camada própria — evita “subir” com o scroll no Chrome Android */
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* safe area */
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-sizing: border-box !important;
+}
+@media (max-width: 992px) {
+    #bottom-nav.bottom-nav,
+    .bottom-nav {
+        display: flex !important;
+    }
+    /* espaço extra no fim do conteúdo para não ficar atrás do menu */
+    #appContainer .content,
+    .content {
+        padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    body {
+        /* evita que overflow/transform no body quebre position:fixed */
+        transform: none !important;
+        -webkit-transform: none !important;
+        perspective: none !important;
+        filter: none !important;
+    }
+    #appContainer {
+        transform: none !important;
+        filter: none !important;
+        perspective: none !important;
+    }
+}
+
+
 /* ===== FOTOS ORÇAMENTO / AGENDAMENTO ===== */
 .fotos-grid {
     display: grid;
@@ -2761,9 +2810,7 @@ body.modo-vitrine-publica #visao-cliente-externo {
     background: #18181b;
     border-color: #3f3f46;
 }
-.btn-foto-add-dark {
-    background: #e11d48;
-}
+.btn-foto-add-dark { background: #e11d48; }
 .btn-foto-limpar-dark {
     background: #27272a;
     color: #a1a1aa;
@@ -2793,9 +2840,7 @@ body.modo-vitrine-publica #visao-cliente-externo {
     justify-content: center;
     padding: 16px;
 }
-.foto-lightbox.aberto {
-    display: flex;
-}
+.foto-lightbox.aberto { display: flex; }
 .foto-lightbox img {
     max-width: 100%;
     max-height: 90vh;

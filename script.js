@@ -33,8 +33,8 @@
     let categoriaLojaAtual = 'Todos';
     let produtosLoja = [];
     let acaoConfirmada = null;
-    let fotosOrcamentoAtual = [];      // base64[] no painel (orçamento)
-    let fotosAgendamentoCliente = [];  // base64[] na vitrine (opcional)
+    let fotosOrcamentoAtual = [];
+    let fotosAgendamentoCliente = [];
     const MAX_FOTOS_SERVICO = 4;
 
     const configuracoesProfissoes = {
@@ -1618,21 +1618,44 @@ async function editarProduto(id) {
     function abrirConfirmacao(texto, callback){
         const modal = document.getElementById('modalConfirmar');
         const textoEl = document.getElementById('textoConfirmacao');
-        if (modal) modal.style.display = 'block';
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
+        if (!modal) return;
+        // Sem a classe .aberto o modal fica opacity:0 e cobre a tela (site "trava")
+        if (typeof animAbrirModal === 'function') {
+            animAbrirModal(modal, 'flex');
+        } else {
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('aberto');
+        }
     }
     function fecharConfirmacao(){
         const modal = document.getElementById('modalConfirmar');
-        if (modal) modal.style.display = 'none';
+        if (!modal) return;
+        if (typeof animFecharModal === 'function') {
+            animFecharModal(modal);
+        } else {
+            modal.classList.remove('aberto');
+            setTimeout(function() {
+                if (!modal.classList.contains('aberto')) modal.style.display = 'none';
+            }, 280);
+        }
     }
     function confirmarAcaoExclusao() {
-        if (typeof acaoConfirmada === 'function') {
-            const fn = acaoConfirmada;
-            acaoConfirmada = null;
-            fn();
-        }
+        const fn = (typeof acaoConfirmada === 'function') ? acaoConfirmada : null;
+        acaoConfirmada = null;
         fecharConfirmacao();
+        if (fn) {
+            try {
+                const r = fn();
+                if (r && typeof r.then === 'function') {
+                    r.catch(function(err){ console.error(err); });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
@@ -4714,17 +4737,13 @@ function toggleMenuMais() {
     };
 })();
 
-
 // ========================================================
 // FOTOS DO SERVIÇO — orçamento (painel) + agendamento (vitrine)
 // ========================================================
 function renderFotosPreview(containerId, lista, onRemoveName) {
     const box = document.getElementById(containerId);
     if (!box) return;
-    if (!lista || !lista.length) {
-        box.innerHTML = '';
-        return;
-    }
+    if (!lista || !lista.length) { box.innerHTML = ''; return; }
     box.innerHTML = lista.map(function(src, i) {
         return '<div class="foto-thumb">'
             + '<img src="' + src + '" alt="Foto ' + (i + 1) + '" onclick="abrirLightboxFoto(this.src)">'
@@ -4732,41 +4751,34 @@ function renderFotosPreview(containerId, lista, onRemoveName) {
             + '</div>';
     }).join('');
 }
-
 function renderFotosOrcamento() {
     renderFotosPreview('fotosOrcamentoPreview', fotosOrcamentoAtual, 'removerFotoOrcamento');
 }
-
 function renderFotosAgendamento() {
     renderFotosPreview('fotosAgendamentoPreview', fotosAgendamentoCliente, 'removerFotoAgendamento');
 }
-
 function removerFotoOrcamento(i) {
     if (i < 0 || i >= fotosOrcamentoAtual.length) return;
     fotosOrcamentoAtual.splice(i, 1);
     renderFotosOrcamento();
 }
-
 function removerFotoAgendamento(i) {
     if (i < 0 || i >= fotosAgendamentoCliente.length) return;
     fotosAgendamentoCliente.splice(i, 1);
     renderFotosAgendamento();
 }
-
 function limparFotosOrcamento() {
     fotosOrcamentoAtual = [];
     const inp = document.getElementById('fotosOrcamentoFile');
     if (inp) inp.value = '';
     renderFotosOrcamento();
 }
-
 function limparFotosAgendamento() {
     fotosAgendamentoCliente = [];
     const inp = document.getElementById('fotosAgendamentoFile');
     if (inp) inp.value = '';
     renderFotosAgendamento();
 }
-
 async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
     maxFotos = maxFotos || MAX_FOTOS_SERVICO || 4;
     if (!files || !files.length) return;
@@ -4793,17 +4805,14 @@ async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
         else alert('Não foi possível usar esta imagem.');
     }
 }
-
 async function onFotosOrcamentoChange(input) {
     await adicionarFotosArquivos(input && input.files, fotosOrcamentoAtual, renderFotosOrcamento, MAX_FOTOS_SERVICO);
     if (input) input.value = '';
 }
-
 async function onFotosAgendamentoChange(input) {
     await adicionarFotosArquivos(input && input.files, fotosAgendamentoCliente, renderFotosAgendamento, MAX_FOTOS_SERVICO);
     if (input) input.value = '';
 }
-
 function abrirLightboxFoto(src) {
     if (!src) return;
     let lb = document.getElementById('foto-lightbox');
@@ -4812,29 +4821,23 @@ function abrirLightboxFoto(src) {
         lb.id = 'foto-lightbox';
         lb.className = 'foto-lightbox';
         lb.innerHTML = '<button type="button" class="foto-lightbox-fechar" onclick="fecharLightboxFoto()">Fechar</button><img alt="Foto ampliada">';
-        lb.addEventListener('click', function(e) {
-            if (e.target === lb) fecharLightboxFoto();
-        });
+        lb.addEventListener('click', function(e) { if (e.target === lb) fecharLightboxFoto(); });
         document.body.appendChild(lb);
     }
     const img = lb.querySelector('img');
     if (img) img.src = src;
     lb.classList.add('aberto');
 }
-
 function fecharLightboxFoto() {
     const lb = document.getElementById('foto-lightbox');
     if (lb) lb.classList.remove('aberto');
 }
-
-// Ao abrir modal da vitrine, limpa fotos anteriores
 (function patchAbrirModalOrcamentoClienteFotos() {
     const orig = typeof abrirModalOrcamentoCliente === 'function' ? abrirModalOrcamentoCliente : null;
     if (!orig || orig.__fotosPatched) return;
     window.abrirModalOrcamentoCliente = function() {
         if (typeof limparFotosAgendamento === 'function') limparFotosAgendamento();
-        const r = orig.apply(this, arguments);
-        return r;
+        return orig.apply(this, arguments);
     };
     window.abrirModalOrcamentoCliente.__fotosPatched = true;
 })();
