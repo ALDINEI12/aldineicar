@@ -1621,7 +1621,7 @@ async function editarProduto(id) {
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
         if (!modal) return;
-        // Sem a classe .aberto o modal fica opacity:0 e cobre a tela (site "trava")
+        // Sem .aberto o modal fica opacity:0 e trava a tela
         if (typeof animAbrirModal === 'function') {
             animAbrirModal(modal, 'flex');
         } else {
@@ -1649,12 +1649,8 @@ async function editarProduto(id) {
         if (fn) {
             try {
                 const r = fn();
-                if (r && typeof r.then === 'function') {
-                    r.catch(function(err){ console.error(err); });
-                }
-            } catch (err) {
-                console.error(err);
-            }
+                if (r && typeof r.then === 'function') r.catch(function(err){ console.error(err); });
+            } catch (err) { console.error(err); }
         }
     }
 
@@ -3165,42 +3161,62 @@ async function carregarDatasDisponiveisCliente() {
     const selHora = document.getElementById('cliOrcHora');
     if (!selData) return;
 
-    selData.innerHTML = '<option value="">Carregando...</option>';
+    selData.innerHTML = '<option value="">Carregando datas...</option>';
     if (selHora) selHora.innerHTML = '<option value="">Escolha a data primeiro</option>';
 
+    let disp = (typeof obterDisponibilidadePadrao === 'function')
+        ? obterDisponibilidadePadrao()
+        : { diasSemana: { '0': false, '1': true, '2': true, '3': true, '4': true, '5': true, '6': false }, horarios: ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'], bloqueados: [] };
+
     try {
-        let disp = obterDisponibilidadePadrao();
+        const params = new URLSearchParams(window.location.search);
         const id = (typeof idOficinaDaLojaAtual !== 'undefined' && idOficinaDaLojaAtual)
             ? idOficinaDaLojaAtual
-            : (new URLSearchParams(window.location.search).get('id')
-                || new URLSearchParams(window.location.search).get('loja'));
+            : (params.get('id') || params.get('loja') || params.get('user_id'));
 
-        if (id) {
-            const { data } = await supabaseClient
-                .from('user_data')
-                .select('dados_oficina, historico')
-                .eq('user_id', id)
-                .single();
-            if (data && data.dados_oficina) {
-                disp = obterDisponibilidadeOficina(data.dados_oficina);
+        if (id && typeof supabaseClient !== 'undefined') {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_data')
+                    .select('dados_oficina, historico')
+                    .eq('user_id', id)
+                    .maybeSingle();
+                if (error) {
+                    console.warn('Disponibilidade: falha ao buscar oficina', error);
+                } else if (data) {
+                    if (data.dados_oficina && typeof obterDisponibilidadeOficina === 'function') {
+                        disp = obterDisponibilidadeOficina(data.dados_oficina);
+                    }
+                    window.__histAgendaCliente = Array.isArray(data.historico) ? data.historico : [];
+                }
+            } catch (netErr) {
+                console.warn('Disponibilidade: rede/offline, usando padrão', netErr);
             }
-            window.__histAgendaCliente = Array.isArray(data && data.historico) ? data.historico : [];
         }
-        __dispClienteCache = disp;
+    } catch (e) {
+        console.warn('Disponibilidade: erro geral, usando padrão', e);
+    }
 
-        const datas = listarProximasDatasDisponiveis(disp, 60);
-        if (datas.length === 0) {
+    __dispClienteCache = disp;
+
+    try {
+        const datas = (typeof listarProximasDatasDisponiveis === 'function')
+            ? listarProximasDatasDisponiveis(disp, 60)
+            : [];
+        if (!datas.length) {
             selData.innerHTML = '<option value="">Sem datas disponíveis no momento</option>';
             return;
         }
+        const nomes = (typeof NOMES_DIA_AGENDA !== 'undefined') ? NOMES_DIA_AGENDA : ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         selData.innerHTML = '<option value="">Selecione a data</option>' + datas.map(function(iso) {
             const dt = new Date(iso + 'T12:00:00');
-            const nomeDia = NOMES_DIA_AGENDA[dt.getDay()];
-            return '<option value="' + iso + '">' + nomeDia + ' · ' + formatarDataBR_ISO(iso) + '</option>';
+            const nomeDia = nomes[dt.getDay()] || '';
+            const label = (typeof formatarDataBR_ISO === 'function') ? formatarDataBR_ISO(iso) : iso;
+            return '<option value="' + iso + '">' + nomeDia + ' · ' + label + '</option>';
         }).join('');
     } catch (e) {
         console.error(e);
-        selData.innerHTML = '<option value="">Erro ao carregar datas</option>';
+        selData.innerHTML = '<option value="">Erro ao montar datas</option>';
     }
 }
 
@@ -3427,7 +3443,7 @@ function renderAgenda() {
             + '</div>'
             + '<span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
             + '</div>'
-            + ((item.fotos && item.fotos.length) ? '<div class="ag-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : '')
+            + ((item.fotos && item.fotos.length) ? '<div class="ag-fotos">' + item.fotos.map(function(f){ return '<img src="'+f+'" alt="Foto" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : '')
             + '<details class="ag-mais"><summary>Ações</summary><div class="ag-acoes">';
 
         if (status === 'Agendado') {
@@ -4674,10 +4690,31 @@ function fecharModalOficina() {
 
 // Orçamento cliente (vitrine)
 function abrirModalOrcamentoCliente() {
-    animAbrirModal(document.getElementById('modal-orcamento-cliente'), 'flex');
+    const modal = document.getElementById('modal-orcamento-cliente');
+    if (typeof animAbrirModal === 'function') {
+        animAbrirModal(modal, 'flex');
+    } else if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('aberto');
+    }
+    // Carrega datas/horários da oficina (sem isso fica "Carregando datas...")
+    if (typeof limparFotosAgendamento === 'function') {
+        try { limparFotosAgendamento(); } catch (e) {}
+    }
+    if (typeof carregarDatasDisponiveisCliente === 'function') {
+        carregarDatasDisponiveisCliente();
+    }
 }
 function fecharModalOrcamentoCliente() {
-    animFecharModal(document.getElementById('modal-orcamento-cliente'));
+    if (typeof animFecharModal === 'function') {
+        animFecharModal(document.getElementById('modal-orcamento-cliente'));
+    } else {
+        const modal = document.getElementById('modal-orcamento-cliente');
+        if (modal) {
+            modal.classList.remove('aberto');
+            modal.style.display = 'none';
+        }
+    }
 }
 
 // Menu Mais
@@ -4832,12 +4869,3 @@ function fecharLightboxFoto() {
     const lb = document.getElementById('foto-lightbox');
     if (lb) lb.classList.remove('aberto');
 }
-(function patchAbrirModalOrcamentoClienteFotos() {
-    const orig = typeof abrirModalOrcamentoCliente === 'function' ? abrirModalOrcamentoCliente : null;
-    if (!orig || orig.__fotosPatched) return;
-    window.abrirModalOrcamentoCliente = function() {
-        if (typeof limparFotosAgendamento === 'function') limparFotosAgendamento();
-        return orig.apply(this, arguments);
-    };
-    window.abrirModalOrcamentoCliente.__fotosPatched = true;
-})();
