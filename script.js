@@ -861,25 +861,30 @@ async function editarProduto(id) {
         const lista = document.getElementById('lista');
         if(!lista) return;
         lista.innerHTML='';
-        materiais.forEach((item,index)=>{
-            if(categoriaAtual !== 'Todos' && item.cat !== categoriaAtual) return;
+        const filtrados = materiais
+            .map((item, index) => ({ item, index }))
+            .filter(({ item }) => categoriaAtual === 'Todos' || item.cat === categoriaAtual);
+        if (filtrados.length === 0) {
+            lista.innerHTML = '<div class="lista-vazia">Nenhum material nesta categoria.</div>';
+            atualizarResumo();
+            return;
+        }
+        filtrados.forEach(({ item, index }) => {
             lista.innerHTML += `
-                <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
-                        <div>
-                            <h3>${item.nome}</h3>
-                            <div style="color: #777; font-size:13px; margin-top:2px;">${item.cat}</div>
-                            <div class="preco">R$ ${item.valor.toFixed(2)}</div>
-                        </div>
-                        <div style="display:flex;gap:6px;">
-                            <button onclick="editarMaterial(${index})" style="background:#f4b400;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">✏️</button>
-                            <button onclick="deletarMaterial(${index})" style="background:#d40000;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:bold;">🗑️</button>
+                <div class="card mat-card${item.qtd > 0 ? ' mat-card-ativo' : ''}">
+                    <div class="mat-card-top">
+                        <span class="mat-cat">${item.cat || ''}</span>
+                        <div class="mat-card-menu">
+                            <button type="button" class="mat-icon-btn" onclick="editarMaterial(${index})" title="Editar">✏️</button>
+                            <button type="button" class="mat-icon-btn mat-icon-del" onclick="deletarMaterial(${index})" title="Excluir">🗑️</button>
                         </div>
                     </div>
+                    <h3 class="mat-nome">${item.nome}</h3>
+                    <div class="mat-preco">R$ ${Number(item.valor).toFixed(2)}</div>
                     <div class="controls">
-                        <button class="btn-minus" onclick="menos(${index})">-</button>
+                        <button type="button" class="btn-minus" onclick="menos(${index})">−</button>
                         <div class="qtd">${item.qtd}</div>
-                        <button class="btn-plus" onclick="mais(${index})">+</button>
+                        <button type="button" class="btn-plus" onclick="mais(${index})">+</button>
                     </div>
                 </div>
             `;
@@ -1618,7 +1623,18 @@ async function editarProduto(id) {
         });
     }
 
-    function filtrarCategoria(cat){ categoriaAtual = cat; render(); }
+    function filtrarCategoria(cat){
+        categoriaAtual = cat;
+        const box = document.getElementById('botoesCategorias');
+        if (box) {
+            box.querySelectorAll('button').forEach(b => {
+                const t = (b.innerText || '').trim();
+                b.classList.toggle('active', t === cat);
+                if (t === 'Todos') b.classList.toggle('btn-green', t === cat);
+            });
+        }
+        render();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');

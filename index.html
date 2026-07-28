@@ -360,24 +360,23 @@ function mostrarSecao(id) {
                         </div>
 
                         
-                                                <div id="aba-agenda" style="display:none;">
+                                                                        <div id="aba-agenda" style="display:none;">
                             <div class="page-head">
-                                <div class="page-head-text">
-                                    <h2>📅 Agenda</h2>
-                                </div>
-                                <button onclick="abrirModalNovoAgendamento()" class="btn-novo-agendamento">＋ Novo</button>
+                                <div class="page-head-text"><h2>📅 Agenda</h2></div>
+                                <button type="button" class="btn-page-action" onclick="abrirModalNovoAgendamento()">＋ Novo</button>
                             </div>
-                                                                                    <div class="grupo-card grupo-card-tight">
+
+                            <div class="grupo-card grupo-card-tight">
                                 <div class="grupo-card-head"><span>Filtrar</span></div>
                                 <div class="agenda-filtros-bar">
-                                    <button onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
-                                    <button onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
-                                    <button onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
-                                    <button onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
-                                    <button onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
-                                    <button onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
-                                    <button onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
-                                    <button onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
+                                    <button type="button" onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
+                                    <button type="button" onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
                                 </div>
                                 <div id="agenda-resumo-contadores" class="agenda-contadores"></div>
                             </div>
@@ -386,7 +385,7 @@ function mostrarSecao(id) {
                                 <summary class="grupo-card-summary">🗓️ Minha disponibilidade</summary>
                                 <div class="grupo-card-body" id="painel-disponibilidade">
                                     <div id="painel-disp-conteudo">
-                                        <p class="grupo-hint">Dias e horários em que você atende. O cliente só vê datas livres.</p>
+                                        <p class="grupo-hint">Dias e horários em que você atende. O cliente só vê datas livres na vitrine.</p>
                                         <p class="grupo-label">Dias da semana</p>
                                         <div id="disp-dias-semana" class="disp-chips"></div>
                                         <p class="grupo-label">Horários</p>
@@ -406,18 +405,19 @@ function mostrarSecao(id) {
                                 <p style="color:#94a3b8; text-align:center; padding:40px;">Carregando...</p>
                             </div>
                         </div>
+
                         <div id="modal-novo-agendamento" class="modal" style="display:none;">
                             <div class="modal-content" style="background:#fff; color:#0f172a; max-width:460px; border:1px solid #e2e8f0;">
                                 <h3 style="font-size:18px; font-weight:800; margin:0 0 6px; color:#0f172a;">＋ Novo Agendamento</h3>
-                                <p style="font-size:13px; color:#64748b; margin:0 0 18px;">Crie um horário direto pelo painel da oficina.</p>
+                                <p style="font-size:13px; color:#64748b; margin:0 0 18px;">Crie um horário direto pelo painel.</p>
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Nome do cliente *</label>
                                 <input type="text" id="agdNome" placeholder="Ex: João Silva" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Telefone / WhatsApp</label>
                                 <input type="text" id="agdTel" placeholder="(75) 99999-9999" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Veículo / Equipamento</label>
-                                <input type="text" id="agdVeiculo" placeholder="Ex: Gol 2018 / Prata" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
-                                <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Serviço desejado</label>
-                                <input type="text" id="agdServico" placeholder="Ex: Pintura de para-choque" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="text" id="agdVeiculo" placeholder="Ex: Gol 2018" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Serviço</label>
+                                <input type="text" id="agdServico" placeholder="Ex: Pintura" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
                                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
                                     <div style="flex:1; min-width:140px;">
                                         <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Data *</label>
@@ -431,32 +431,20 @@ function mostrarSecao(id) {
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Observações</label>
                                 <textarea id="agdObs" placeholder="Opcional..." style="width:100%; height:70px; padding:11px; margin-bottom:16px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a; resize:none;"></textarea>
                                 <div style="display:flex; gap:10px;">
-                                    <button onclick="salvarNovoAgendamento()" style="flex:2; padding:13px; background:#e11d48; color:white; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">Salvar Agendamento</button>
-                                    <button onclick="fecharModalNovoAgendamento()" style="flex:1; padding:13px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer;">Cancelar</button>
+                                    <button type="button" onclick="salvarNovoAgendamento()" style="flex:2; padding:13px; background:#e11d48; color:white; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">Salvar</button>
+                                    <button type="button" onclick="fecharModalNovoAgendamento()" style="flex:1; padding:13px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer;">Cancelar</button>
                                 </div>
                             </div>
                         </div>
 
                         <div id="aba-materiais">
                             <div class="page-head">
-                                <div class="page-head-text">
-                                    <h2>📦 Materiais</h2>
-                                </div>
+                                <div class="page-head-text"><h2>📦 Materiais</h2></div>
                                 <button type="button" class="btn-page-action" onclick="abrirModal()">＋ Novo</button>
                             </div>
                             <div class="grupo-card grupo-card-tight">
-                                <div class="grupo-card-head">
-                                    <span>Categorias</span>
-                                </div>
-                                <div class="categorias-materiais" id="botoesCategorias">
-                                    <button onclick="filtrarCategoria('Todos')" class="btn-green">Todos</button>
-                                    <button onclick="filtrarCategoria('Primer')">Primer</button>
-                                    <button onclick="filtrarCategoria('Tintas')">Tintas</button>
-                                    <button onclick="filtrarCategoria('Verniz')">Verniz</button>
-                                    <button onclick="filtrarCategoria('Massa')">Massa</button>
-                                    <button onclick="filtrarCategoria('Thinner')">Thinner</button>
-                                    <button onclick="filtrarCategoria('Acessórios')" class="btn-primary">Acessórios</button>
-                                </div>
+                                <div class="grupo-card-head"><span>Categorias</span></div>
+                                <div class="categorias-materiais" id="botoesCategorias"></div>
                             </div>
                             <div class="cards" id="lista"></div>
                         </div>
