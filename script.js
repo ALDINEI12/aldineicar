@@ -1423,7 +1423,19 @@ async function editarProduto(id) {
         construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
     }
 
-    function abrirModal(){ document.getElementById('modal').style.display='flex'; }
+    function abrirModal(){
+        const m = document.getElementById('modal');
+        if (!m) return;
+        m.style.display = 'flex';
+        const c = m.querySelector('.modal-content');
+        if (c) { c.scrollTop = 0; }
+        document.body.style.overflow = 'hidden';
+    }
+    function fecharModalMaterial(){
+        const m = document.getElementById('modal');
+        if (m) m.style.display = 'none';
+        document.body.style.overflow = '';
+    }
     function fecharModal() {
     // Altere 'modal' para 'modal-cadastro-produto'
     document.getElementById('modal-cadastro-produto').style.display = 'none';
@@ -2553,6 +2565,10 @@ function fecharModalEspecifico(idModal) {
     if (modal) {
         modal.style.display = 'none';
     }
+    document.body.style.overflow = '';
+}
+function fecharModal() {
+    fecharModalEspecifico('modal');
 }
 
 function renderizarVendas(vendas) {
@@ -3394,11 +3410,15 @@ function abrirModalNovoAgendamento() {
     inputData.value = hoje;
     preencherHorariosNovoAgendamento();
     modal.style.display = 'flex';
+    const c = modal.querySelector('.modal-content');
+    if (c) c.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
 }
 
 function fecharModalNovoAgendamento() {
     const modal = document.getElementById('modal-novo-agendamento');
     if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
 }
 
 function preencherHorariosNovoAgendamento() {

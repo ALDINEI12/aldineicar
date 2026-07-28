@@ -1928,3 +1928,46 @@ html, body {
         font-size: 11px !important;
     }
 }
+
+/* =========================================================
+   MODAIS MOBILE — scroll liberado (iOS + Android)
+   ========================================================= */
+.modal {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.modal-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+@media (max-width: 992px) {
+    .modal {
+        display: none;
+        align-items: flex-end !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        /* permite o sheet rolar internamente */
+        overflow: hidden !important;
+    }
+    .modal[style*="flex"],
+    .modal[style*="block"] {
+        /* quando aberto via JS (display:flex) */
+    }
+    .modal-content,
+    #modal .modal-content,
+    #modal-novo-agendamento .modal-content,
+    #modalOficina .modal-content {
+        max-height: min(92vh, 92dvh) !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+        margin-bottom: 0 !important;
+    }
+}
