@@ -1742,3 +1742,162 @@
     .ag-nome { font-size: 12px; }
     .ag-sub { font-size: 10px; }
 }
+
+/* =========================================================
+   FIX MOBILE: sem scroll horizontal — cabe na tela
+   ========================================================= */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+.container,
+.content,
+.main-layout,
+.aba-container,
+#aba-materiais,
+#aba-agenda,
+#aba-dashboard {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+@media (max-width: 992px) {
+    .content {
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        overflow-x: hidden !important;
+    }
+    .main-layout,
+    .aba-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    /* MATERIAIS: grid que NÃO estoura a tela */
+    #aba-materiais {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    #aba-materiais .cards {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    #aba-materiais .card,
+    #aba-materiais .mat-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+    #aba-materiais .categorias-materiais {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    #aba-materiais .categorias-materiais::-webkit-scrollbar { display: none; }
+    #aba-materiais .categorias-materiais button {
+        flex-shrink: 0 !important;
+    }
+    #aba-materiais .grupo-card {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    #aba-materiais .mat-nome {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+
+    /* AGENDA: sem overflow lateral */
+    #aba-agenda {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    #aba-agenda .grupo-card {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    #aba-agenda .agenda-filtros-bar {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    #aba-agenda .agenda-filtros-bar::-webkit-scrollbar { display: none; }
+    #aba-agenda .agenda-chip {
+        flex-shrink: 0 !important;
+    }
+    #aba-agenda .agenda-contadores {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    #aba-agenda .agenda-contador {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    #aba-agenda .agenda-lista {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    #aba-agenda .ag-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    #aba-agenda .ag-item-main {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    #aba-agenda .ag-info {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+    /* Esconde cards antigos de agenda se ainda existirem */
+    #aba-agenda .agenda-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-direction: column !important;
+    }
+    #aba-agenda .agenda-data-box {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Top actions não estouram */
+    .top-actions {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-wrap: wrap !important;
+    }
+    .top-actions button {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    /* Resumo lateral some no fluxo (já é modal) */
+    .main-layout > .resumo {
+        /* no fluxo mobile o resumo vira modal */
+    }
+}
