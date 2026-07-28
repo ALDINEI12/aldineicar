@@ -2140,3 +2140,43 @@ html, body {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 }
+
+
+/* chips categoria loja com remover */
+.cat-loja-chip {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+.cat-loja-chip.is-active {
+    border-color: #0f172a;
+    background: #0f172a;
+}
+.cat-loja-chip .cat-loja-btn {
+    border: none !important;
+    background: transparent !important;
+    color: #475569 !important;
+    padding: 6px 8px 6px 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+.cat-loja-chip.is-active .cat-loja-btn {
+    color: #fff !important;
+}
+.cat-loja-del {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 8px 4px 2px;
+    cursor: pointer;
+    line-height: 1;
+}
+.cat-loja-chip.is-active .cat-loja-del { color: #fca5a5; }
+.cat-loja-del:hover { color: #ef4444; }

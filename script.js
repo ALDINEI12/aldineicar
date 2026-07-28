@@ -4059,3 +4059,188 @@ function renderizarProdutosLoja() {
         }
     };
 })();
+
+
+// ========================================================
+// LOJA FIX: remover categoria + vitrine fechada + filtro público
+// ========================================================
+let categoriaVitrinePublica = 'Todos';
+let produtosVitrinePublicaCache = [];
+let idOficinaVitrinePublica = null;
+
+function renderBotoesCategoriasLoja() {
+    const box = document.getElementById('botoesCategoriasLoja');
+    if (!box) return;
+    const cats = obterCategoriasLoja();
+    let html = '<button type="button" class="' + (categoriaLojaAtual === 'Todos' ? 'active btn-green' : '') + '" onclick="filtrarProdutosLoja(\'Todos\')">Todos</button>';
+    cats.forEach(c => {
+        const active = categoriaLojaAtual === c ? ' active' : '';
+        const safe = String(c).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        html += '<span class="cat-loja-chip' + (categoriaLojaAtual === c ? ' is-active' : '') + '">'
+            + '<button type="button" class="cat-loja-btn' + active + '" onclick="filtrarProdutosLoja(\'' + safe + '\')">' + c + '</button>'
+            + '<button type="button" class="cat-loja-del" title="Remover categoria" onclick="removerCategoriaLoja(\'' + safe + '\')">×</button>'
+            + '</span>';
+    });
+    box.innerHTML = html;
+}
+
+async function removerCategoriaLoja(cat) {
+    if (!cat) return;
+    const cats = obterCategoriasLoja();
+    if (cats.length <= 1) {
+        if (typeof mostrarToast === 'function') mostrarToast('Mantenha ao menos uma categoria.', 'aviso');
+        return;
+    }
+    const emUso = (typeof produtosLoja !== 'undefined' && produtosLoja.some(p => (p.categoria || 'Geral') === cat));
+    const msg = emUso
+        ? 'A categoria "' + cat + '" tem produtos. Remover mesmo assim? (produtos ficam em "Geral")'
+        : 'Remover a categoria "' + cat + '"?';
+    if (!confirm(msg)) return;
+
+    dadosOficina.categorias_loja = cats.filter(c => c !== cat);
+    if (!dadosOficina.categorias_loja.length) dadosOficina.categorias_loja = ['Geral'];
+
+    // Reatribui produtos dessa categoria para Geral
+    if (emUso && usuarioAtualId) {
+        try {
+            const { data } = await supabaseClient.from('produtos_loja').select('id, categoria').eq('user_id', usuarioAtualId);
+            const ids = (data || []).filter(p => (p.categoria || '') === cat).map(p => p.id);
+            for (const id of ids) {
+                await supabaseClient.from('produtos_loja').update({ categoria: 'Geral' }).eq('id', id);
+            }
+            if (!dadosOficina.categorias_loja.includes('Geral')) {
+                dadosOficina.categorias_loja.unshift('Geral');
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    if (categoriaLojaAtual === cat) categoriaLojaAtual = 'Todos';
+    if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    renderBotoesCategoriasLoja();
+    preencherSelectCategoriasLoja();
+    if (typeof carregarProdutosLoja === 'function') await carregarProdutosLoja();
+    if (typeof mostrarToast === 'function') mostrarToast('Categoria removida.', 'sucesso');
+}
+
+async function alternarVitrineAberta() {
+    if (!dadosOficina) dadosOficina = {};
+    const atual = dadosOficina.vitrine_aberta !== false;
+    dadosOficina.vitrine_aberta = !atual;
+    // força persistência imediata
+    if (typeof salvarNoBanco === 'function') {
+        await salvarNoBanco(true);
+    }
+    atualizarUIVitrineAberta();
+    if (typeof mostrarToast === 'function') {
+        mostrarToast(dadosOficina.vitrine_aberta ? 'Vitrine aberta ao público.' : 'Vitrine fechada ao público.', 'sucesso');
+    }
+}
+
+function vitrineEstaAberta() {
+    if (!dadosOficina) return true;
+    return dadosOficina.vitrine_aberta !== false;
+}
+
+async function carregarProdutosVitrinePublica(idOficina) {
+    const containerVitrine = document.getElementById('vitrine-publica-cliente');
+    const filtrosBox = document.getElementById('filtros-vitrine-publica');
+    if (!containerVitrine) return;
+    idOficinaVitrinePublica = idOficina;
+    containerVitrine.innerHTML = '<p style="color:#a1a1aa;grid-column:1/-1;text-align:center;padding:24px;">Carregando produtos...</p>';
+    if (filtrosBox) filtrosBox.innerHTML = '';
+
+    try {
+        // Status da vitrine (aberta/fechada)
+        let oficina = null;
+        try {
+            const { data } = await supabaseClient.from('user_data').select('dados_oficina').eq('user_id', idOficina).single();
+            oficina = data && data.dados_oficina ? data.dados_oficina : null;
+        } catch (e) {}
+
+        if (oficina && oficina.vitrine_aberta === false) {
+            containerVitrine.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#a1a1aa;">'
+                + '<div style="font-size:36px;margin-bottom:10px;">🔒</div>'
+                + '<p style="font-size:16px;font-weight:700;color:#fff;margin:0 0 6px;">Vitrine temporariamente fechada</p>'
+                + '<p style="font-size:13px;margin:0;">Volte mais tarde ou fale com a oficina.</p></div>';
+            return;
+        }
+
+        const { data: produtos, error } = await supabaseClient
+            .from('produtos_loja')
+            .select('*')
+            .eq('user_id', idOficina)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        produtosVitrinePublicaCache = produtos || [];
+
+        // Categorias: da oficina + dos produtos
+        let cats = [];
+        if (oficina && Array.isArray(oficina.categorias_loja)) cats = oficina.categorias_loja.slice();
+        produtosVitrinePublicaCache.forEach(p => {
+            const c = (p.categoria || 'Geral').trim();
+            if (c && !cats.includes(c)) cats.push(c);
+        });
+        if (!cats.length) cats = ['Geral'];
+
+        renderFiltrosVitrinePublica(cats);
+        renderVitrinePublicaFiltrada();
+    } catch (err) {
+        console.error('Erro vitrine pública:', err);
+        containerVitrine.innerHTML = '<p style="color:#e11d48;grid-column:1/-1;text-align:center;">Erro ao carregar produtos.</p>';
+    }
+}
+
+function renderFiltrosVitrinePublica(cats) {
+    const box = document.getElementById('filtros-vitrine-publica');
+    if (!box) return;
+    const all = ['Todos'].concat(cats || []);
+    box.innerHTML = all.map(c => {
+        const active = categoriaVitrinePublica === c;
+        const safe = String(c).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return '<button type="button" onclick="filtrarVitrinePublica(\'' + safe + '\')" style="'
+            + 'padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid '
+            + (active ? '#e11d48;background:#e11d48;color:#fff;' : '#3f3f46;background:#18181b;color:#a1a1aa;')
+            + '">' + c + '</button>';
+    }).join('');
+}
+
+function filtrarVitrinePublica(cat) {
+    categoriaVitrinePublica = cat || 'Todos';
+    // re-render chips with current cats from cache
+    const cats = [];
+    produtosVitrinePublicaCache.forEach(p => {
+        const c = (p.categoria || 'Geral').trim();
+        if (c && !cats.includes(c)) cats.push(c);
+    });
+    renderFiltrosVitrinePublica(cats.length ? cats : ['Geral']);
+    renderVitrinePublicaFiltrada();
+}
+
+function renderVitrinePublicaFiltrada() {
+    const containerVitrine = document.getElementById('vitrine-publica-cliente');
+    if (!containerVitrine) return;
+    const lista = (produtosVitrinePublicaCache || []).filter(p => {
+        if (categoriaVitrinePublica === 'Todos') return true;
+        return (p.categoria || 'Geral') === categoriaVitrinePublica;
+    });
+    if (!lista.length) {
+        containerVitrine.innerHTML = '<p style="color:#a1a1aa;grid-column:1/-1;text-align:center;padding:30px;">Nenhum produto nesta categoria.</p>';
+        return;
+    }
+    const imgPadrao = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=60';
+    containerVitrine.innerHTML = lista.map(prod => {
+        const urlImagem = prod.imagem_url || imgPadrao;
+        const cat = prod.categoria || 'Geral';
+        const nome = (prod.nome || '').replace(/'/g, "\\'");
+        return '<div style="background:#18181b;border:1px solid #27272a;border-radius:8px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:300px;">'
+            + '<div><span style="display:inline-block;font-size:10px;font-weight:700;color:#a1a1aa;background:#27272a;padding:3px 8px;border-radius:12px;margin-bottom:8px;text-transform:uppercase;">' + cat + '</span>'
+            + '<img src="' + urlImagem + '" style="width:100%;height:130px;object-fit:cover;border-radius:6px;background:#09090b;" onerror="this.onerror=null;this.src=\'' + imgPadrao + '\';">'
+            + '<h4 style="font-size:15px;color:#fff;font-weight:700;margin:12px 0 4px;">' + (prod.nome || '') + '</h4>'
+            + '<p style="font-size:12px;color:#a1a1aa;margin:0;line-height:1.4;">' + (prod.descricao || 'Disponível.') + '</p></div>'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;border-top:1px solid #27272a;padding-top:12px;">'
+            + '<span style="font-size:16px;font-weight:800;color:#e11d48;">R$ ' + parseFloat(prod.preco || 0).toFixed(2) + '</span>'
+            + '<button onclick="abrirModalCompra(\'' + prod.id + '\',\'' + nome + '\',\'' + prod.preco + '\',\'' + (prod.estoque || 0) + '\')" style="background:#22c55e;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;">Comprar</button>'
+            + '</div></div>';
+    }).join('');
+}
