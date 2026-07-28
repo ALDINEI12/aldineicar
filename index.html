@@ -543,8 +543,16 @@ function mostrarSecao(id) {
                                     <button type="button" onclick="promptNovaCategoriaLoja(true)" style="padding:10px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">＋ Nova</button>
                                 </div>
 
-                                <label class="loja-label">URL da imagem</label>
-                                <input type="text" id="prodImgUrl" placeholder="https://..." style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                <label class="loja-label">Foto do produto</label>
+                                <input type="hidden" id="prodImgUrl" value="">
+                                <div class="prod-foto-box">
+                                    <div id="prodImgPreview" class="prod-foto-preview" onclick="document.getElementById('prodImgFile').click()">📷 Toque para escolher da galeria</div>
+                                    <input type="file" id="prodImgFile" accept="image/*" capture="environment" class="prod-foto-input" onchange="onProdImgFileChange(this)">
+                                    <div class="prod-foto-acoes">
+                                        <label for="prodImgFile" class="btn-foto-escolher">📁 Escolher foto</label>
+                                        <button type="button" class="btn-foto-remover" onclick="limparFotoProduto()">Remover</button>
+                                    </div>
+                                </div>
 
                                 <label class="loja-label">Nome do produto *</label>
                                 <input type="text" id="prodNome" placeholder="Ex: Pastilha de freio" style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">

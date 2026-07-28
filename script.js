@@ -4315,3 +4315,132 @@ function renderVitrinePublicaFiltrada() {
             + '</div></div>';
     }).join('');
 }
+
+
+// ========================================================
+// FOTO DO PRODUTO — galeria (base64 redimensionada)
+// ========================================================
+function limparFotoProduto() {
+    const hidden = document.getElementById('prodImgUrl');
+    const file = document.getElementById('prodImgFile');
+    const prev = document.getElementById('prodImgPreview');
+    if (hidden) hidden.value = '';
+    if (file) file.value = '';
+    if (prev) {
+        prev.style.backgroundImage = '';
+        prev.classList.remove('has-img');
+        prev.textContent = '📷 Toque para escolher da galeria';
+    }
+}
+
+function mostrarPreviewProduto(dataUrl) {
+    const prev = document.getElementById('prodImgPreview');
+    const hidden = document.getElementById('prodImgUrl');
+    if (hidden) hidden.value = dataUrl || '';
+    if (!prev) return;
+    if (dataUrl) {
+        prev.textContent = '';
+        prev.style.backgroundImage = 'url(' + dataUrl + ')';
+        prev.classList.add('has-img');
+    } else {
+        limparFotoProduto();
+    }
+}
+
+function redimensionarImagemArquivo(file, maxLado, qualidade) {
+    maxLado = maxLado || 900;
+    qualidade = qualidade || 0.72;
+    return new Promise(function(resolve, reject) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+            reject(new Error('Arquivo inválido'));
+            return;
+        }
+        const reader = new FileReader();
+        reader.onerror = function() { reject(new Error('Falha ao ler imagem')); };
+        reader.onload = function() {
+            const img = new Image();
+            img.onload = function() {
+                let w = img.width;
+                let h = img.height;
+                if (w > maxLado || h > maxLado) {
+                    if (w > h) { h = Math.round(h * (maxLado / w)); w = maxLado; }
+                    else { w = Math.round(w * (maxLado / h)); h = maxLado; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                let out = canvas.toDataURL('image/jpeg', qualidade);
+                // se ainda muito grande (> ~900kb), baixa qualidade
+                if (out.length > 900000) {
+                    out = canvas.toDataURL('image/jpeg', 0.55);
+                }
+                resolve(out);
+            };
+            img.onerror = function() { reject(new Error('Imagem inválida')); };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function onProdImgFileChange(input) {
+    const file = input && input.files && input.files[0];
+    if (!file) return;
+    try {
+        if (typeof mostrarToast === 'function') mostrarToast('Processando foto...', 'aviso');
+        const dataUrl = await redimensionarImagemArquivo(file, 900, 0.72);
+        mostrarPreviewProduto(dataUrl);
+        if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
+    } catch (e) {
+        console.error(e);
+        if (typeof mostrarToast === 'function') mostrarToast('Não foi possível usar esta imagem.', 'erro');
+        else alert('Não foi possível usar esta imagem.');
+        limparFotoProduto();
+    }
+}
+
+// Atualiza preparação do modal para preview
+function prepararNovoProduto() {
+    const idEl = document.getElementById('editandoId');
+    if (idEl) idEl.value = '';
+    const tit = document.getElementById('titulo-modal-produto');
+    if (tit) tit.innerText = 'Novo Produto';
+    ['prodNome','prodPreco','prodDesc','prodEstoque'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    limparFotoProduto();
+    if (typeof preencherSelectCategoriasLoja === 'function') {
+        preencherSelectCategoriasLoja(typeof categoriaLojaAtual !== 'undefined' && categoriaLojaAtual !== 'Todos' ? categoriaLojaAtual : null);
+    }
+    const modal = document.getElementById('modal-cadastro-produto');
+    if (modal) modal.style.display = 'block';
+}
+
+async function prepararEdicaoProduto(id, nome, preco, descricao, estoque, imagem_url, categoria) {
+    let prod = null;
+    if (typeof produtosLoja !== 'undefined' && Array.isArray(produtosLoja)) {
+        prod = produtosLoja.find(p => String(p.id) === String(id));
+    }
+    if (!prod && id) {
+        try {
+            const { data } = await supabaseClient.from('produtos_loja').select('*').eq('id', id).single();
+            prod = data;
+        } catch (e) {}
+    }
+    document.getElementById('titulo-modal-produto').innerText = 'Editar Produto';
+    document.getElementById('editandoId').value = id || (prod && prod.id) || '';
+    document.getElementById('prodNome').value = (prod && prod.nome) || nome || '';
+    document.getElementById('prodPreco').value = (prod && prod.preco) != null ? prod.preco : (preco || '');
+    document.getElementById('prodDesc').value = (prod && prod.descricao) || (descricao && descricao !== 'null' ? descricao : '') || '';
+    document.getElementById('prodEstoque').value = (prod && prod.estoque) != null ? prod.estoque : (estoque || 0);
+    const img = (prod && prod.imagem_url) || (imagem_url && imagem_url !== 'null' ? imagem_url : '') || '';
+    if (img) mostrarPreviewProduto(img);
+    else limparFotoProduto();
+    if (typeof preencherSelectCategoriasLoja === 'function') {
+        preencherSelectCategoriasLoja((prod && prod.categoria) || categoria || 'Geral');
+    }
+    document.getElementById('modal-cadastro-produto').style.display = 'block';
+}
