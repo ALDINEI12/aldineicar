@@ -1078,38 +1078,40 @@ async function editarProduto(id) {
             }
 
             h.innerHTML += `
-                <div class="cliente-item">
-                    <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; flex-wrap:wrap;">
-                        <div>
-                            <span class="badge-status ${classeStatus}">${statusAtual}</span><br>
-                            <strong>👤 Cliente: ${cliente.nome}</strong><br>
-                            ${detalheObraOuVeiculo}<br>
-                            🔧 Serviço: ${veiculo.tipo_servico || '---'}<br><br>
-                            
-                            💰 Valor Cobrado: R$ ${valorCobrado.toFixed(2).replace('.', ',')}<br>
-                            📦 Custo Materiais: R$ ${parseFloat(custoMat).toFixed(2).replace('.', ',')}<br>
-                            🔨 Mão de Obra: R$ ${parseFloat(custoMaoObra).toFixed(2).replace('.', ',')}<br>
-                            ${linhaDeslocamentoHTML}
-                            <strong style="color: ${lucroReal >= 0 ? '#16a34a' : '#dc2626'}">📈 Lucro Real: R$ ${lucroReal.toFixed(2).replace('.', ',')}</strong><br><br>
-                            
-                            🕒 ${item.data || '---'}
-                        </div>
-                        
-                        <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;" id="actions-hist-${index}">
-                            <label style="font-size:11px; font-weight:bold; color:#64748b;">ALTERAR ESTADO:</label>
+                <div class="cliente-item hist-card">
+                    <div class="hist-top">
+                        <span class="badge-status ${classeStatus}">${statusAtual}</span>
+                        <span class="hist-data">🕒 ${item.data || '---'}</span>
+                    </div>
+                    <div class="hist-main">
+                        <strong class="hist-nome">${cliente.nome}</strong>
+                        <p class="hist-meta">${detalheObraOuVeiculo.replace('🚗 Veículo: ', '').replace('🏢 Edifício: ', '')}</p>
+                        <p class="hist-meta">🔧 ${veiculo.tipo_servico || '---'}</p>
+                    </div>
+                    <div class="hist-financeiro">
+                        <div><span>Cobrado</span><b>R$ ${valorCobrado.toFixed(2).replace('.', ',')}</b></div>
+                        <div><span>Custos</span><b>R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b></div>
+                        <div class="${lucroReal >= 0 ? 'pos' : 'neg'}"><span>Lucro</span><b>R$ ${lucroReal.toFixed(2).replace('.', ',')}</b></div>
+                    </div>
+                    <details class="hist-detalhes">
+                        <summary>Detalhes e ações</summary>
+                        <div class="hist-detalhes-body">
+                            <p>📦 Materiais: R$ ${parseFloat(custoMat).toFixed(2).replace('.', ',')} · 🔨 M.O.: R$ ${parseFloat(custoMaoObra).toFixed(2).replace('.', ',')}${custoDesloc > 0 ? ' · ⛽ R$ ' + custoDesloc.toFixed(2).replace('.', ',') : ''}</p>
+                            <label class="hist-label">Status</label>
                             <select class="select-status-inline" onchange="alterarStatus(${index}, this.value)">
                                 <option value="Orçamento" ${statusAtual === 'Orçamento' ? 'selected' : ''}>📋 Orçamento</option>
                                 <option value="Em Execução" ${statusAtual === 'Em Execução' ? 'selected' : ''}>🔧 Em Execução</option>
                                 <option value="Pronto" ${statusAtual === 'Pronto' ? 'selected' : ''}>✅ Pronto</option>
                                 <option value="Pago" ${statusAtual === 'Pago' ? 'selected' : ''}>💰 Pago</option>
                             </select>
-                            <hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0;">
-                            <button onclick="carregarParaEditar(${index})" style="background:#f4b400; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">✏️ Editar</button>
-                            <button onclick="gerarPDFHistorico(${index})" style="background:#00a651; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📄 PDF</button>
-                            <button onclick="enviarWhatsAppHistorico(${index})" style="background:#25D366; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">📱 WhatsApp</button>
-                            <button onclick="deletarHistorico(${index})" style="background:#d40000; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13px;">🗑️</button>
+                            <div class="hist-acoes">
+                                <button onclick="carregarParaEditar(${index})" class="hist-btn hist-btn-edit">✏️ Editar</button>
+                                <button onclick="gerarPDFHistorico(${index})" class="hist-btn hist-btn-pdf">📄 PDF</button>
+                                <button onclick="enviarWhatsAppHistorico(${index})" class="hist-btn hist-btn-wa">📱 WhatsApp</button>
+                                <button onclick="deletarHistorico(${index})" class="hist-btn hist-btn-del">🗑️</button>
+                            </div>
                         </div>
-                    </div>
+                    </details>
                 </div>
             `;
         });
@@ -1269,6 +1271,13 @@ async function editarProduto(id) {
         if (el) {
             el.style.display = 'block';
             if (typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
+            // No mobile, disponibilidade começa recolhida
+            const disp = document.getElementById('painel-disp-conteudo');
+            const btnDisp = document.getElementById('btn-toggle-disp');
+            if (disp && window.innerWidth <= 992) {
+                disp.style.display = 'none';
+                if (btnDisp) btnDisp.innerText = 'Expandir';
+            }
             renderAgenda();
         }
         return;

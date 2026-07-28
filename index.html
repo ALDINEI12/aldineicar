@@ -356,14 +356,11 @@ function mostrarSecao(id) {
 
                         
                                                 <div id="aba-agenda" style="display:none;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-                                <div>
-                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">📅 Agenda Online</h2>
-                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Disponibilidade, agendamentos e conversão em orçamento.</p>
+                            <div class="page-head">
+                                <div class="page-head-text">
+                                    <h2>📅 Agenda</h2>
                                 </div>
-                                <button onclick="abrirModalNovoAgendamento()" class="btn-novo-agendamento" style="background:#e11d48; color:white; border:none; padding:12px 18px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(225,29,72,0.25);">
-                                    ＋ Novo Agendamento
-                                </button>
+                                <button onclick="abrirModalNovoAgendamento()" class="btn-novo-agendamento">＋ Novo</button>
                             </div>
                                                         <div class="agenda-filtros-bar">
                                 <button onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
@@ -563,35 +560,66 @@ function mostrarSecao(id) {
                     </div>
 
                     <div class="resumo">
-                        <h2>Resumo</h2>
-                        <div>Custo Materiais: R$ <span id="totalMateriais">0.00</span></div>
-                        <div>Mão de Obra Total: R$ <span id="totalMaoObra">0.00</span></div>
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        
-                        <label style="font-size:12px; font-weight:bold; color:#555;">CLIENTE</label>
-                        <input type="text" id="clienteNome" placeholder="Nome do cliente">
-                        <input type="text" id="clienteEndereco" placeholder="Endereço">
-                        <input type="text" id="clienteTel" placeholder="Telefone">
-                        <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátrio Dias/BA">
-                        
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">VEÍCULO</label>
-                        <input type="text" id="veiculoModelo" placeholder="Modelo (Ex: Palio)">
-                        <input type="text" id="veiculoPlaca" placeholder="Placa">
-                        <input type="text" id="veiculoAno" placeholder="Ano">
-                        <input type="text" id="veiculoCor" placeholder="Cor">
-                        <input type="text" id="nomeAvaliador" placeholder="Nome do Avaliador">
-                        <input type="text" id="tipoServico" placeholder="Tipo de Serviço (Ex: Pintura Geral)">
-
-                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ddd;">
-                        <label style="font-size:12px; font-weight:bold; color:#555;">FINANCEIRO</label>
-                        <input type="number" id="valorCliente" placeholder="Valor total cobrado" oninput="atualizarResumo()">
-                        
-                        <div style="margin-top: 15px; font-weight: bold; font-size: 16px;">
-                            Lucro Real: <span style="color: #00a651;">R$ <span id="lucro">0.00</span></span>
+                        <div class="resumo-header-bar">
+                            <h2>Resumo</h2>
+                            <button type="button" class="resumo-fechar-mobile" onclick="abrirResumoMobile()" aria-label="Fechar">✕</button>
                         </div>
-                        <button class="btn-green" onclick="enviarWhatsApp()">📱 Enviar WhatsApp</button>
-                        <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar Resumo</button>
+
+                        <div class="resumo-totais">
+                            <div class="resumo-total-item">
+                                <span>Materiais</span>
+                                <strong>R$ <span id="totalMateriais">0.00</span></strong>
+                            </div>
+                            <div class="resumo-total-item">
+                                <span>Mão de obra</span>
+                                <strong>R$ <span id="totalMaoObra">0.00</span></strong>
+                            </div>
+                            <div class="resumo-total-item resumo-lucro">
+                                <span>Lucro</span>
+                                <strong>R$ <span id="lucro">0.00</span></strong>
+                            </div>
+                        </div>
+
+                        <details class="resumo-grupo" open>
+                            <summary>👤 Cliente</summary>
+                            <div class="resumo-grupo-body">
+                                <input type="text" id="clienteNome" placeholder="Nome do cliente">
+                                <input type="text" id="clienteTel" placeholder="Telefone / WhatsApp">
+                                <div class="resumo-row-2">
+                                    <input type="text" id="clienteCidade" placeholder="Cidade/UF" value="Sátrio Dias/BA">
+                                    <input type="text" id="clienteEndereco" placeholder="Endereço">
+                                </div>
+                            </div>
+                        </details>
+
+                        <details class="resumo-grupo" open>
+                            <summary>🚗 Veículo / Serviço</summary>
+                            <div class="resumo-grupo-body">
+                                <input type="text" id="veiculoModelo" placeholder="Modelo (Ex: Palio)">
+                                <div class="resumo-row-2">
+                                    <input type="text" id="veiculoPlaca" placeholder="Placa">
+                                    <input type="text" id="veiculoAno" placeholder="Ano">
+                                </div>
+                                <div class="resumo-row-2">
+                                    <input type="text" id="veiculoCor" placeholder="Cor">
+                                    <input type="text" id="nomeAvaliador" placeholder="Avaliador">
+                                </div>
+                                <input type="text" id="tipoServico" placeholder="Tipo de serviço (Ex: Pintura geral)">
+                            </div>
+                        </details>
+
+                        <details class="resumo-grupo" open>
+                            <summary>💰 Cobrança</summary>
+                            <div class="resumo-grupo-body">
+                                <label class="resumo-label">Valor total cobrado do cliente</label>
+                                <input type="number" id="valorCliente" placeholder="0,00" oninput="atualizarResumo()">
+                            </div>
+                        </details>
+
+                        <div class="resumo-acoes">
+                            <button class="btn-green" onclick="enviarWhatsApp()">📱 WhatsApp</button>
+                            <button class="btn-primary" onclick="limparResumo()">🗑️ Limpar</button>
+                        </div>
                     </div>
                 </div>
             </div> 
