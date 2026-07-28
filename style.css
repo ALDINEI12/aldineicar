@@ -833,3 +833,171 @@
 @media (min-width: 993px) {
     .bottom-nav, .menu-mais-sheet { display: none !important; }
 }
+
+
+/* =========================================================
+   iPhone 12 / 13 / 14 (390×844) — layout fino
+   ========================================================= */
+@supports (padding: env(safe-area-inset-top)) {
+    html { height: -webkit-fill-available; }
+}
+
+@media (max-width: 430px) {
+    html, body {
+        overscroll-behavior-y: none;
+        -webkit-text-size-adjust: 100%;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        background: #f8fafc;
+    }
+
+    /* Header sob a status bar / Dynamic Island area no PWA */
+    header {
+        height: calc(48px + env(safe-area-inset-top, 0px)) !important;
+        padding-top: env(safe-area-inset-top, 0px) !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    .content {
+        padding: 10px 12px calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        gap: 10px !important;
+        max-width: 390px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Bottom nav + home indicator */
+    .bottom-nav {
+        height: calc(54px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+    }
+    .bn-item { min-height: 44px; } /* área de toque Apple HIG */
+    .bn-item .bn-icon { font-size: 20px !important; }
+    .bn-item .bn-label { font-size: 10px !important; font-weight: 600; }
+
+    /* Sticky top actions sob o header */
+    .top-actions {
+        top: calc(48px + env(safe-area-inset-top, 0px)) !important;
+        margin-left: -2px;
+        margin-right: -2px;
+    }
+
+    /* Grid: 2 colunas com gutters confortáveis em 390px */
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+    .card {
+        padding: 11px !important;
+        min-height: 118px !important;
+        border-radius: 12px !important;
+    }
+    .card h3 {
+        font-size: 12px !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .preco { font-size: 14px !important; }
+    .controls button {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px;
+    }
+
+    /* Dashboard 2×2 legível */
+    .dash-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+    .dash-kpi { padding: 12px !important; border-radius: 12px !important; }
+    .dash-kpi-value { font-size: 15px !important; }
+    .dash-kpi-label { font-size: 10px !important; }
+    .dash-chart-card div[style*="height"] { height: 200px !important; }
+
+    /* Agenda: botões com área de toque ≥ 44px de altura preferencial */
+    .agenda-btn {
+        min-height: 36px;
+        padding: 8px 6px !important;
+        font-size: 11px !important;
+    }
+    .agenda-chip {
+        padding: 7px 12px !important;
+        font-size: 11px !important;
+        min-height: 32px;
+    }
+    .agenda-data-box { padding: 10px 14px !important; }
+    .agenda-dia { font-size: 20px !important; }
+
+    /* Contadores */
+    #agenda-resumo-contadores {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+    }
+    .agenda-contador { padding: 8px 10px !important; }
+
+    /* FAB resumo acima do tab bar */
+    #btn-resumo-flutuante {
+        bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 14px !important;
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 22px !important;
+    }
+
+    /* Toast acima do tab bar */
+    #toast-container {
+        bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+        left: 12px !important;
+        right: 12px !important;
+    }
+
+    /* Modais sheet-style */
+    .modal-content {
+        max-height: calc(100vh - env(safe-area-inset-top, 0px) - 20px) !important;
+        max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 20px) !important;
+        padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+
+    /* Inputs com altura confortável para dedo */
+    input, select, textarea, button {
+        -webkit-appearance: none;
+        touch-action: manipulation;
+    }
+    .resumo input,
+    .modal-content input,
+    .modal-content select,
+    .modal-content textarea {
+        min-height: 44px;
+        font-size: 16px !important; /* evita zoom automático no iOS */
+    }
+
+    /* Loja */
+    .grid-produtos {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+    }
+    #vitrine-produtos img { height: 100px !important; }
+
+    /* Categorias scroll sem bounce feio */
+    .categorias-materiais,
+    .agenda-filtros-bar {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    /* Menu mais com safe area */
+    .menu-mais-panel {
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    .menu-mais-panel button {
+        min-height: 48px;
+    }
+}
