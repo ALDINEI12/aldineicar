@@ -39,8 +39,8 @@ const TAXA_CADASTRO = {
     // Token de teste costuma começar com TEST- ...
     // Token de produção costuma começar com APP_USR- ...
     mercadoPago: {
-        accessToken: '',         // Access Token (teste OU produção — não misture)
-        publicKey: '',           // Public Key do mesmo ambiente
+        accessToken: 'APP_USR-3073092483175820-072900-ba141d1743e703b0a188377b75778fe8-2348896496',         // Access Token (teste OU produção — não misture)
+        publicKey: 'APP_USR-b5678a25-4640-41a8-815d-aae44a6391bc',           // Public Key do mesmo ambiente
         // true/false/null → null = detecta pelo token automaticamente
         sandbox: null,
         // Se tiver Edge Function/proxy, coloque a URL e deixe accessToken vazio no front:
@@ -49,8 +49,8 @@ const TAXA_CADASTRO = {
     },
 
     // --- Fallback PIX manual (se metodo = pix_manual ou MP falhar) ---
-    pixChave: '11684388538',
-    pixNome: 'ALDINEICAR',
+    pixChave: '59907544000184',
+    pixNome: 'ALDINEI BATISTA ROCHA FILHO',
     pixCidade: 'SATIRO DIAS'
 };
 let __signupPendente = null; // { nome, email, password, txid, payload, valor, mpPreferenceId, mpPaymentId }
