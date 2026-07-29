@@ -30,31 +30,42 @@
     <header class="vt-header">
         <div class="vt-brand">
             <span class="vt-logo" id="vt-header-nome">ALDINEI<span>CAR</span></span>
-            <span class="vt-badge">Vitrine</span>
+            <span class="vt-badge">Oficina</span>
         </div>
         <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">📅 Agendar</button>
     </header>
-
     <section class="vt-hero">
         <div class="vt-hero-inner">
-            <h1 id="vt-hero-titulo">Peças e serviços para o seu veículo</h1>
-            <p id="vt-hero-sub">Escolha um produto ou agende um atendimento com a oficina.</p>
-            <button type="button" class="vt-btn-outline" onclick="abrirModalOrcamentoCliente()">Solicitar orçamento</button>
+            <h1 id="vt-hero-titulo">Serviços profissionais para o seu veículo</h1>
+            <p id="vt-hero-sub">Conheça nossos serviços, escolha o que precisa e agende com a oficina.</p>
+            <div class="vt-hero-actions">
+                <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">Agendar serviço</button>
+                <button type="button" class="vt-btn-outline" onclick="vitrineMostrarAba('loja')">Loja da Oficina</button>
+            </div>
         </div>
     </section>
-
+    <nav class="vt-contatos" id="vt-contatos" aria-label="Contatos">
+        <a id="vt-link-whatsapp" class="vt-contato-btn vt-wa" href="#" target="_blank" rel="noopener" style="display:none;">WhatsApp</a>
+        <a id="vt-link-instagram" class="vt-contato-btn vt-ig" href="#" target="_blank" rel="noopener" style="display:none;">Instagram</a>
+        <a id="vt-link-maps" class="vt-contato-btn vt-maps" href="#" target="_blank" rel="noopener" style="display:none;">Localização</a>
+    </nav>
+    <p id="vt-endereco-txt" class="vt-endereco" style="display:none;"></p>
+    <div class="vt-tabs">
+        <button type="button" class="vt-tab active" id="vt-tab-servicos" onclick="vitrineMostrarAba('servicos')">🔧 Serviços</button>
+        <button type="button" class="vt-tab" id="vt-tab-loja" onclick="vitrineMostrarAba('loja')">🛒 Loja da Oficina</button>
+    </div>
     <main class="vt-main">
-        <div class="vt-section-head">
-            <h2>Catálogo</h2>
-            <p id="vt-contagem-produtos" class="vt-count"></p>
-        </div>
-        <div id="filtros-vitrine-publica" class="vt-filtros"></div>
-        <div id="vitrine-publica-cliente" class="vt-grid"></div>
+        <section id="vt-secao-servicos" class="vt-secao">
+            <div class="vt-section-head"><h2>Nossos serviços</h2><p id="vt-contagem-servicos" class="vt-count"></p></div>
+            <div id="vitrine-servicos-lista" class="vt-servicos-grid"></div>
+        </section>
+        <section id="vt-secao-loja" class="vt-secao" style="display:none;">
+            <div class="vt-section-head"><h2>Loja da Oficina</h2><p id="vt-contagem-produtos" class="vt-count"></p></div>
+            <div id="filtros-vitrine-publica" class="vt-filtros"></div>
+            <div id="vitrine-publica-cliente" class="vt-grid"></div>
+        </section>
     </main>
-
-    <footer class="vt-footer">
-        <p>© 2026 ALDINEICAR · Vitrine oficial</p>
-    </footer>
+    <footer class="vt-footer"><p>© 2026 <span id="vt-footer-nome">ALDINEICAR</span> · Vitrine oficial</p></footer>
 </div>
 
 <div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
@@ -70,8 +81,10 @@
 
         <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
         <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
-        
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Tipo de serviço *</label>
+        <select id="cliOrcServico" onchange="onCliOrcServicoChange()" style="width: 100%; margin-bottom: 8px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;"><option value="">Carregando serviços...</option></select>
+        <p id="cliOrcServicoPreco" style="font-size:12px;color:#22c55e;font-weight:700;margin:0 0 12px;min-height:16px;"></p>
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Observações (opcional)</label>
         <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito..." style="width: 100%; height: 80px; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
 
         <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:14px;">
@@ -533,10 +546,22 @@ function mostrarSecao(id) {
                                     <label class="loja-label">Subtítulo</label>
                                     <textarea id="vitrineHeroSub" placeholder="Escolha um produto ou agende um atendimento..." style="width:100%;height:64px;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;resize:none;"></textarea>
                                     <button type="button" class="btn-loja-prim" onclick="salvarTextosVitrine()">💾 Salvar textos da vitrine</button>
-                                    <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública do cliente. Toque para expandir/recolher.</p>
+                                    <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública do cliente.</p>
                                 </div>
                             </details>
-
+                            <details class="grupo-card" open>
+                                <summary class="grupo-card-summary">🔧 Serviços da vitrine (com preços)</summary>
+                                <div class="grupo-card-body">
+                                    <p class="grupo-hint" style="margin-top:0;">Cliente escolhe o serviço ao agendar. Você recebe serviço + valor.</p>
+                                    <div id="lista-servicos-vitrine-admin" class="servicos-admin-lista"></div>
+                                    <input type="text" id="servVitrineNome" placeholder="Nome do serviço" style="width:100%;margin-bottom:8px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;">
+                                    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                                        <input type="number" id="servVitrinePreco" step="0.01" placeholder="Preço R$" style="flex:1;min-width:110px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
+                                        <input type="text" id="servVitrineDesc" placeholder="Descrição (opcional)" style="flex:2;min-width:140px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;">
+                                    </div>
+                                    <button type="button" class="btn-loja-prim" onclick="adicionarServicoVitrine()">＋ Adicionar serviço</button>
+                                </div>
+                            </details>
                             <div class="grupo-card grupo-card-tight">
                                 <div class="grupo-card-head">
                                     <span>Categorias da loja</span>
@@ -724,6 +749,10 @@ function mostrarSecao(id) {
             <input type="text" id="oficinaFone" placeholder="Telefone(s)">
             <input type="text" id="oficinaEmail" placeholder="E-mail">
             <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento">
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:14px;">CONTATOS NA VITRINE</label>
+            <input type="text" id="oficinaWhatsapp" placeholder="WhatsApp (DDD, ex: 75999999999)">
+            <input type="text" id="oficinaInstagram" placeholder="Instagram (@usuario)">
+            <input type="text" id="oficinaMaps" placeholder="Link Google Maps (opcional)">
             <button class="btn-green" onclick="salvarDadosOficina()">Salvar Dados</button>
             <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
         </div>
