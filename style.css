@@ -3375,3 +3375,11 @@ html, body {
   font-size: 13px;
 }
 
+
+/* Swipe feedback no bottom nav */
+.bn-item.bn-swipe-flash {
+  color: #fff !important;
+  background: rgba(220, 38, 38, 0.18);
+  border-radius: 12px;
+  transition: background .2s ease, color .2s ease;
+}

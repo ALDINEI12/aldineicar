@@ -1301,6 +1301,7 @@ async function editarProduto(id) {
 
    function mostrarAba(nome) {
     if (window.__modoClienteVitrine) return;
+    window.__abaAtual = nome;
     const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vitrine', 'vendas', 'agenda'];
     ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
@@ -5178,4 +5179,119 @@ async function carregarDadosOficinaVitrine(idOficina){
     };
     window.fecharModalOrcamentoCliente.__dispPatched = true;
   }
+})();
+
+
+// ========================================================
+// SWIPE MOBILE — deslizar para trocar de seção
+// Ordem: Dashboard → Materiais → Agenda → Loja
+// ========================================================
+(function initSwipeNavegacaoAbas() {
+    var ABAS_SWIPE = ['dashboard', 'materiais', 'agenda', 'loja'];
+    var startX = 0, startY = 0, startT = 0;
+    var tracking = false;
+    var MIN_DX = 72;      // px mínimos horizontais
+    var MAX_DY = 55;      // se vertical for maior, é scroll — ignora
+    var MAX_TIME = 600;   // ms
+
+    function isMobile() {
+        return window.matchMedia && window.matchMedia('(max-width: 992px)').matches;
+    }
+
+    function abaAtual() {
+        if (window.__abaAtual && ABAS_SWIPE.indexOf(window.__abaAtual) >= 0) {
+            return window.__abaAtual;
+        }
+        // fallback: detecta aba visível
+        for (var i = 0; i < ABAS_SWIPE.length; i++) {
+            var el = document.getElementById('aba-' + ABAS_SWIPE[i]);
+            if (el && el.style.display !== 'none' && el.offsetParent !== null) {
+                return ABAS_SWIPE[i];
+            }
+        }
+        return window.__abaAtual || 'dashboard';
+    }
+
+    function bloqueadoPeloAlvo(target) {
+        if (!target || !target.closest) return false;
+        // Não captura swipe em carrosséis horizontais, inputs, modais, resumo, bottom-nav
+        if (target.closest('.categorias-materiais, .agenda-filtros-bar, .vt-filtros, #botoesCategoriasLoja, .cat-loja-chip')) return true;
+        if (target.closest('input, textarea, select, button, a, .modal, .modal-agendamento-overlay, .resumo, #bottom-nav, .menu-mais-sheet, .bottom-nav')) return true;
+        if (target.closest('[contenteditable="true"]')) return true;
+        return false;
+    }
+
+    function onStart(e) {
+        if (!isMobile()) return;
+        if (window.__modoClienteVitrine) return;
+        if (document.getElementById('loginOverlay') && document.getElementById('loginOverlay').style.display !== 'none') return;
+        // modal aberto?
+        var modalAberto = document.querySelector('.modal[style*="display: block"], .modal[style*="display:block"], .modal.aberto, .modal-agendamento-overlay.aberto, #modal-orcamento-cliente[style*="flex"]');
+        if (modalAberto && modalAberto.style && modalAberto.style.display !== 'none') return;
+        var resumo = document.querySelector('.resumo');
+        if (resumo && (resumo.style.display === 'block' || resumo.classList.contains('aberto'))) return;
+
+        var t = e.touches && e.touches[0];
+        if (!t) return;
+        if (bloqueadoPeloAlvo(e.target)) return;
+
+        startX = t.clientX;
+        startY = t.clientY;
+        startT = Date.now();
+        tracking = true;
+    }
+
+    function onEnd(e) {
+        if (!tracking) return;
+        tracking = false;
+        if (!isMobile()) return;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+
+        var dx = t.clientX - startX;
+        var dy = t.clientY - startY;
+        var dt = Date.now() - startT;
+        if (dt > MAX_TIME) return;
+        if (Math.abs(dx) < MIN_DX) return;
+        if (Math.abs(dy) > MAX_DY) return;
+        if (Math.abs(dx) < Math.abs(dy) * 1.4) return; // mais vertical que horizontal
+
+        var atual = abaAtual();
+        var idx = ABAS_SWIPE.indexOf(atual);
+        // Se estiver em aba secundária (clientes, etc.), volta para o fluxo principal
+        if (idx < 0) idx = 0;
+
+        // deslizar para a ESQUERDA (dedo vai à esquerda) → próxima seção
+        // deslizar para a DIREITA → seção anterior
+        var novoIdx = dx < 0 ? idx + 1 : idx - 1;
+        if (novoIdx < 0 || novoIdx >= ABAS_SWIPE.length) return;
+
+        var proxima = ABAS_SWIPE[novoIdx];
+        if (typeof mostrarAba === 'function') {
+            mostrarAba(proxima);
+            // feedback leve no bottom nav
+            var btn = document.querySelector('#bottom-nav .bn-item[data-aba="' + proxima + '"]');
+            if (btn) {
+                btn.classList.add('bn-swipe-flash');
+                setTimeout(function() { btn.classList.remove('bn-swipe-flash'); }, 280);
+            }
+        }
+    }
+
+    function onCancel() { tracking = false; }
+
+    function bind() {
+        var alvo = document.getElementById('appContainer') || document.body;
+        if (alvo.__swipeBound) return;
+        alvo.__swipeBound = true;
+        alvo.addEventListener('touchstart', onStart, { passive: true });
+        alvo.addEventListener('touchend', onEnd, { passive: true });
+        alvo.addEventListener('touchcancel', onCancel, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind);
+    } else {
+        bind();
+    }
 })();
