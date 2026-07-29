@@ -3081,3 +3081,270 @@ html, body {
     z-index: 1 !important;
   }
 }
+
+
+/* =========================================================
+   CONTATOS VITRINE — ícones animados
+   ========================================================= */
+.vt-contatos {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8px 16px 16px !important;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+.vt-contato-icon {
+  position: relative;
+  width: 76px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none !important;
+  color: #fff !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.vt-contato-icon .vt-icon-emoji {
+  position: relative;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+  transition: transform .2s ease;
+}
+.vt-contato-icon .vt-icon-ring {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 58px;
+  height: 58px;
+  margin-left: -29px;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+  animation: vtPulse 2s ease-out infinite;
+}
+.vt-contato-icon .vt-icon-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #e4e4e7;
+  text-align: center;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vt-contato-icon:active .vt-icon-emoji,
+.vt-contato-icon:hover .vt-icon-emoji {
+  transform: scale(1.08);
+}
+.vt-contato-icon.vt-wa .vt-icon-emoji {
+  background: linear-gradient(145deg, #25d366, #128c7e);
+}
+.vt-contato-icon.vt-wa .vt-icon-ring {
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, .55);
+  animation-name: vtPulseWa;
+}
+.vt-contato-icon.vt-ig .vt-icon-emoji {
+  background: linear-gradient(135deg, #f58529, #dd2a7b 50%, #8134af);
+}
+.vt-contato-icon.vt-ig .vt-icon-ring {
+  box-shadow: 0 0 0 0 rgba(221, 42, 123, .5);
+  animation-name: vtPulseIg;
+}
+.vt-contato-icon.vt-maps .vt-icon-emoji {
+  background: linear-gradient(145deg, #4285f4, #1a73e8);
+}
+.vt-contato-icon.vt-maps .vt-icon-ring {
+  box-shadow: 0 0 0 0 rgba(66, 133, 244, .55);
+  animation-name: vtPulseMaps;
+}
+@keyframes vtPulseWa {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .55); }
+  70% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+@keyframes vtPulseIg {
+  0% { box-shadow: 0 0 0 0 rgba(221, 42, 123, .5); }
+  70% { box-shadow: 0 0 0 16px rgba(221, 42, 123, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(221, 42, 123, 0); }
+}
+@keyframes vtPulseMaps {
+  0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, .55); }
+  70% { box-shadow: 0 0 0 16px rgba(66, 133, 244, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+}
+
+/* =========================================================
+   MODAL AGENDAMENTO — corpo rolável + rodapé fixo
+   ========================================================= */
+.modal-agendamento-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  background: rgba(0,0,0,.82) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+@media (min-width: 640px) {
+  .modal-agendamento-overlay {
+    align-items: center;
+    padding: 16px;
+  }
+}
+.modal-agendamento-sheet {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 18px 18px 0 0;
+  width: 100%;
+  max-width: 480px;
+  color: #fafafa;
+  display: flex;
+  flex-direction: column;
+  max-height: min(92dvh, 920px);
+  overflow: hidden;
+  box-shadow: 0 -12px 40px rgba(0,0,0,.45);
+}
+@media (min-width: 640px) {
+  .modal-agendamento-sheet {
+    border-radius: 16px;
+    max-height: min(88vh, 760px);
+  }
+}
+.modal-agendamento-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #27272a;
+  flex-shrink: 0;
+}
+.modal-agendamento-head h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+.modal-agendamento-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #a1a1aa;
+  line-height: 1.35;
+}
+.modal-agendamento-x {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #27272a;
+  color: #a1a1aa;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.modal-agendamento-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 16px 18px;
+  overscroll-behavior: contain;
+}
+.modal-agendamento-foot {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #27272a;
+  background: #121216;
+}
+.mag-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a1a1aa;
+  margin: 0 0 6px;
+}
+.mag-input {
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px;
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.mag-textarea {
+  height: 64px;
+  resize: none;
+}
+.mag-preco {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 700;
+  margin: -6px 0 10px;
+  min-height: 16px;
+}
+.mag-fotos-box {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.mag-fotos-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a1a1aa;
+  margin: 0 0 8px;
+}
+.mag-fotos-title span {
+  font-weight: 500;
+  color: #71717a;
+}
+.mag-row {
+  display: flex;
+  gap: 10px;
+}
+.mag-col {
+  flex: 1;
+  min-width: 0;
+}
+.mag-btn-prim {
+  flex: 2;
+  padding: 14px 12px;
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 8px 20px rgba(225, 29, 72, .35);
+}
+.mag-btn-sec {
+  flex: 1;
+  padding: 14px 12px;
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+

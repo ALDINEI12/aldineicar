@@ -47,9 +47,21 @@
     </section>
 
     <nav class="vt-contatos" id="vt-contatos" aria-label="Contatos da oficina">
-        <a id="vt-link-whatsapp" class="vt-contato-btn vt-wa" href="#" target="_blank" rel="noopener" style="display:none;">WhatsApp</a>
-        <a id="vt-link-instagram" class="vt-contato-btn vt-ig" href="#" target="_blank" rel="noopener" style="display:none;">Instagram</a>
-        <a id="vt-link-maps" class="vt-contato-btn vt-maps" href="#" target="_blank" rel="noopener" style="display:none;">Localização</a>
+        <a id="vt-link-whatsapp" class="vt-contato-icon vt-wa" href="#" target="_blank" rel="noopener" style="display:none;" title="WhatsApp" aria-label="WhatsApp">
+            <span class="vt-icon-ring"></span>
+            <span class="vt-icon-emoji">💬</span>
+            <span class="vt-icon-label">WhatsApp</span>
+        </a>
+        <a id="vt-link-instagram" class="vt-contato-icon vt-ig" href="#" target="_blank" rel="noopener" style="display:none;" title="Instagram" aria-label="Instagram">
+            <span class="vt-icon-ring"></span>
+            <span class="vt-icon-emoji">📸</span>
+            <span class="vt-icon-label">Instagram</span>
+        </a>
+        <a id="vt-link-maps" class="vt-contato-icon vt-maps" href="#" target="_blank" rel="noopener" style="display:none;" title="Localização" aria-label="Localização">
+            <span class="vt-icon-ring"></span>
+            <span class="vt-icon-emoji">📍</span>
+            <span class="vt-icon-label">Maps</span>
+        </a>
     </nav>
     <p id="vt-endereco-txt" class="vt-endereco" style="display:none;"></p>
 
@@ -82,58 +94,64 @@
     </footer>
 </div>
 
-<div id="modal-orcamento-cliente" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
-    <div style="background: #18181b; border: 1px solid #27272a; padding: 30px; border-radius: 12px; width: 95%; max-width: 460px; color: #fafafa;">
-        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Solicitar Orçamento / Manutenção</h3>
-        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 20px;">Preencha os dados básicos abaixo para nossa oficina te retornar.</p>
-        
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Nome</label>
-        <input type="text" id="cliOrcNome" placeholder="Ex: Marcos Silva" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
-        
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Telefone / WhatsApp</label>
-        <input type="text" id="cliOrcTelefone" placeholder="Ex: (11) 99999-9999" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
-
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
-        <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
-
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Tipo de serviço *</label>
-        <select id="cliOrcServico" onchange="onCliOrcServicoChange()" style="width: 100%; margin-bottom: 8px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;"><option value="">Carregando serviços...</option></select>
-        <p id="cliOrcServicoPreco" style="font-size:12px;color:#22c55e;font-weight:700;margin:0 0 12px;min-height:16px;"></p>
-        
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Observações (opcional)</label>
-        <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito..." style="width: 100%; height: 80px; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
-
-        <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:14px;">
-            <p style="font-size:12px; font-weight:700; color:#a1a1aa; margin:0 0 8px 0;">📸 Fotos do problema <span style="font-weight:500;color:#71717a;">(opcional)</span></p>
-            <p style="font-size:11px; color:#71717a; margin:0 0 10px 0;">Envie fotos para a oficina avaliar melhor. Até 4 imagens.</p>
-            <div id="fotosAgendamentoPreview" class="fotos-grid fotos-grid-dark"></div>
-            <div class="fotos-acoes">
-                <label class="btn-foto-add btn-foto-add-dark" for="fotosAgendamentoFile">📷 Tirar / escolher foto</label>
-                <input type="file" id="fotosAgendamentoFile" accept="image/*" capture="environment" multiple class="prod-foto-input" onchange="onFotosAgendamentoChange(this)">
-                <button type="button" class="btn-foto-limpar btn-foto-limpar-dark" onclick="limparFotosAgendamento()">Limpar</button>
+<div id="modal-orcamento-cliente" class="modal-agendamento-overlay" style="display: none;">
+    <div class="modal-agendamento-sheet">
+        <div class="modal-agendamento-head">
+            <div>
+                <h3>📅 Agendar serviço</h3>
+                <p>Preencha os dados. O botão de concluir fica sempre visível embaixo.</p>
             </div>
+            <button type="button" class="modal-agendamento-x" onclick="fecharModalOrcamentoCliente()" aria-label="Fechar">✕</button>
         </div>
 
-        <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:18px;">
-            <p style="font-size:12px; font-weight:700; color:#e11d48; margin:0 0 12px 0;">📅 Preferência de Agendamento</p>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:140px;">
-                    <label style="font-size:11px; font-weight:600; color:#a1a1aa; display:block; margin-bottom:5px;">Data disponível</label>
-                    <select id="cliOrcData" onchange="atualizarHorariosCliente()" style="width:100%; padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:6px; color:white; font-size:13px;">
+        <div class="modal-agendamento-body">
+            <label class="mag-label">Seu Nome</label>
+            <input type="text" id="cliOrcNome" class="mag-input" placeholder="Ex: Marcos Silva">
+
+            <label class="mag-label">Telefone / WhatsApp</label>
+            <input type="text" id="cliOrcTelefone" class="mag-input" placeholder="Ex: (11) 99999-9999">
+
+            <label class="mag-label">Veículo (Modelo/Ano)</label>
+            <input type="text" id="cliOrcVeiculo" class="mag-input" placeholder="Ex: Gol 2018">
+
+            <label class="mag-label">Tipo de serviço *</label>
+            <select id="cliOrcServico" class="mag-input" onchange="onCliOrcServicoChange()">
+                <option value="">Carregando serviços...</option>
+            </select>
+            <p id="cliOrcServicoPreco" class="mag-preco"></p>
+
+            <label class="mag-label">Observações (opcional)</label>
+            <textarea id="cliOrcDescricao" class="mag-input mag-textarea" placeholder="Descreva o problema ou detalhe..."></textarea>
+
+            <div class="mag-fotos-box">
+                <p class="mag-fotos-title">📸 Fotos do problema <span>(opcional, até 4)</span></p>
+                <div id="fotosAgendamentoPreview" class="fotos-grid fotos-grid-dark"></div>
+                <div class="fotos-acoes">
+                    <label class="btn-foto-add btn-foto-add-dark" for="fotosAgendamentoFile">📷 Tirar / escolher foto</label>
+                    <input type="file" id="fotosAgendamentoFile" accept="image/*" capture="environment" multiple style="display:none" onchange="onFotosAgendamentoChange(this)">
+                    <button type="button" class="btn-foto-limpar btn-foto-limpar-dark" onclick="limparFotosAgendamento()">Limpar</button>
+                </div>
+            </div>
+
+            <div class="mag-row">
+                <div class="mag-col">
+                    <label class="mag-label">Data *</label>
+                    <select id="cliOrcData" class="mag-input" onchange="atualizarHorariosCliente()">
                         <option value="">Carregando datas...</option>
                     </select>
                 </div>
-                <div style="flex:1; min-width:120px;">
-                    <label style="font-size:11px; font-weight:600; color:#a1a1aa; display:block; margin-bottom:5px;">Horário</label>
-                    <select id="cliOrcHora" style="width:100%; padding:10px; background:#18181b; border:1px solid #3f3f46; border-radius:6px; color:white; font-size:13px;">
+                <div class="mag-col">
+                    <label class="mag-label">Horário *</label>
+                    <select id="cliOrcHora" class="mag-input">
                         <option value="">Escolha a data primeiro</option>
                     </select>
                 </div>
             </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="enviarOrcamentoCliente()" style="flex: 2; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">📅 Solicitar Agendamento</button>
-            <button onclick="fecharModalOrcamentoCliente()" style="flex: 1; padding: 12px; background: #27272a; color: #a1a1aa; border: 1px solid #3f3f46; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Voltar</button>
+
+        <div class="modal-agendamento-foot">
+            <button type="button" class="mag-btn-prim" onclick="enviarOrcamentoCliente()">✅ Concluir agendamento</button>
+            <button type="button" class="mag-btn-sec" onclick="fecharModalOrcamentoCliente()">Voltar</button>
         </div>
     </div>
 </div>

@@ -4992,9 +4992,27 @@ function aplicarContatosVitrinePublica(oficina){
   var aIg=document.getElementById('vt-link-instagram');
   var aMp=document.getElementById('vt-link-maps');
   var endTxt=document.getElementById('vt-endereco-txt');
-  if (aWa){ if(waNum){ aWa.href='https://wa.me/55'+waNum.replace(/^55/,''); aWa.style.display='inline-flex'; aWa.textContent='WhatsApp'; } else aWa.style.display='none'; }
-  if (aIg){ if(ig){ aIg.href='https://instagram.com/'+ig; aIg.style.display='inline-flex'; aIg.textContent='@'+ig; } else aIg.style.display='none'; }
-  if (aMp){ if(maps){ aMp.href=maps; aMp.style.display='inline-flex'; aMp.textContent='Localização'; } else aMp.style.display='none'; }
+  if (aWa){
+    if (waNum){
+      aWa.href='https://wa.me/55'+waNum.replace(/^55/,'');
+      aWa.style.display='flex';
+      var lab=aWa.querySelector('.vt-icon-label'); if(lab) lab.textContent='WhatsApp';
+    } else aWa.style.display='none';
+  }
+  if (aIg){
+    if (ig){
+      aIg.href='https://instagram.com/'+ig;
+      aIg.style.display='flex';
+      var lab=aIg.querySelector('.vt-icon-label'); if(lab) lab.textContent='@'+ig;
+    } else aIg.style.display='none';
+  }
+  if (aMp){
+    if (maps){
+      aMp.href=maps;
+      aMp.style.display='flex';
+      var lab=aMp.querySelector('.vt-icon-label'); if(lab) lab.textContent='Maps';
+    } else aMp.style.display='none';
+  }
   if (endTxt){ var end=[d.end,d.cep].filter(Boolean).join(' · '); if(end){ endTxt.textContent='📍 '+end; endTxt.style.display='block'; } else endTxt.style.display='none'; }
   var ft=document.getElementById('vt-footer-nome'); if(ft) ft.textContent=(d.nome||'ALDINEICAR');
 }
@@ -5083,3 +5101,35 @@ async function carregarDadosOficinaVitrine(idOficina){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else setTimeout(run,80);
 })();
 
+
+
+(function patchModalAgendamentoDisplay(){
+  function openStyle(el){
+    if(!el) return;
+    el.style.display = 'flex';
+    el.classList.add('aberto');
+  }
+  function closeStyle(el){
+    if(!el) return;
+    el.style.display = 'none';
+    el.classList.remove('aberto');
+  }
+  var origA = window.abrirModalOrcamentoCliente;
+  if (typeof origA === 'function' && !origA.__dispPatched) {
+    window.abrirModalOrcamentoCliente = function(){
+      var r = origA.apply(this, arguments);
+      openStyle(document.getElementById('modal-orcamento-cliente'));
+      return r;
+    };
+    window.abrirModalOrcamentoCliente.__dispPatched = true;
+  }
+  var origF = window.fecharModalOrcamentoCliente;
+  if (typeof origF === 'function' && !origF.__dispPatched) {
+    window.fecharModalOrcamentoCliente = function(){
+      var r = origF.apply(this, arguments);
+      closeStyle(document.getElementById('modal-orcamento-cliente'));
+      return r;
+    };
+    window.fecharModalOrcamentoCliente.__dispPatched = true;
+  }
+})();
