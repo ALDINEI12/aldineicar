@@ -1,20 +1,4 @@
- const TAXA_CADASTRO = {
-    ativo: true,
-    valor: 49.90,              // valor da taxa
-    metodo: 'mercadopago',     // 'mercadopago' | 'pix_manual' | 'off'
-    descricao: 'Ativacao ALDINEICAR Profissional',
-
-    mercadoPago: {
-        accessToken: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',  // cole aqui
-        publicKey: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',    // opcional
-        preferenceProxyUrl: ''            // deixe vazio por enquanto
-    },
-
-    // fallback PIX se MP não estiver ok
-    pixChave: '59907544000184',
-    pixNome: 'ALDINEI BATISTA ROCHA FILHO',
-    pixCidade: 'SATIRO DIAS'
-};
+ 
 
 
  
@@ -24,19 +8,40 @@
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ========================================================
-// TAXA DE CADASTRO (pagamento obrigatório para registrar)
-// Ajuste valor e chave PIX do DONO do sistema (você).
+// TAXA DE CADASTRO + MERCADO PAGO
+// --------------------------------------------------------
+// 1) Crie uma conta em https://www.mercadopago.com.br
+// 2) Entre em: Seu negócio → Configurações → Credenciais
+// 3) Use credenciais de TESTE para testar, depois PRODUÇÃO
+// 4) Cole Access Token e Public Key abaixo
+//
+// Segurança: o ideal é o Access Token ficar só no servidor
+// (ex.: Supabase Edge Function). No frontend ele fica
+// visível — use só se aceitar esse risco ou troque por proxy.
 // ========================================================
 const TAXA_CADASTRO = {
-    ativo: true,                 // false = cadastro livre (sem pagar)
-    valor: 49.90,                // valor em R$
-    // Chave PIX que recebe a taxa (CPF, CNPJ, e-mail, telefone ou aleatória)
-    pixChave: '11684388538',
-    pixNome: 'ALDINEICAR',
-    pixCidade: 'SATIRO DIAS',
-    descricao: 'Ativacao ALDINEICAR'
+    ativo: true,                 // false = cadastro livre
+    valor: 49.90,                // R$
+    metodo: 'mercadopago',       // 'mercadopago' | 'pix_manual' | 'off'
+    descricao: 'Ativacao ALDINEICAR Profissional',
+
+    // --- Mercado Pago (Checkout Pro) ---
+    mercadoPago: {
+        // Cole suas credenciais (Teste ou Produção)
+        accessToken: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',         // APP_USR-... (Access Token)
+        publicKey: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',           // APP_USR-... (Public Key) — opcional no Checkout Pro
+        // Se tiver Edge Function/proxy, coloque a URL aqui e deixe accessToken vazio no front:
+        // preferenceProxyUrl: 'https://SEU_PROJETO.supabase.co/functions/v1/mp-criar-preferencia',
+        preferenceProxyUrl: ''
+    },
+
+    // --- Fallback PIX manual (se metodo = pix_manual ou MP falhar) ---
+    pixChave: '59907544000184',
+    pixNome: 'ALDINEI BATISTA ROCHA FILHO',
+    pixCidade: 'SATIRO DIAS'
 };
-let __signupPendente = null; // { nome, email, password, txid, payload }
+let __signupPendente = null; // { nome, email, password, txid, payload, valor, mpPreferenceId, mpPaymentId }
+const SIGNUP_PENDING_KEY = 'aldineicar_signup_pendente';
 
     const formatarData = (dataStr) => {
     if (!dataStr) return '--/--/----';
@@ -876,8 +881,10 @@ async function editarProduto(id) {
         if (el2) el2.textContent = fmt;
         const btn = document.getElementById('btnSignupContinuar');
         if (btn) {
-            if (TAXA_CADASTRO && TAXA_CADASTRO.ativo === false) {
+            if (!TAXA_CADASTRO || TAXA_CADASTRO.ativo === false || TAXA_CADASTRO.metodo === 'off') {
                 btn.textContent = 'Criar conta grátis';
+            } else if (TAXA_CADASTRO.metodo === 'mercadopago') {
+                btn.textContent = 'Pagar com Mercado Pago';
             } else {
                 btn.textContent = 'Continuar para pagamento PIX';
             }
@@ -933,6 +940,189 @@ async function editarProduto(id) {
         box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">QR indisponível — use o copia e cola.</p>';
     }
 
+    function salvarSignupPendente(obj) {
+        __signupPendente = obj;
+        try { sessionStorage.setItem(SIGNUP_PENDING_KEY, JSON.stringify(obj)); } catch (e) {}
+    }
+
+    function carregarSignupPendente() {
+        if (__signupPendente) return __signupPendente;
+        try {
+            const raw = sessionStorage.getItem(SIGNUP_PENDING_KEY);
+            if (raw) __signupPendente = JSON.parse(raw);
+        } catch (e) {}
+        return __signupPendente;
+    }
+
+    function limparSignupPendente() {
+        __signupPendente = null;
+        try { sessionStorage.removeItem(SIGNUP_PENDING_KEY); } catch (e) {}
+    }
+
+    function urlRetornoCadastro(status) {
+        const u = new URL(window.location.href);
+        // remove params antigos de MP
+        ['cadastro_mp', 'payment_id', 'status', 'collection_id', 'collection_status',
+         'preference_id', 'external_reference', 'payment_type', 'merchant_order_id',
+         'site_id', 'processing_mode', 'merchant_account_id'].forEach(function(k) {
+            u.searchParams.delete(k);
+        });
+        u.searchParams.set('cadastro_mp', status);
+        return u.toString();
+    }
+
+    async function criarPreferenciaMercadoPago(dados) {
+        const mp = (TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {};
+        const valor = Number(TAXA_CADASTRO.valor) || 0;
+        const body = {
+            items: [{
+                id: 'taxa-cadastro-aldineicar',
+                title: TAXA_CADASTRO.descricao || 'Ativacao ALDINEICAR',
+                description: 'Taxa de ativacao da conta ' + (dados.email || ''),
+                quantity: 1,
+                currency_id: 'BRL',
+                unit_price: valor
+            }],
+            payer: {
+                name: dados.nome || '',
+                email: dados.email || ''
+            },
+            external_reference: dados.txid || ('CAD-' + Date.now()),
+            statement_descriptor: 'ALDINEICAR',
+            back_urls: {
+                success: urlRetornoCadastro('success'),
+                failure: urlRetornoCadastro('failure'),
+                pending: urlRetornoCadastro('pending')
+            },
+            auto_return: 'approved',
+            metadata: {
+                tipo: 'taxa_cadastro',
+                email: dados.email || '',
+                nome: dados.nome || ''
+            }
+        };
+
+        // Proxy (Edge Function) — recomendado
+        if (mp.preferenceProxyUrl) {
+            const res = await fetch(mp.preferenceProxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const json = await res.json().catch(function() { return {}; });
+            if (!res.ok) throw new Error(json.message || json.error || ('HTTP ' + res.status));
+            return json;
+        }
+
+        if (!mp.accessToken) {
+            throw new Error('Access Token do Mercado Pago não configurado em TAXA_CADASTRO.mercadoPago.accessToken');
+        }
+
+        const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + mp.accessToken
+            },
+            body: JSON.stringify(body)
+        });
+        const json = await res.json().catch(function() { return {}; });
+        if (!res.ok) {
+            const msg = (json && json.message) || (json && json.error) || ('Erro MP HTTP ' + res.status);
+            throw new Error(msg);
+        }
+        return json;
+    }
+
+    async function verificarPagamentoMercadoPago(paymentId) {
+        const mp = (TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {};
+        if (!paymentId) return null;
+        if (!mp.accessToken) return { id: paymentId, status: 'unknown' };
+        try {
+            const res = await fetch('https://api.mercadopago.com/v1/payments/' + encodeURIComponent(paymentId), {
+                headers: { 'Authorization': 'Bearer ' + mp.accessToken }
+            });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            console.warn('verify mp', e);
+            return null;
+        }
+    }
+
+    async function iniciarCadastroPixManual(nome, email, password) {
+        if (!TAXA_CADASTRO.pixChave) {
+            if (typeof mostrarToast === 'function') mostrarToast('Chave PIX de cadastro não configurada.', 'erro');
+            return;
+        }
+        const txid = ('CAD' + Date.now()).substring(0, 25);
+        let payload = '';
+        try {
+            if (typeof gerarPayloadPixSimples === 'function') {
+                payload = gerarPayloadPixSimples({
+                    chave: String(TAXA_CADASTRO.pixChave).replace(/\s/g, ''),
+                    nome: TAXA_CADASTRO.pixNome || 'ALDINEICAR',
+                    cidade: TAXA_CADASTRO.pixCidade || 'SATIRO DIAS',
+                    valor: Number(TAXA_CADASTRO.valor) || 0,
+                    txid: txid
+                });
+            }
+        } catch (e) { console.error(e); }
+        if (!payload) {
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível gerar o PIX.', 'erro');
+            return;
+        }
+        salvarSignupPendente({ nome, email, password, txid, payload, valor: Number(TAXA_CADASTRO.valor) || 0, metodo: 'pix_manual' });
+        atualizarUITaxaCadastro();
+        const ta = document.getElementById('signupPixCopia');
+        if (ta) ta.value = payload;
+        const chaveInfo = document.getElementById('signupPixChave');
+        if (chaveInfo) chaveInfo.textContent = 'Chave: ' + TAXA_CADASTRO.pixChave;
+        const instr = document.getElementById('signupPixInstrucao');
+        if (instr) instr.textContent = 'Pague o PIX abaixo e depois confirme para criar sua conta.';
+        const boxManual = document.getElementById('signupPixManualBox');
+        if (boxManual) boxManual.style.display = 'block';
+        const st = document.getElementById('signupMpStatusBox');
+        if (st) st.style.display = 'none';
+        const btnConf = document.getElementById('btnSignupConfirmarPagamento');
+        if (btnConf) btnConf.style.display = 'block';
+        desenharQrSignup(payload);
+        mostrarSignupPix();
+    }
+
+    async function iniciarCadastroMercadoPago(nome, email, password) {
+        const btn = document.getElementById('btnSignupContinuar');
+        const textoOriginal = btn ? btn.innerText : '';
+        if (btn) { btn.innerText = 'Abrindo Mercado Pago...'; btn.disabled = true; }
+        const txid = ('CAD' + Date.now()).substring(0, 25);
+        try {
+            salvarSignupPendente({
+                nome, email, password, txid,
+                valor: Number(TAXA_CADASTRO.valor) || 0,
+                metodo: 'mercadopago'
+            });
+            const pref = await criarPreferenciaMercadoPago({ nome, email, txid });
+            const initPoint = pref.init_point || pref.sandbox_init_point;
+            if (!initPoint) throw new Error('Preferência criada, mas sem link de pagamento (init_point).');
+
+            // guarda preference id
+            const pend = carregarSignupPendente() || {};
+            pend.mpPreferenceId = pref.id || '';
+            salvarSignupPendente(pend);
+
+            if (typeof mostrarToast === 'function') mostrarToast('Redirecionando ao Mercado Pago...', 'aviso');
+            window.location.href = initPoint;
+        } catch (e) {
+            console.error(e);
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('Mercado Pago: ' + (e.message || 'erro') + ' — tentando PIX manual.', 'erro');
+            }
+            await iniciarCadastroPixManual(nome, email, password);
+        } finally {
+            if (btn) { btn.innerText = textoOriginal || 'Pagar com Mercado Pago'; btn.disabled = false; }
+        }
+    }
+
     async function iniciarCadastroComPagamento() {
         const nome = (document.getElementById('signupName').value || '').trim();
         const email = (document.getElementById('signupEmail').value || '').trim();
@@ -947,56 +1137,37 @@ async function editarProduto(id) {
             return;
         }
 
-        // Cadastro livre (taxa desligada)
-        if (!TAXA_CADASTRO || TAXA_CADASTRO.ativo === false) {
-            __signupPendente = { nome, email, password, txid: 'FREE', payload: '' };
-            await confirmarPagamentoECriarConta();
+        if (!TAXA_CADASTRO || TAXA_CADASTRO.ativo === false || TAXA_CADASTRO.metodo === 'off') {
+            salvarSignupPendente({ nome, email, password, txid: 'FREE', valor: 0, metodo: 'off' });
+            await confirmarPagamentoECriarConta({ forcar: true });
             return;
         }
 
-        if (!TAXA_CADASTRO.pixChave) {
-            if (typeof mostrarToast === 'function') mostrarToast('Chave PIX de cadastro não configurada.', 'erro');
+        if (TAXA_CADASTRO.metodo === 'mercadopago') {
+            await iniciarCadastroMercadoPago(nome, email, password);
             return;
         }
-
-        const txid = ('CAD' + Date.now()).substring(0, 25);
-        let payload = '';
-        try {
-            if (typeof gerarPayloadPixSimples === 'function') {
-                payload = gerarPayloadPixSimples({
-                    chave: String(TAXA_CADASTRO.pixChave).replace(/\s/g, ''),
-                    nome: TAXA_CADASTRO.pixNome || 'ALDINEICAR',
-                    cidade: TAXA_CADASTRO.pixCidade || 'SATIRO DIAS',
-                    valor: Number(TAXA_CADASTRO.valor) || 0,
-                    txid: txid
-                });
-            }
-        } catch (e) {
-            console.error(e);
-        }
-        if (!payload) {
-            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível gerar o PIX. Tente novamente.', 'erro');
-            return;
-        }
-
-        __signupPendente = { nome, email, password, txid, payload, valor: Number(TAXA_CADASTRO.valor) || 0 };
-
-        atualizarUITaxaCadastro();
-        const ta = document.getElementById('signupPixCopia');
-        if (ta) ta.value = payload;
-        const chaveInfo = document.getElementById('signupPixChave');
-        if (chaveInfo) chaveInfo.textContent = 'Chave: ' + TAXA_CADASTRO.pixChave;
-        desenharQrSignup(payload);
-        mostrarSignupPix();
+        await iniciarCadastroPixManual(nome, email, password);
     }
 
-    async function confirmarPagamentoECriarConta() {
-        if (!__signupPendente) {
+    async function confirmarPagamentoECriarConta(opts) {
+        opts = opts || {};
+        const pend = carregarSignupPendente();
+        if (!pend) {
             if (typeof mostrarToast === 'function') mostrarToast('Preencha os dados primeiro.', 'aviso');
             voltarSignupDados();
             return;
         }
-        const { nome, email, password, txid, valor } = __signupPendente;
+
+        // Se veio do Mercado Pago, só cria se aprovado (ou forçar em FREE)
+        if (pend.metodo === 'mercadopago' && !opts.forcar && !opts.mpAprovado) {
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('Conclua o pagamento no Mercado Pago. Se já pagou, aguarde o retorno automático.', 'aviso');
+            }
+            return;
+        }
+
+        const { nome, email, password, txid, valor } = pend;
         const btn = document.getElementById('btnSignupConfirmarPagamento') || document.getElementById('btnSignupContinuar');
         const textoOriginal = btn ? btn.innerText : '';
         if (btn) { btn.innerText = 'Criando conta...'; btn.disabled = true; }
@@ -1011,6 +1182,9 @@ async function editarProduto(id) {
                         taxa_cadastro_paga: true,
                         taxa_valor: valor || (TAXA_CADASTRO && TAXA_CADASTRO.valor) || 0,
                         taxa_txid: txid || '',
+                        taxa_metodo: pend.metodo || 'pix_manual',
+                        taxa_mp_payment_id: pend.mpPaymentId || '',
+                        taxa_mp_preference_id: pend.mpPreferenceId || '',
                         taxa_paga_em: new Date().toISOString()
                     }
                 }
@@ -1021,21 +1195,21 @@ async function editarProduto(id) {
                 return;
             }
 
-            // Registro local de interesse (auditoria simples no dispositivo)
             try {
                 const log = JSON.parse(localStorage.getItem('aldineicar_cadastros_pix') || '[]');
                 log.unshift({
                     email, nome, txid, valor: valor || 0,
+                    metodo: pend.metodo || '',
+                    mpPaymentId: pend.mpPaymentId || '',
                     em: new Date().toISOString()
                 });
                 localStorage.setItem('aldineicar_cadastros_pix', JSON.stringify(log.slice(0, 50)));
             } catch (e) {}
 
-            __signupPendente = null;
+            limparSignupPendente();
             if (typeof mostrarToast === 'function') {
-                mostrarToast('Conta criada! Agora faça login com seu e-mail e senha.', 'sucesso');
+                mostrarToast('Pagamento ok! Conta criada. Faça login.', 'sucesso');
             }
-            // limpa campos
             ['signupName','signupEmail','signupPassword'].forEach(function(id) {
                 const el = document.getElementById(id); if (el) el.value = '';
             });
@@ -1043,6 +1217,15 @@ async function editarProduto(id) {
             toggleTab('login');
             const loginEmail = document.getElementById('loginEmail');
             if (loginEmail) loginEmail.value = email;
+
+            // limpa query string do retorno MP
+            try {
+                const u = new URL(window.location.href);
+                if (u.searchParams.has('cadastro_mp')) {
+                    u.search = '';
+                    window.history.replaceState({}, '', u.pathname + u.hash);
+                }
+            } catch (e) {}
         } catch (err) {
             console.error(err);
             if (typeof mostrarToast === 'function') mostrarToast('Erro no processo de cadastro.', 'erro');
@@ -1051,7 +1234,94 @@ async function editarProduto(id) {
         }
     }
 
-    // Mantido por compatibilidade — redireciona para o fluxo com pagamento
+    async function processarRetornoMercadoPago() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const flag = params.get('cadastro_mp');
+            if (!flag) return;
+
+            // Abre aba cadastrar
+            try { toggleTab('signup'); } catch (e) {}
+            mostrarSignupPix();
+            const boxManual = document.getElementById('signupPixManualBox');
+            if (boxManual) boxManual.style.display = 'none';
+            const stBox = document.getElementById('signupMpStatusBox');
+            const stTxt = document.getElementById('signupMpStatusTxt');
+            if (stBox) stBox.style.display = 'block';
+            const btnConf = document.getElementById('btnSignupConfirmarPagamento');
+            if (btnConf) btnConf.style.display = 'none';
+
+            const paymentId = params.get('payment_id') || params.get('collection_id') || '';
+            const status = (params.get('status') || params.get('collection_status') || flag || '').toLowerCase();
+            const pend = carregarSignupPendente();
+
+            if (!pend) {
+                if (stTxt) stTxt.textContent = 'Pagamento retornou, mas não encontramos seus dados de cadastro neste aparelho. Preencha novamente e pague de novo, ou use o mesmo navegador.';
+                if (typeof mostrarToast === 'function') mostrarToast('Dados de cadastro não encontrados neste dispositivo.', 'aviso');
+                return;
+            }
+
+            if (flag === 'failure' || status === 'rejected' || status === 'failure') {
+                if (stTxt) stTxt.innerHTML = 'Pagamento <b style="color:#f87171;">não aprovado</b>. Você pode tentar novamente.';
+                if (btnConf) {
+                    btnConf.style.display = 'block';
+                    btnConf.textContent = 'Tentar pagar de novo';
+                    btnConf.onclick = function() { iniciarCadastroMercadoPago(pend.nome, pend.email, pend.password); };
+                }
+                if (typeof mostrarToast === 'function') mostrarToast('Pagamento não aprovado.', 'erro');
+                return;
+            }
+
+            if (flag === 'pending' || status === 'pending' || status === 'in_process') {
+                if (stTxt) stTxt.innerHTML = 'Pagamento <b style="color:#fbbf24;">pendente</b>. Assim que for aprovado, volte e finalize o cadastro.';
+                if (btnConf) {
+                    btnConf.style.display = 'block';
+                    btnConf.textContent = 'Já foi aprovado — criar conta';
+                    btnConf.onclick = async function() {
+                        const pag = await verificarPagamentoMercadoPago(paymentId);
+                        if (pag && pag.status === 'approved') {
+                            pend.mpPaymentId = String(pag.id || paymentId);
+                            salvarSignupPendente(pend);
+                            await confirmarPagamentoECriarConta({ mpAprovado: true });
+                        } else {
+                            if (typeof mostrarToast === 'function') mostrarToast('Ainda não consta como aprovado no Mercado Pago.', 'aviso');
+                        }
+                    };
+                }
+                return;
+            }
+
+            // success / approved
+            if (stTxt) stTxt.textContent = 'Pagamento aprovado! Criando sua conta...';
+            let aprovado = (status === 'approved' || flag === 'success');
+            if (paymentId) {
+                const pag = await verificarPagamentoMercadoPago(paymentId);
+                if (pag) {
+                    aprovado = (pag.status === 'approved');
+                    pend.mpPaymentId = String(pag.id || paymentId);
+                    salvarSignupPendente(pend);
+                } else {
+                    pend.mpPaymentId = String(paymentId);
+                    salvarSignupPendente(pend);
+                }
+            }
+
+            if (aprovado) {
+                await confirmarPagamentoECriarConta({ mpAprovado: true });
+            } else {
+                if (stTxt) stTxt.innerHTML = 'Não foi possível confirmar o pagamento automaticamente. Se você já pagou, toque abaixo.';
+                if (btnConf) {
+                    btnConf.style.display = 'block';
+                    btnConf.textContent = '✓ Confirmar e criar conta';
+                    btnConf.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true }); };
+                }
+            }
+        } catch (e) {
+            console.error('retorno MP', e);
+        }
+    }
+
+    // Mantido por compatibilidade
     async function handleSignup() {
         await iniciarCadastroComPagamento();
     }
@@ -1940,6 +2210,8 @@ async function editarProduto(id) {
 
     document.addEventListener('DOMContentLoaded', () => {
         toggleTab('login');
+                try { processarRetornoMercadoPago(); } catch (e) { console.warn(e); }
+        try { atualizarUITaxaCadastro(); } catch (e) {}
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (window.__modoClienteVitrine) {
                 const login = document.getElementById('loginOverlay');
