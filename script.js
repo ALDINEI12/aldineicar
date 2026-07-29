@@ -6,6 +6,22 @@
  const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+// ========================================================
+// TAXA DE CADASTRO (pagamento obrigatório para registrar)
+// Ajuste valor e chave PIX do DONO do sistema (você).
+// ========================================================
+const TAXA_CADASTRO = {
+    ativo: true,                 // false = cadastro livre (sem pagar)
+    valor: 49.90,                // valor em R$
+    // Chave PIX que recebe a taxa (CPF, CNPJ, e-mail, telefone ou aleatória)
+    pixChave: '11684388538',
+    pixNome: 'ALDINEICAR',
+    pixCidade: 'SATIRO DIAS',
+    descricao: 'Ativacao ALDINEICAR'
+};
+let __signupPendente = null; // { nome, email, password, txid, payload }
+
     const formatarData = (dataStr) => {
     if (!dataStr) return '--/--/----';
     // Se a data já estiver no formato brasileiro, retorna ela. 
@@ -829,6 +845,199 @@ async function editarProduto(id) {
     function toggleTab(tab) {
         document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
         document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+        if (tab === 'signup') {
+            voltarSignupDados();
+            atualizarUITaxaCadastro();
+        }
+    }
+
+    function atualizarUITaxaCadastro() {
+        const v = (TAXA_CADASTRO && TAXA_CADASTRO.valor) ? Number(TAXA_CADASTRO.valor) : 0;
+        const fmt = v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const el1 = document.getElementById('signupTaxaValor');
+        const el2 = document.getElementById('signupPixValor');
+        if (el1) el1.textContent = fmt;
+        if (el2) el2.textContent = fmt;
+        const btn = document.getElementById('btnSignupContinuar');
+        if (btn) {
+            if (TAXA_CADASTRO && TAXA_CADASTRO.ativo === false) {
+                btn.textContent = 'Criar conta grátis';
+            } else {
+                btn.textContent = 'Continuar para pagamento PIX';
+            }
+        }
+    }
+
+    function voltarSignupDados() {
+        const d = document.getElementById('signupEtapaDados');
+        const p = document.getElementById('signupEtapaPix');
+        if (d) d.style.display = 'block';
+        if (p) p.style.display = 'none';
+    }
+
+    function mostrarSignupPix() {
+        const d = document.getElementById('signupEtapaDados');
+        const p = document.getElementById('signupEtapaPix');
+        if (d) d.style.display = 'none';
+        if (p) p.style.display = 'block';
+    }
+
+    function copiarSignupPix() {
+        const ta = document.getElementById('signupPixCopia');
+        if (!ta || !ta.value) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(ta.value).then(function() {
+                if (typeof mostrarToast === 'function') mostrarToast('Código PIX copiado!', 'sucesso');
+            }).catch(function() {
+                ta.select(); document.execCommand('copy');
+                if (typeof mostrarToast === 'function') mostrarToast('Código PIX copiado!', 'sucesso');
+            });
+        } else {
+            ta.select(); document.execCommand('copy');
+            if (typeof mostrarToast === 'function') mostrarToast('Código PIX copiado!', 'sucesso');
+        }
+    }
+
+    function desenharQrSignup(payload) {
+        const box = document.getElementById('signupPixQr');
+        if (!box) return;
+        box.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+            try {
+                const canvas = document.createElement('canvas');
+                box.appendChild(canvas);
+                QRCode.toCanvas(canvas, payload, { width: 180, margin: 2, color: { dark: '#000000', light: '#ffffff' } }, function(err) {
+                    if (err) {
+                        box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;">Use o código copia e cola abaixo.</p>';
+                    }
+                });
+                return;
+            } catch (e) {}
+        }
+        box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">QR indisponível — use o copia e cola.</p>';
+    }
+
+    async function iniciarCadastroComPagamento() {
+        const nome = (document.getElementById('signupName').value || '').trim();
+        const email = (document.getElementById('signupEmail').value || '').trim();
+        const password = document.getElementById('signupPassword').value || '';
+
+        if (!nome) {
+            if (typeof mostrarToast === 'function') mostrarToast('Informe seu nome completo.', 'aviso');
+            return;
+        }
+        if (!email || !password || password.length < 6) {
+            if (typeof mostrarToast === 'function') mostrarToast('Preencha e-mail e senha (mín. 6 caracteres).', 'aviso');
+            return;
+        }
+
+        // Cadastro livre (taxa desligada)
+        if (!TAXA_CADASTRO || TAXA_CADASTRO.ativo === false) {
+            __signupPendente = { nome, email, password, txid: 'FREE', payload: '' };
+            await confirmarPagamentoECriarConta();
+            return;
+        }
+
+        if (!TAXA_CADASTRO.pixChave) {
+            if (typeof mostrarToast === 'function') mostrarToast('Chave PIX de cadastro não configurada.', 'erro');
+            return;
+        }
+
+        const txid = ('CAD' + Date.now()).substring(0, 25);
+        let payload = '';
+        try {
+            if (typeof gerarPayloadPixSimples === 'function') {
+                payload = gerarPayloadPixSimples({
+                    chave: String(TAXA_CADASTRO.pixChave).replace(/\s/g, ''),
+                    nome: TAXA_CADASTRO.pixNome || 'ALDINEICAR',
+                    cidade: TAXA_CADASTRO.pixCidade || 'SATIRO DIAS',
+                    valor: Number(TAXA_CADASTRO.valor) || 0,
+                    txid: txid
+                });
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        if (!payload) {
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível gerar o PIX. Tente novamente.', 'erro');
+            return;
+        }
+
+        __signupPendente = { nome, email, password, txid, payload, valor: Number(TAXA_CADASTRO.valor) || 0 };
+
+        atualizarUITaxaCadastro();
+        const ta = document.getElementById('signupPixCopia');
+        if (ta) ta.value = payload;
+        const chaveInfo = document.getElementById('signupPixChave');
+        if (chaveInfo) chaveInfo.textContent = 'Chave: ' + TAXA_CADASTRO.pixChave;
+        desenharQrSignup(payload);
+        mostrarSignupPix();
+    }
+
+    async function confirmarPagamentoECriarConta() {
+        if (!__signupPendente) {
+            if (typeof mostrarToast === 'function') mostrarToast('Preencha os dados primeiro.', 'aviso');
+            voltarSignupDados();
+            return;
+        }
+        const { nome, email, password, txid, valor } = __signupPendente;
+        const btn = document.getElementById('btnSignupConfirmarPagamento') || document.getElementById('btnSignupContinuar');
+        const textoOriginal = btn ? btn.innerText : '';
+        if (btn) { btn.innerText = 'Criando conta...'; btn.disabled = true; }
+
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        nome: nome,
+                        taxa_cadastro_paga: true,
+                        taxa_valor: valor || (TAXA_CADASTRO && TAXA_CADASTRO.valor) || 0,
+                        taxa_txid: txid || '',
+                        taxa_paga_em: new Date().toISOString()
+                    }
+                }
+            });
+
+            if (error) {
+                if (typeof mostrarToast === 'function') mostrarToast('Erro ao cadastrar: ' + error.message, 'erro');
+                return;
+            }
+
+            // Registro local de interesse (auditoria simples no dispositivo)
+            try {
+                const log = JSON.parse(localStorage.getItem('aldineicar_cadastros_pix') || '[]');
+                log.unshift({
+                    email, nome, txid, valor: valor || 0,
+                    em: new Date().toISOString()
+                });
+                localStorage.setItem('aldineicar_cadastros_pix', JSON.stringify(log.slice(0, 50)));
+            } catch (e) {}
+
+            __signupPendente = null;
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('Conta criada! Agora faça login com seu e-mail e senha.', 'sucesso');
+            }
+            // limpa campos
+            ['signupName','signupEmail','signupPassword'].forEach(function(id) {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            voltarSignupDados();
+            toggleTab('login');
+            const loginEmail = document.getElementById('loginEmail');
+            if (loginEmail) loginEmail.value = email;
+        } catch (err) {
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('Erro no processo de cadastro.', 'erro');
+        } finally {
+            if (btn) { btn.innerText = textoOriginal || '✓ Já paguei — criar minha conta'; btn.disabled = false; }
+        }
+    }
+
+    // Mantido por compatibilidade — redireciona para o fluxo com pagamento
+    async function handleSignup() {
+        await iniciarCadastroComPagamento();
     }
 
     async function handleLogin() {
@@ -868,40 +1077,7 @@ async function editarProduto(id) {
         }
     }
 
-    async function handleSignup() {
-        const nome = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        const btnCadastrar = document.querySelector('#signupForm button');
 
-        if (!email || !password || password.length < 6) {
-            mostrarToast("Preencha todos os campos corretamente (Senha mínima de 6 caracteres)", "aviso");
-            return;
-        }
-
-        const textoOriginal = btnCadastrar.innerText;
-        btnCadastrar.innerText = "Cadastrando...";
-        btnCadastrar.disabled = true;
-
-        try {
-            const { data, error } = await supabaseClient.auth.signUp({
-                email, password, options: { data: { nome } }
-            });
-
-            if (error) {
-                mostrarToast("Erro ao cadastrar: " + error.message, "erro");
-                return;
-            }
-
-            mostrarToast("Cadastro realizado com sucesso! Agora faça login.");
-            toggleTab('login');
-        } catch (err) {
-            mostrarToast("Erro no processo de cadastro.", "erro");
-        } finally {
-            btnCadastrar.innerText = textoOriginal;
-            btnCadastrar.disabled = false;
-        }
-    }
 
     async function handleLogout() {
         await supabaseClient.auth.signOut();
