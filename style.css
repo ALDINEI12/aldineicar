@@ -130,18 +130,25 @@ header {
    ========================================================= */
 .container {
   display: flex;
+  align-items: stretch;
   min-height: calc(100dvh - var(--header-h));
+  background: var(--bg);
 }
 
 .sidebar {
   width: 248px;
+  flex: 0 0 248px;
   flex-shrink: 0;
   background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
-  padding: 22px 12px;
+  padding: 22px 12px 24px;
   border-right: 1px solid rgba(255,255,255,.05);
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-self: stretch;
+  /* acompanha a altura do conteúdo — coluna escura contínua, sem faixa clara */
+  min-height: 100%;
+  box-sizing: border-box;
 }
 .sidebar h2 {
   font-size: 11px;
@@ -2727,11 +2734,10 @@ html, body {
 }
 @media (min-width: 993px) {
 .sidebar {
-  overflow-y: auto !important;
-  max-height: calc(100vh - var(--header-h, 64px));
-  position: sticky;
-  top: var(--header-h, 64px);
-  align-self: flex-start;
+  overflow-y: visible !important;
+  max-height: none !important;
+  position: relative !important;
+  align-self: stretch !important;
 }
 }
 @media (min-width: 993px) {
@@ -2928,12 +2934,13 @@ html, body {
   .container {
     display: flex !important;
     flex-direction: row !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
     min-height: calc(100vh - var(--header-h, 64px)) !important;
     height: auto !important;
+    background: var(--bg, #eef1f6) !important;
   }
 
-  /* Menu lateral: só a altura do conteúdo — SEM coluna vazia */
+  /* Coluna lateral ESCURA em toda a altura — elimina faixa clara/branca */
   .sidebar {
     display: flex !important;
     visibility: visible !important;
@@ -2943,17 +2950,19 @@ html, body {
     min-width: 248px !important;
     max-width: 248px !important;
     height: auto !important;
-    min-height: 0 !important;
+    min-height: 100% !important;
     max-height: none !important;
-    position: sticky !important;
-    top: var(--header-h, 64px) !important;
-    align-self: flex-start !important;
+    position: relative !important;
+    top: auto !important;
+    align-self: stretch !important;
     overflow: visible !important;
-    padding: 22px 12px 20px !important;
+    padding: 22px 12px 24px !important;
     margin: 0 !important;
-    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
+    background: #0b1220 !important;
+    background-image: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
     border-right: 1px solid rgba(255,255,255,.05) !important;
     gap: 4px !important;
+    box-sizing: border-box !important;
   }
 
   .sidebar::after {
@@ -3031,3 +3040,44 @@ html, body {
   }
 }
 
+
+
+/* ===== OVERRIDE FINAL PC: coluna lateral sem faixa branca ===== */
+@media (min-width: 993px) {
+  .container {
+    align-items: stretch !important;
+  }
+  .sidebar {
+    align-self: stretch !important;
+    min-height: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    position: relative !important;
+    top: auto !important;
+    background: #0b1220 !important;
+    background-image: linear-gradient(180deg, #0f172a 0%, #0b1220 40%, #0b1220 100%) !important;
+  }
+  /* Pseudo-elemento garante pintura até o fim da coluna flex */
+  .container::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 248px;
+    background: #0b1220;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .container {
+    position: relative !important;
+  }
+  .sidebar {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  .content {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
