@@ -444,23 +444,50 @@ function mostrarSecao(id) {
                             </details>
                             </div>
 
-                            <div class="grupo-card grupo-card-tight">
-                                <div class="grupo-card-head"><span>Filtrar</span></div>
-                                <div class="agenda-filtros-bar">
-                                    <button type="button" onclick="filtrarAgendaUnificado('todos')" id="f-ag-todos" class="agenda-chip active">Todos</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('hoje')" id="f-ag-hoje" class="agenda-chip">Hoje</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('semana')" id="f-ag-semana" class="agenda-chip">Semana</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('Agendado')" id="f-ag-Agendado" class="agenda-chip">Pendentes</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('Confirmado')" id="f-ag-Confirmado" class="agenda-chip">Confirmados</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('atrasados')" id="f-ag-atrasados" class="agenda-chip chip-alerta">Atrasados</button>
-                                    <button type="button" onclick="filtrarAgendaUnificado('Concluído')" id="f-ag-Concluído" class="agenda-chip">Concluídos</button>
-                                    <button type="button" onclick="renderAgenda()" class="agenda-chip chip-refresh" title="Atualizar">🔄</button>
+                            <!-- Navegação do mês -->
+                            <div class="cal-toolbar">
+                                <div class="cal-nav">
+                                    <button type="button" class="cal-nav-btn" onclick="calMudarMes(-1)" aria-label="Mês anterior">‹</button>
+                                    <h3 id="cal-mes-label" class="cal-mes-label">—</h3>
+                                    <button type="button" class="cal-nav-btn" onclick="calMudarMes(1)" aria-label="Próximo mês">›</button>
                                 </div>
-                                <div id="agenda-resumo-contadores" class="agenda-contadores"></div>
+                                <div class="cal-toolbar-actions">
+                                    <button type="button" class="cal-chip" onclick="calIrHoje()">Hoje</button>
+                                    <button type="button" class="cal-chip cal-chip-refresh" onclick="renderAgenda()" title="Atualizar">🔄</button>
+                                </div>
                             </div>
 
-                            <div id="lista-agenda" class="agenda-lista">
-                                <p style="color:#94a3b8; text-align:center; padding:40px;">Carregando...</p>
+                            <!-- Resumo do mês -->
+                            <div class="cal-resumo" id="agenda-resumo-contadores">
+                                <div class="cal-resumo-head">
+                                    <strong>Resumo da agenda</strong>
+                                    <span class="cal-resumo-sub">Total dos serviços do mês visualizado, separado por status</span>
+                                </div>
+                                <div class="cal-resumo-grid">
+                                    <div class="cal-kpi"><span class="cal-kpi-label">Total</span><span class="cal-kpi-val" id="cal-kpi-total">0</span></div>
+                                    <div class="cal-kpi cal-kpi-pend"><span class="cal-kpi-label">Pendentes</span><span class="cal-kpi-val" id="cal-kpi-pend">0</span></div>
+                                    <div class="cal-kpi cal-kpi-ok"><span class="cal-kpi-label">Concluídos</span><span class="cal-kpi-val" id="cal-kpi-conc">0</span></div>
+                                    <div class="cal-kpi cal-kpi-cancel"><span class="cal-kpi-label">Cancelados</span><span class="cal-kpi-val" id="cal-kpi-canc">0</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Grade do calendário -->
+                            <div class="cal-wrap">
+                                <div class="cal-weekdays" aria-hidden="true">
+                                    <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                                </div>
+                                <div id="cal-grid" class="cal-grid"></div>
+                            </div>
+
+                            <!-- Lista do dia selecionado -->
+                            <div class="cal-dia-painel">
+                                <div class="cal-dia-head">
+                                    <h3 id="cal-dia-titulo">Selecione um dia</h3>
+                                    <button type="button" class="cal-chip" onclick="abrirModalNovoAgendamento()">＋ Agendar</button>
+                                </div>
+                                <div id="lista-agenda" class="agenda-lista">
+                                    <p class="cal-empty">Toque em um dia do calendário para ver os agendamentos.</p>
+                                </div>
                             </div>
                         </div>
 

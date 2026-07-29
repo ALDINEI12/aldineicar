@@ -3348,10 +3348,50 @@ function atualizarHorariosCliente() {
 
 
 // ========================================================
-// AGENDA ONLINE (melhorada)
+// AGENDA ONLINE (melhorada) + calendário mensal
 // ========================================================
 let filtroAgendaAtual = 'todos';
 let filtroPeriodoAgenda = 'todos';
+let calMesRef = null; // Date no 1º dia do mês exibido
+let calDiaSelecionado = null; // YYYY-MM-DD
+
+const NOMES_MES_AGENDA = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const NOMES_DIA_COMPLETO = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+
+function calGarantirMes() {
+    if (!calMesRef || isNaN(calMesRef.getTime())) {
+        const h = new Date();
+        calMesRef = new Date(h.getFullYear(), h.getMonth(), 1);
+    }
+}
+
+function calMudarMes(delta) {
+    calGarantirMes();
+    calMesRef = new Date(calMesRef.getFullYear(), calMesRef.getMonth() + delta, 1);
+    calDiaSelecionado = null;
+    renderAgenda();
+}
+
+function calIrHoje() {
+    const h = new Date();
+    calMesRef = new Date(h.getFullYear(), h.getMonth(), 1);
+    calDiaSelecionado = _hojeISO();
+    renderAgenda();
+}
+
+function calSelecionarDia(iso) {
+    calDiaSelecionado = iso;
+    // se o dia for de outro mês, muda o mês
+    if (iso && iso.length >= 7) {
+        const y = parseInt(iso.slice(0, 4), 10);
+        const m = parseInt(iso.slice(5, 7), 10) - 1;
+        calGarantirMes();
+        if (calMesRef.getFullYear() !== y || calMesRef.getMonth() !== m) {
+            calMesRef = new Date(y, m, 1);
+        }
+    }
+    renderAgenda();
+}
 
 function filtrarAgenda(status) {
     // compat: status puro
@@ -3371,6 +3411,7 @@ function filtrarAgendaUnificado(chave) {
     } else if (periodos.includes(chave)) {
         filtroPeriodoAgenda = chave;
         filtroAgendaAtual = 'todos';
+        if (chave === 'hoje') calIrHoje();
     } else {
         filtroAgendaAtual = chave;
         filtroPeriodoAgenda = 'todos';
@@ -3439,54 +3480,146 @@ function coletarAgendamentos() {
     return out;
 }
 
-function renderAgendaContadores(todos) {
-    const box = document.getElementById('agenda-resumo-contadores');
-    if (!box) return;
-    let hoje = 0, pend = 0, atr = 0, conf = 0;
-    todos.forEach(({ item }) => {
-        if (_agendamentoEHoje(item) && item.status !== 'Cancelado' && item.status !== 'Concluído') hoje++;
-        if ((item.status || '') === 'Agendado') pend++;
-        if ((item.status || '') === 'Confirmado') conf++;
-        if (_agendamentoEstaAtrasado(item)) atr++;
-    });
-    box.innerHTML =
-        '<div class="agenda-contador hoje-c">Hoje <span>' + hoje + '</span></div>' +
-        '<div class="agenda-contador pend-c">Pendentes <span>' + pend + '</span></div>' +
-        '<div class="agenda-contador">Confirmados <span>' + conf + '</span></div>' +
-        '<div class="agenda-contador atr-c">Atrasados <span>' + atr + '</span></div>';
+function formatarDataBR_ISO(iso) {
+    if (!iso) return '--/--/----';
+    const p = String(iso).split('-');
+    if (p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
 }
 
-function renderAgenda() {
+function renderAgendaContadores(todos) {
+    // legado — contadores agora no resumo do mês via renderCalResumo
+    renderCalResumo(todos);
+}
+
+function renderCalResumo(todos) {
+    calGarantirMes();
+    const y = calMesRef.getFullYear();
+    const m = calMesRef.getMonth();
+    const prefix = y + '-' + String(m + 1).padStart(2, '0');
+    let total = 0, pend = 0, conc = 0, canc = 0;
+    todos.forEach(({ item }) => {
+        const d = (item.agendamento || {}).data || '';
+        if (!d.startsWith(prefix)) return;
+        total++;
+        const st = item.status || 'Agendado';
+        if (st === 'Concluído') conc++;
+        else if (st === 'Cancelado') canc++;
+        else pend++; // Agendado, Confirmado, etc.
+    });
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v); };
+    set('cal-kpi-total', total);
+    set('cal-kpi-pend', pend);
+    set('cal-kpi-conc', conc);
+    set('cal-kpi-canc', canc);
+}
+
+function agruparAgendamentosPorDia(todos) {
+    const map = {};
+    todos.forEach(({ item, idx }) => {
+        const d = (item.agendamento || {}).data || '';
+        if (!d) return;
+        if (!map[d]) map[d] = [];
+        map[d].push({ item, idx });
+    });
+    return map;
+}
+
+function renderCalGrid(todos) {
+    const grid = document.getElementById('cal-grid');
+    const label = document.getElementById('cal-mes-label');
+    if (!grid) return;
+    calGarantirMes();
+    const y = calMesRef.getFullYear();
+    const m = calMesRef.getMonth();
+    if (label) label.textContent = NOMES_MES_AGENDA[m] + ' ' + y;
+
+    const porDia = agruparAgendamentosPorDia(todos);
+    const primeiro = new Date(y, m, 1);
+    const ultimo = new Date(y, m + 1, 0);
+    const startPad = primeiro.getDay(); // 0=Dom
+    const totalDias = ultimo.getDate();
+    const hoje = _hojeISO();
+    if (!calDiaSelecionado) calDiaSelecionado = hoje;
+
+    let html = '';
+    // células vazias antes do dia 1
+    for (let i = 0; i < startPad; i++) {
+        html += '<div class="cal-cell cal-cell-empty"></div>';
+    }
+    for (let dia = 1; dia <= totalDias; dia++) {
+        const iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+        const lista = porDia[iso] || [];
+        let nPend = 0, nConc = 0, nCanc = 0;
+        const nomes = [];
+        lista.forEach(({ item }) => {
+            const st = item.status || 'Agendado';
+            if (st === 'Concluído') nConc++;
+            else if (st === 'Cancelado') nCanc++;
+            else nPend++;
+            const nome = (item.cliente && item.cliente.nome) || '';
+            if (nome && nomes.length < 2) nomes.push(nome.split(' ')[0]);
+        });
+        const classes = ['cal-cell'];
+        if (iso === hoje) classes.push('cal-cell-hoje');
+        if (iso === calDiaSelecionado) classes.push('cal-cell-sel');
+        if (lista.length) classes.push('cal-cell-has');
+
+        let badges = '';
+        if (nPend) badges += '<span class="cal-badge cal-badge-pend">' + nPend + ' pend.</span>';
+        if (nConc) badges += '<span class="cal-badge cal-badge-conc">' + nConc + ' concluíd.</span>';
+        if (nCanc) badges += '<span class="cal-badge cal-badge-canc">' + nCanc + ' cancel.</span>';
+        // se só um evento, mostra o nome
+        let nomesHtml = '';
+        if (lista.length === 1 && nomes[0]) {
+            nomesHtml = '<span class="cal-nome-evt">' + nomes[0] + '</span>';
+        } else if (lista.length > 1 && nomes.length) {
+            nomesHtml = '<span class="cal-nome-evt">' + nomes.join(', ') + (lista.length > 2 ? '…' : '') + '</span>';
+        }
+
+        html += '<button type="button" class="' + classes.join(' ') + '" onclick="calSelecionarDia(\'' + iso + '\')">'
+            + '<span class="cal-num">' + dia + '</span>'
+            + '<div class="cal-cell-body">' + badges + nomesHtml + '</div>'
+            + '</button>';
+    }
+    // preenche até múltiplo de 7
+    const totalCells = startPad + totalDias;
+    const resto = totalCells % 7;
+    if (resto) {
+        for (let i = 0; i < 7 - resto; i++) html += '<div class="cal-cell cal-cell-empty"></div>';
+    }
+    grid.innerHTML = html;
+}
+
+function renderListaDiaSelecionado(todos) {
     const container = document.getElementById('lista-agenda');
+    const titulo = document.getElementById('cal-dia-titulo');
     if (!container) return;
-    let agendamentos = coletarAgendamentos();
-    renderAgendaContadores(agendamentos);
+
+    const iso = calDiaSelecionado || _hojeISO();
+    if (titulo) {
+        try {
+            const dt = new Date(iso + 'T12:00:00');
+            const nomeDia = NOMES_DIA_COMPLETO[dt.getDay()] || '';
+            const eHoje = iso === _hojeISO();
+            titulo.textContent = (eHoje ? 'Hoje · ' : '') + nomeDia + ', ' + formatarDataBR_ISO(iso);
+        } catch (e) {
+            titulo.textContent = formatarDataBR_ISO(iso);
+        }
+    }
+
+    let agendamentos = todos.filter(({ item }) => ((item.agendamento || {}).data || '') === iso);
 
     if (filtroAgendaAtual !== 'todos') {
         agendamentos = agendamentos.filter(({ item }) => (item.status || '') === filtroAgendaAtual);
     }
 
-    const hoje = _hojeISO();
-    const iniSem = _inicioSemanaISO();
-    const fimSem = _fimSemanaISO();
-    if (filtroPeriodoAgenda === 'hoje') {
-        agendamentos = agendamentos.filter(({ item }) => (item.agendamento || {}).data === hoje);
-    } else if (filtroPeriodoAgenda === 'semana') {
-        agendamentos = agendamentos.filter(({ item }) => {
-            const d = (item.agendamento || {}).data || '';
-            return d >= iniSem && d <= fimSem;
-        });
-    } else if (filtroPeriodoAgenda === 'atrasados') {
-        agendamentos = agendamentos.filter(({ item }) => _agendamentoEstaAtrasado(item));
-    }
-
     if (agendamentos.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:48px;background:white;border-radius:14px;border:1px solid #e2e8f0;"><div style="font-size:40px;">📅</div><p style="color:#64748b;font-weight:600;">Nenhum agendamento neste filtro.</p><p style="color:#94a3b8;font-size:13px;">Clientes agendam pela vitrine ou use <strong>+ Novo Agendamento</strong>.</p></div>';
+        container.innerHTML = '<div class="cal-empty-card"><div style="font-size:32px;">📅</div><p>Nenhum agendamento neste dia.</p><button type="button" class="btn-page-action" onclick="abrirModalNovoAgendamento()">＋ Novo agendamento</button></div>';
         return;
     }
 
     let html = '';
-    let ultimoDia = '';
     agendamentos.forEach(({ item, idx }) => {
         const cliente = item.cliente || {};
         const veiculo = item.veiculo || {};
@@ -3502,14 +3635,6 @@ function renderAgenda() {
         let cardClass = 'ag-item';
         if (eAtrasado) cardClass += ' atrasado';
         else if (eHoje) cardClass += ' hoje';
-
-        if (ag.data && ag.data !== ultimoDia) {
-            ultimoDia = ag.data;
-            const dt = new Date(ag.data + 'T12:00:00');
-            const nomeDia = (typeof NOMES_DIA_AGENDA !== 'undefined' ? NOMES_DIA_AGENDA[dt.getDay()] : '') || '';
-            const labelDia = eHoje ? 'Hoje · ' + formatarDataBR_ISO(ag.data) : (nomeDia + ' · ' + formatarDataBR_ISO(ag.data));
-            html += '<div class="ag-day">' + labelDia + '</div>';
-        }
 
         const tel = cliente.tel || '';
         const telLimpo = String(tel).replace(/\D/g, '');
@@ -3553,7 +3678,14 @@ function renderAgenda() {
         html += '<button onclick="deletarAgendamento(' + idx + ')" class="agenda-btn agenda-btn-del">🗑️</button>'
             + '</div></details></div>';
     });
-        container.innerHTML = html;
+    container.innerHTML = html;
+}
+
+function renderAgenda() {
+    const todos = coletarAgendamentos();
+    renderCalResumo(todos);
+    renderCalGrid(todos);
+    renderListaDiaSelecionado(todos);
 }
 
 async function alterarStatusAgendamento(idx, novoStatus) {
@@ -3697,6 +3829,15 @@ async function salvarNovoAgendamento() {
     }
     await salvarNoBanco();
     fecharModalNovoAgendamento();
+    // foca o calendário no dia do novo agendamento
+    if (dataAg) {
+        calDiaSelecionado = dataAg;
+        try {
+            const y = parseInt(dataAg.slice(0, 4), 10);
+            const m = parseInt(dataAg.slice(5, 7), 10) - 1;
+            calMesRef = new Date(y, m, 1);
+        } catch (e) {}
+    }
     renderAgenda();
     if (typeof mostrarToast === 'function') mostrarToast('Agendamento criado!', 'sucesso');
 }
