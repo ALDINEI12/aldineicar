@@ -1129,6 +1129,88 @@ async function editarProduto(id) {
         }
     }
 
+    /** Busca pagamento aprovado pela referência externa (txid do cadastro). */
+    async function buscarPagamentoMercadoPagoPorReferencia(externalRef) {
+        const mp = (TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {};
+        if (!externalRef || !mp.accessToken) return null;
+        try {
+            const url = 'https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&external_reference=' + encodeURIComponent(externalRef);
+            const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + mp.accessToken } });
+            if (!res.ok) return null;
+            const json = await res.json();
+            const results = (json && json.results) ? json.results : [];
+            if (!results.length) return null;
+            // Prioriza aprovado
+            var approved = results.find(function(p) { return p && p.status === 'approved'; });
+            return approved || results[0];
+        } catch (e) {
+            console.warn('search mp', e);
+            return null;
+        }
+    }
+
+    let __mpPollTimer = null;
+    function pararPollMercadoPago() {
+        if (__mpPollTimer) {
+            clearInterval(__mpPollTimer);
+            __mpPollTimer = null;
+        }
+    }
+
+    /**
+     * Fica consultando o MP até aprovar (útil no PIX produção,
+     * que muitas vezes não redireciona sozinho).
+     */
+    function iniciarPollAprovacaoMercadoPago(opts) {
+        opts = opts || {};
+        pararPollMercadoPago();
+        var tentativas = 0;
+        var maxTentativas = opts.maxTentativas || 40; // ~2 min (3s)
+        var intervalMs = opts.intervalMs || 3000;
+        var stTxt = document.getElementById('signupMpStatusTxt');
+        var btnConf = document.getElementById('btnSignupConfirmarPagamento');
+
+        async function tick() {
+            tentativas++;
+            var pend = carregarSignupPendente();
+            if (!pend) {
+                pararPollMercadoPago();
+                return;
+            }
+            if (stTxt) {
+                stTxt.innerHTML = 'Aguardando confirmação do PIX no Mercado Pago...<br><span style="color:#94a3b8;font-size:12px;font-weight:500;">Isso pode levar alguns segundos após o pagamento. (' + tentativas + '/' + maxTentativas + ')</span>';
+            }
+            var pag = null;
+            if (pend.mpPaymentId) {
+                pag = await verificarPagamentoMercadoPago(pend.mpPaymentId);
+            }
+            if (!pag || pag.status !== 'approved') {
+                pag = await buscarPagamentoMercadoPagoPorReferencia(pend.txid || pend.mpPreferenceId || '');
+            }
+            if (pag && pag.status === 'approved') {
+                pararPollMercadoPago();
+                pend.mpPaymentId = String(pag.id || pend.mpPaymentId || '');
+                salvarSignupPendente(pend);
+                if (stTxt) stTxt.innerHTML = 'PIX <b style="color:#22c55e;">aprovado</b>! Liberando sua conta...';
+                if (typeof mostrarToast === 'function') mostrarToast('PIX aprovado! Liberando conta...', 'sucesso');
+                await confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true });
+                return;
+            }
+            if (tentativas >= maxTentativas) {
+                pararPollMercadoPago();
+                if (stTxt) stTxt.innerHTML = 'Ainda não vimos a confirmação automática.<br>Se o PIX já caiu, toque no botão abaixo.';
+                if (btnConf) {
+                    btnConf.style.display = 'block';
+                    btnConf.textContent = '✓ Já paguei — liberar minha conta';
+                    btnConf.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true }); };
+                }
+            }
+        }
+
+        tick();
+        __mpPollTimer = setInterval(tick, intervalMs);
+    }
+
     async function iniciarCadastroPixManual(nome, email, password) {
         if (!TAXA_CADASTRO.pixChave) {
             if (typeof mostrarToast === 'function') mostrarToast('Chave PIX de cadastro não configurada.', 'erro');
@@ -1392,6 +1474,7 @@ async function editarProduto(id) {
                         btnConf0.textContent = '✓ Já paguei — liberar minha conta';
                         btnConf0.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true }); };
                     }
+                    iniciarPollAprovacaoMercadoPago({ maxTentativas: 40, intervalMs: 3000 });
                 }
                 return;
             }
@@ -1450,21 +1533,20 @@ async function editarProduto(id) {
             }
 
             if (flag === 'pending' || status === 'pending' || status === 'in_process') {
-                if (stTxt) stTxt.innerHTML = 'Pagamento <b style="color:#fbbf24;">pendente</b>. Assim que for aprovado, volte e finalize o cadastro.';
+                if (paymentId) {
+                    pend.mpPaymentId = String(paymentId);
+                    salvarSignupPendente(pend);
+                }
+                if (stTxt) stTxt.innerHTML = 'PIX em processamento. Estamos confirmando automaticamente com o Mercado Pago...';
                 if (btnConf) {
                     btnConf.style.display = 'block';
-                    btnConf.textContent = 'Já foi aprovado — criar conta';
-                    btnConf.onclick = async function() {
-                        const pag = await verificarPagamentoMercadoPago(paymentId);
-                        if (pag && pag.status === 'approved') {
-                            pend.mpPaymentId = String(pag.id || paymentId);
-                            salvarSignupPendente(pend);
-                            await confirmarPagamentoECriarConta({ mpAprovado: true });
-                        } else {
-                            if (typeof mostrarToast === 'function') mostrarToast('Ainda não consta como aprovado no Mercado Pago.', 'aviso');
-                        }
+                    btnConf.textContent = '✓ Já paguei — liberar agora';
+                    btnConf.onclick = function() {
+                        confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true });
                     };
                 }
+                // Em produção o PIX muitas vezes não redireciona sozinho: fica consultando a API
+                iniciarPollAprovacaoMercadoPago({ maxTentativas: 40, intervalMs: 3000 });
                 return;
             }
 
