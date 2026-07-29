@@ -2892,3 +2892,142 @@ html, body {
 .servico-admin-item span { display: block; font-size: 13px; font-weight: 800; color: #dc2626; }
 .servico-admin-item small { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
 
+
+/* =========================================================
+   LAYOUT RESPONSIVO — PC vs CELULAR (regra final)
+   ========================================================= */
+
+/* --- PAGE HEAD / BLOQUEIO (ambos) --- */
+.page-head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-page-secondary {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+.painel-bloqueio-agenda { margin-bottom: 14px; }
+
+/* ========== COMPUTADOR (≥ 993px) ========== */
+@media (min-width: 993px) {
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+
+  #appContainer {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    min-height: calc(100vh - var(--header-h, 64px)) !important;
+    height: auto !important;
+  }
+
+  /* Menu lateral: só a altura do conteúdo — SEM coluna vazia */
+  .sidebar {
+    display: flex !important;
+    visibility: visible !important;
+    flex-direction: column !important;
+    flex: 0 0 248px !important;
+    width: 248px !important;
+    min-width: 248px !important;
+    max-width: 248px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    position: sticky !important;
+    top: var(--header-h, 64px) !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    padding: 22px 12px 20px !important;
+    margin: 0 !important;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
+    border-right: 1px solid rgba(255,255,255,.05) !important;
+    gap: 4px !important;
+  }
+
+  .sidebar::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .sidebar .btn-logout {
+    margin-top: 16px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sidebar button {
+    flex-shrink: 0 !important;
+  }
+
+  .content {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 28px 28px 40px !important;
+  }
+
+  /* No PC: esconde menu de baixo */
+  .bottom-nav,
+  #bottom-nav,
+  #bottom-nav.bottom-nav,
+  .menu-mais-sheet,
+  #menu-mais-sheet,
+  #btn-resumo-flutuante {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* ========== CELULAR (≤ 992px) ========== */
+@media (max-width: 992px) {
+  /* Menu lateral some por completo */
+  .sidebar,
+  aside.sidebar,
+  .container > .sidebar {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .container {
+    display: block !important;
+    flex-direction: column !important;
+    min-height: auto !important;
+  }
+
+  .content {
+    width: 100% !important;
+    padding: 14px 14px calc(var(--nav-h, 68px) + 24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Só o menu de baixo */
+  .bottom-nav,
+  #bottom-nav,
+  #bottom-nav.bottom-nav {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
