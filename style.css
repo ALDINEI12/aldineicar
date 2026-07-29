@@ -3084,104 +3084,131 @@ html, body {
 
 
 /* =========================================================
-   CONTATOS VITRINE — ícones animados
+   CONTATOS VITRINE — ícones oficiais animados (sem quadrado)
    ========================================================= */
 .vt-contatos {
   display: flex !important;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 22px;
   justify-content: center;
   align-items: flex-start;
-  padding: 8px 16px 16px !important;
+  padding: 10px 16px 18px !important;
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 .vt-contato-icon {
   position: relative;
-  width: 76px;
+  width: 72px;
   display: none;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   text-decoration: none !important;
   color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
   -webkit-tap-highlight-color: transparent;
 }
-.vt-contato-icon .vt-icon-emoji {
+.vt-contato-icon .vt-icon-badge {
   position: relative;
   z-index: 2;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 50% !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  box-shadow: 0 10px 28px rgba(0,0,0,.35);
-  transition: transform .2s ease;
+  overflow: hidden;
+  border: none !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.35);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.vt-contato-icon .vt-app-svg {
+  width: 28px;
+  height: 28px;
+  display: block;
 }
 .vt-contato-icon .vt-icon-ring {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 58px;
-  height: 58px;
-  margin-left: -29px;
+  width: 56px;
+  height: 56px;
+  margin-left: -28px;
   border-radius: 50%;
   z-index: 1;
   pointer-events: none;
-  animation: vtPulse 2s ease-out infinite;
+  background: transparent !important;
+  border: none !important;
 }
 .vt-contato-icon .vt-icon-label {
   font-size: 11px;
   font-weight: 800;
   color: #e4e4e7;
   text-align: center;
-  max-width: 90px;
+  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background: transparent !important;
 }
-.vt-contato-icon:active .vt-icon-emoji,
-.vt-contato-icon:hover .vt-icon-emoji {
+.vt-contato-icon:hover .vt-icon-badge,
+.vt-contato-icon:active .vt-icon-badge {
   transform: scale(1.08);
 }
-.vt-contato-icon.vt-wa .vt-icon-emoji {
-  background: linear-gradient(145deg, #25d366, #128c7e);
+
+/* WhatsApp — círculo verde oficial */
+.vt-contato-icon.vt-wa .vt-icon-badge {
+  background: #25D366 !important;
 }
 .vt-contato-icon.vt-wa .vt-icon-ring {
-  box-shadow: 0 0 0 0 rgba(37, 211, 102, .55);
-  animation-name: vtPulseWa;
+  animation: vtPulseWa 2s ease-out infinite;
 }
-.vt-contato-icon.vt-ig .vt-icon-emoji {
-  background: linear-gradient(135deg, #f58529, #dd2a7b 50%, #8134af);
+
+/* Instagram — gradiente oficial */
+.vt-contato-icon.vt-ig .vt-icon-badge {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%) !important;
 }
 .vt-contato-icon.vt-ig .vt-icon-ring {
-  box-shadow: 0 0 0 0 rgba(221, 42, 123, .5);
-  animation-name: vtPulseIg;
+  animation: vtPulseIg 2s ease-out infinite;
 }
-.vt-contato-icon.vt-maps .vt-icon-emoji {
-  background: linear-gradient(145deg, #4285f4, #1a73e8);
+
+/* Maps — azul */
+.vt-contato-icon.vt-maps .vt-icon-badge {
+  background: #4285F4 !important;
 }
 .vt-contato-icon.vt-maps .vt-icon-ring {
-  box-shadow: 0 0 0 0 rgba(66, 133, 244, .55);
-  animation-name: vtPulseMaps;
+  animation: vtPulseMaps 2s ease-out infinite;
 }
+
 @keyframes vtPulseWa {
   0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .55); }
-  70% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
+  70% { box-shadow: 0 0 0 18px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
 @keyframes vtPulseIg {
-  0% { box-shadow: 0 0 0 0 rgba(221, 42, 123, .5); }
-  70% { box-shadow: 0 0 0 16px rgba(221, 42, 123, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(221, 42, 123, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(214, 36, 159, .5); }
+  70% { box-shadow: 0 0 0 18px rgba(214, 36, 159, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(214, 36, 159, 0); }
 }
 @keyframes vtPulseMaps {
   0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, .55); }
-  70% { box-shadow: 0 0 0 16px rgba(66, 133, 244, 0); }
+  70% { box-shadow: 0 0 0 18px rgba(66, 133, 244, 0); }
   100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+}
+
+/* remove legado emoji/quadrado */
+.vt-contato-btn,
+.vt-icon-emoji {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* =========================================================
