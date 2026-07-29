@@ -1,4 +1,20 @@
- 
+ const TAXA_CADASTRO = {
+    ativo: true,
+    valor: 49.90,              // valor da taxa
+    metodo: 'mercadopago',     // 'mercadopago' | 'pix_manual' | 'off'
+    descricao: 'Ativacao ALDINEICAR Profissional',
+
+    mercadoPago: {
+        accessToken: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',  // cole aqui
+        publicKey: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',    // opcional
+        preferenceProxyUrl: ''            // deixe vazio por enquanto
+    },
+
+    // fallback PIX se MP não estiver ok
+    pixChave: '59907544000184',
+    pixNome: 'ALDINEI BATISTA ROCHA FILHO',
+    pixCidade: 'SATIRO DIAS'
+};
 
 
  
