@@ -5191,6 +5191,56 @@ function obterServicosVitrine(fonte) {
   var d = fonte || (typeof dadosOficina !== 'undefined' ? dadosOficina : {}) || {};
   return Array.isArray(d.servicos_vitrine) ? d.servicos_vitrine : [];
 }
+
+function limparFotoServicoVitrine() {
+  var hid = document.getElementById('servVitrineFoto');
+  var prev = document.getElementById('servVitrineFotoPreview');
+  var file = document.getElementById('servVitrineFotoFile');
+  if (hid) hid.value = '';
+  if (file) file.value = '';
+  if (prev) {
+    prev.innerHTML = '📷 Toque para escolher da galeria';
+    prev.classList.remove('tem-foto');
+    prev.style.backgroundImage = '';
+  }
+}
+
+async function onServVitrineFotoChange(input) {
+  var file = input && input.files && input.files[0];
+  if (!file) return;
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    if (typeof mostrarToast === 'function') mostrarToast('Selecione uma imagem.', 'aviso');
+    return;
+  }
+  try {
+    if (typeof mostrarToast === 'function') mostrarToast('Processando foto...', 'aviso');
+    var dataUrl;
+    if (typeof redimensionarImagemArquivo === 'function') {
+      dataUrl = await redimensionarImagemArquivo(file, 900, 0.72);
+    } else {
+      dataUrl = await new Promise(function(resolve, reject) {
+        var r = new FileReader();
+        r.onload = function() { resolve(r.result); };
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+    var hid = document.getElementById('servVitrineFoto');
+    var prev = document.getElementById('servVitrineFotoPreview');
+    if (hid) hid.value = dataUrl;
+    if (prev) {
+      prev.innerHTML = '';
+      prev.classList.add('tem-foto');
+      prev.style.backgroundImage = 'url(' + dataUrl + ')';
+    }
+    if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
+  } catch (e) {
+    console.error(e);
+    if (typeof mostrarToast === 'function') mostrarToast('Não foi possível usar esta imagem.', 'erro');
+  }
+  if (input) input.value = '';
+}
+
 function renderServicosVitrineAdmin() {
   var box = document.getElementById('lista-servicos-vitrine-admin');
   if (!box) return;
@@ -5198,21 +5248,41 @@ function renderServicosVitrineAdmin() {
   if (!lista.length) { box.innerHTML = '<p class="grupo-hint">Nenhum serviço cadastrado ainda.</p>'; return; }
   box.innerHTML = lista.map(function(s,i){
     var preco = parseFloat(s.preco)||0;
-    return '<div class="servico-admin-item"><div><strong>'+(s.nome||'Serviço')+'</strong><span>R$ '+preco.toFixed(2).replace('.',',')+'</span>'+(s.descricao?'<small>'+s.descricao+'</small>':'')+'</div><button type="button" class="btn-loja-toggle" onclick="removerServicoVitrine('+i+')">Remover</button></div>';
+    var foto = s.foto || s.imagem || '';
+    var img = foto
+      ? '<img class="servico-admin-thumb" src="'+foto+'" alt="" onerror="this.style.display=\'none\'">'
+      : '<div class="servico-admin-thumb servico-admin-thumb-empty">🔧</div>';
+    return '<div class="servico-admin-item">'
+      + img
+      + '<div class="servico-admin-info"><strong>'+(s.nome||'Serviço')+'</strong>'
+      + '<span>R$ '+preco.toFixed(2).replace('.',',')+'</span>'
+      + (s.descricao?'<small>'+s.descricao+'</small>':'')
+      + '</div>'
+      + '<button type="button" class="btn-loja-toggle" onclick="removerServicoVitrine('+i+')">Remover</button></div>';
   }).join('');
 }
+
 async function adicionarServicoVitrine() {
   var nome = (document.getElementById('servVitrineNome')&&document.getElementById('servVitrineNome').value||'').trim();
   var preco = parseFloat(document.getElementById('servVitrinePreco')&&document.getElementById('servVitrinePreco').value||'0');
   var desc = (document.getElementById('servVitrineDesc')&&document.getElementById('servVitrineDesc').value||'').trim();
+  var foto = (document.getElementById('servVitrineFoto')&&document.getElementById('servVitrineFoto').value||'').trim();
   if (!nome) { alert('Informe o nome do serviço.'); return; }
   if (!dadosOficina.servicos_vitrine) dadosOficina.servicos_vitrine = [];
-  dadosOficina.servicos_vitrine.push({id:'srv-'+Date.now(), nome:nome, preco:isNaN(preco)?0:preco, descricao:desc});
+  dadosOficina.servicos_vitrine.push({
+    id: 'srv-'+Date.now(),
+    nome: nome,
+    preco: isNaN(preco)?0:preco,
+    descricao: desc,
+    foto: foto || ''
+  });
   ['servVitrineNome','servVitrinePreco','servVitrineDesc'].forEach(function(id){var el=document.getElementById(id); if(el) el.value='';});
+  limparFotoServicoVitrine();
   renderServicosVitrineAdmin();
   if (typeof salvarNoBanco==='function') await salvarNoBanco();
   if (typeof mostrarToast==='function') mostrarToast('Serviço adicionado!','sucesso');
 }
+
 async function removerServicoVitrine(i) {
   if (!dadosOficina.servicos_vitrine) return;
   dadosOficina.servicos_vitrine.splice(i,1);
@@ -5220,49 +5290,6 @@ async function removerServicoVitrine(i) {
   if (typeof salvarNoBanco==='function') await salvarNoBanco();
 }
 
-
-function togglePainelBloqueio() {
-  var painel = document.getElementById('painel-bloqueio-agenda');
-  if (!painel) return;
-  var open = painel.style.display === 'none' || !painel.style.display;
-  painel.style.display = open ? 'block' : 'none';
-  if (open && typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
-  var wrap = document.getElementById('painel-disponibilidade-wrap');
-  if (wrap && open) wrap.open = true;
-}
-
-function obterServicosVitrine(fonte) {
-  var d = fonte || (typeof dadosOficina !== 'undefined' ? dadosOficina : {}) || {};
-  return Array.isArray(d.servicos_vitrine) ? d.servicos_vitrine : [];
-}
-function renderServicosVitrineAdmin() {
-  var box = document.getElementById('lista-servicos-vitrine-admin');
-  if (!box) return;
-  var lista = obterServicosVitrine();
-  if (!lista.length) { box.innerHTML = '<p class="grupo-hint">Nenhum serviço cadastrado ainda.</p>'; return; }
-  box.innerHTML = lista.map(function(s,i){
-    var preco = parseFloat(s.preco)||0;
-    return '<div class="servico-admin-item"><div><strong>'+(s.nome||'Serviço')+'</strong><span>R$ '+preco.toFixed(2).replace('.',',')+'</span>'+(s.descricao?'<small>'+s.descricao+'</small>':'')+'</div><button type="button" class="btn-loja-toggle" onclick="removerServicoVitrine('+i+')">Remover</button></div>';
-  }).join('');
-}
-async function adicionarServicoVitrine() {
-  var nome = (document.getElementById('servVitrineNome')&&document.getElementById('servVitrineNome').value||'').trim();
-  var preco = parseFloat(document.getElementById('servVitrinePreco')&&document.getElementById('servVitrinePreco').value||'0');
-  var desc = (document.getElementById('servVitrineDesc')&&document.getElementById('servVitrineDesc').value||'').trim();
-  if (!nome) { alert('Informe o nome do serviço.'); return; }
-  if (!dadosOficina.servicos_vitrine) dadosOficina.servicos_vitrine = [];
-  dadosOficina.servicos_vitrine.push({id:'srv-'+Date.now(), nome:nome, preco:isNaN(preco)?0:preco, descricao:desc});
-  ['servVitrineNome','servVitrinePreco','servVitrineDesc'].forEach(function(id){var el=document.getElementById(id); if(el) el.value='';});
-  renderServicosVitrineAdmin();
-  if (typeof salvarNoBanco==='function') await salvarNoBanco();
-  if (typeof mostrarToast==='function') mostrarToast('Serviço adicionado!','sucesso');
-}
-async function removerServicoVitrine(i) {
-  if (!dadosOficina.servicos_vitrine) return;
-  dadosOficina.servicos_vitrine.splice(i,1);
-  renderServicosVitrineAdmin();
-  if (typeof salvarNoBanco==='function') await salvarNoBanco();
-}
 function normalizarWhatsappNumero(v){ return String(v||'').replace(/\D/g,''); }
 function normalizarInstagramUser(v){
   return String(v||'').trim().replace(/^@/,'').replace(/https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/$/,'');
@@ -5332,7 +5359,19 @@ function renderServicosVitrinePublica(lista){
   box.innerHTML=items.map(function(s){
     var preco=parseFloat(s.preco)||0;
     var id=String(s.id||s.nome||'').replace(/'/g,"\\'");
-    return '<article class="vt-servico-card"><h3 class="vt-servico-titulo">'+(s.nome||'Serviço')+'</h3>'+(s.descricao?'<p class="vt-servico-desc">'+s.descricao+'</p>':'')+'<div class="vt-servico-foot"><div class="vt-servico-preco">R$ '+preco.toFixed(2).replace('.',',')+'</div><button type="button" class="vt-servico-btn" onclick="agendarServicoVitrine(\''+id+'\')">Agendar</button></div></article>';
+    var foto=s.foto||s.imagem||'';
+    var nomeEsc=(s.nome||'Serviço').replace(/"/g,'&quot;');
+    var imgHtml=foto
+      ? '<div class="vt-servico-foto"><img src="'+foto+'" alt="'+nomeEsc+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>'
+      : '';
+    return '<article class="vt-servico-card">'
+      + imgHtml
+      + '<div class="vt-servico-body">'
+      + '<h3 class="vt-servico-titulo">'+(s.nome||'Serviço')+'</h3>'
+      + (s.descricao?'<p class="vt-servico-desc">'+s.descricao+'</p>':'')
+      + '<div class="vt-servico-foot"><div class="vt-servico-preco">R$ '+preco.toFixed(2).replace('.',',')+'</div>'
+      + '<button type="button" class="vt-servico-btn" onclick="agendarServicoVitrine(\''+id+'\')">Agendar</button></div>'
+      + '</div></article>';
   }).join('');
 }
 function agendarServicoVitrine(servId){

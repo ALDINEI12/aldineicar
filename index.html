@@ -632,9 +632,19 @@ function mostrarSecao(id) {
                             <details class="grupo-card" open>
                                 <summary class="grupo-card-summary">🔧 Serviços da vitrine (com preços)</summary>
                                 <div class="grupo-card-body">
-                                    <p class="grupo-hint" style="margin-top:0;">O cliente escolhe um destes serviços ao agendar. Você recebe o serviço + valor no agendamento.</p>
+                                    <p class="grupo-hint" style="margin-top:0;">O cliente escolhe um destes serviços ao agendar. Você recebe o serviço + valor no agendamento. Adicione uma foto da galeria para destacar na vitrine.</p>
                                     <div id="lista-servicos-vitrine-admin" class="servicos-admin-lista"></div>
-                                    <input type="text" id="servVitrineNome" placeholder="Nome do serviço (ex: Polimento técnico)" style="width:100%;margin-bottom:8px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <label class="loja-label">Foto do serviço (galeria)</label>
+                                    <input type="hidden" id="servVitrineFoto" value="">
+                                    <div class="serv-foto-box">
+                                        <div id="servVitrineFotoPreview" class="serv-foto-preview" onclick="document.getElementById('servVitrineFotoFile').click()">📷 Toque para escolher da galeria</div>
+                                        <input type="file" id="servVitrineFotoFile" accept="image/*" class="prod-foto-input" onchange="onServVitrineFotoChange(this)">
+                                        <div class="prod-foto-acoes" style="margin-top:8px;">
+                                            <label for="servVitrineFotoFile" class="btn-foto-escolher">📁 Escolher foto</label>
+                                            <button type="button" class="btn-foto-remover" onclick="limparFotoServicoVitrine()">Remover</button>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="servVitrineNome" placeholder="Nome do serviço (ex: Polimento técnico)" style="width:100%;margin:10px 0 8px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
                                     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
                                         <input type="number" id="servVitrinePreco" step="0.01" placeholder="Preço R$" style="flex:1;min-width:110px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
                                         <input type="text" id="servVitrineDesc" placeholder="Descrição curta (opcional)" style="flex:2;min-width:140px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">

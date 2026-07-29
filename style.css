@@ -3674,3 +3674,80 @@ html, body {
   .cal-cell-body { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .cal-nome-evt { display: none; }
 }
+
+
+/* Foto nos serviços da vitrine */
+.serv-foto-box { margin-bottom: 4px; }
+.serv-foto-preview {
+  width: 100%;
+  height: 140px;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.serv-foto-preview.tem-foto {
+  border-style: solid;
+  color: transparent;
+  font-size: 0;
+}
+.servico-admin-item {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+.servico-admin-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f1f5f9;
+}
+.servico-admin-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 1px solid #e2e8f0;
+}
+.servico-admin-info { flex: 1; min-width: 0; }
+.servico-admin-info strong { display: block; font-size: 14px; color: #0f172a; }
+.servico-admin-info span { display: block; font-size: 13px; font-weight: 800; color: #dc2626; }
+.servico-admin-info small { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.vt-servico-card {
+  overflow: hidden;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+.vt-servico-foto {
+  width: 100%;
+  height: 160px;
+  background: #1a1f2a;
+  overflow: hidden;
+}
+.vt-servico-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.vt-servico-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 6px;
+}
+.vt-servico-body .vt-servico-foot {
+  margin-top: auto;
+  padding-top: 10px;
+}
