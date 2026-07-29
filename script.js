@@ -296,21 +296,62 @@ async function carregarProdutosDaLoja() {
 
 function abrirResumoMobile() {
     const resumo = document.querySelector('.resumo');
+    if (!resumo) return;
     
     // Se o resumo estiver escondido, mostra. Se estiver visível, esconde.
-    if (resumo.style.display === 'block') {
+    if (resumo.style.display === 'block' || resumo.classList.contains('aberto')) {
+        resumo.classList.remove('aberto');
         resumo.style.display = 'none';
     } else {
+        resumo.classList.add('resumo-anim');
         resumo.style.display = 'block';
+        void resumo.offsetWidth;
+        resumo.classList.add('aberto');
         // Adiciona um botão de fechar dentro do resumo se não existir
         if (!document.getElementById('btn-fechar-resumo')) {
             const btnFechar = document.createElement('button');
             btnFechar.id = 'btn-fechar-resumo';
             btnFechar.innerHTML = '✖ Fechar';
             btnFechar.style.cssText = "width:100%; margin-bottom:20px; padding:10px; background:#f1f5f9; border:none; border-radius:8px;";
-            btnFechar.onclick = () => { resumo.style.display = 'none'; };
+            btnFechar.onclick = () => {
+                resumo.classList.remove('aberto');
+                resumo.style.display = 'none';
+            };
             resumo.prepend(btnFechar);
         }
+    }
+}
+
+/** Fecha o resumo ao sair de Materiais e reabre ao voltar (mobile + desktop). */
+function sincronizarResumoComAba(naMateriais) {
+    const resumo = document.querySelector('.resumo');
+    const btnFlutuante = document.getElementById('btn-resumo-flutuante');
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 992px)').matches;
+
+    if (btnFlutuante) {
+        // No mobile o botão só faz sentido na aba Materiais
+        if (isMobile) {
+            btnFlutuante.style.display = naMateriais ? 'flex' : 'none';
+        }
+    }
+
+    if (!resumo) return;
+
+    if (naMateriais) {
+        if (isMobile) {
+            // Mobile: reabre o painel de resumo ao voltar para Materiais
+            resumo.classList.add('resumo-anim');
+            resumo.style.display = 'block';
+            void resumo.offsetWidth;
+            resumo.classList.add('aberto');
+        } else {
+            // Desktop: coluna lateral visível
+            resumo.style.display = '';
+            resumo.classList.remove('resumo-anim', 'aberto');
+        }
+    } else {
+        resumo.classList.remove('aberto');
+        resumo.style.display = 'none';
     }
 }
 
@@ -1284,6 +1325,12 @@ async function editarProduto(id) {
     // Top actions só em materiais
     const topAct = document.querySelector('.top-actions');
     if (topAct) topAct.style.display = (nome === 'materiais') ? 'flex' : 'none';
+
+    // Resumo: fecha ao sair de Materiais e reabre ao voltar
+    if (typeof sincronizarResumoComAba === 'function') {
+        sincronizarResumoComAba(nome === 'materiais');
+    }
+
     if (nome === 'dashboard') {
         const btn = document.getElementById('btn-menu-dashboard');
         if (btn) btn.classList.add('active');
@@ -2573,6 +2620,10 @@ async function confirmarPagamentoVenda(idxHist) {
 
     await salvarNoBanco();
     renderizarListaVendasExclusiva();
+    if (typeof renderDashboard === 'function') {
+        const dash = document.getElementById('aba-dashboard');
+        if (dash && dash.style.display !== 'none') renderDashboard();
+    }
     if (typeof mostrarToast === 'function') mostrarToast('Pagamento confirmado!', 'sucesso');
 }
 
@@ -2751,6 +2802,14 @@ function isRegistroVenda(item) {
     return false;
 }
 
+/** Venda só entra no dashboard depois que o dono confirma (status pago). */
+function isVendaPaga(item) {
+    if (!item) return false;
+    const status = String(item.status || '').trim().toLowerCase();
+    // Aceita: "Pago", "Pago PIX", "pago", etc. — NÃO conta "Aguardando PIX"
+    return status.includes('pago') && !status.includes('aguardando');
+}
+
 function valorVenda(item) {
     let v = item.total_pago || item.valor_total || item.totalCobrado || 0;
     if (typeof v === 'string') v = parseFloat(v.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
@@ -2859,6 +2918,8 @@ function calcularDadosPorPeriodo(ini, fim) {
         mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
 
         if (isRegistroVenda(item)) {
+            // Só computa venda no dashboard após "✓ Recebi" (status pago)
+            if (!isVendaPaga(item)) return;
             const v = valorVenda(item);
             mapa[chave].vendas += v;
             mapa[chave].qtdVendas += 1;
@@ -2929,7 +2990,7 @@ function renderDashboard() {
     set('kpi-lucro', formatarBRL(dados.totalFatOrc - dados.totalMat));
     set('kpi-fat-orc-sub', dados.qtdOrc + ' orçamento(s) pago(s) no período');
     set('kpi-materiais-sub', 'Materiais das OS pagas no período');
-    set('kpi-vendas-sub', dados.qtdVendas + ' venda(s) no período');
+    set('kpi-vendas-sub', dados.qtdVendas + ' venda(s) paga(s) no período');
 
     const tbody = document.getElementById('tabela-resumo-mensal');
     if (tbody) {
@@ -3878,6 +3939,10 @@ async function processarWebhookPix(payload) {
         if (uid === usuarioAtualId) {
             historico = hist;
             if (typeof renderizarListaVendasExclusiva === 'function') renderizarListaVendasExclusiva();
+            if (typeof renderDashboard === 'function') {
+                const dash = document.getElementById('aba-dashboard');
+                if (dash && dash.style.display !== 'none') renderDashboard();
+            }
             if (typeof mostrarToast === 'function') mostrarToast('Webhook: pagamento confirmado!', 'sucesso');
             dispararNotificacaoBrowser('ALDINEICAR', 'Pagamento PIX confirmado via webhook');
         }
@@ -4759,27 +4824,8 @@ function toggleMenuMais() {
     }
 }
 
-// Resumo mobile com animação (se existir)
-(function patchResumoAnim() {
-    if (typeof window.abrirResumoMobile !== 'function') return;
-    const orig = window.abrirResumoMobile;
-    window.abrirResumoMobile = function() {
-        const r = document.querySelector('.resumo');
-        if (!r) return orig.apply(this, arguments);
-        const visivel = r.style.display === 'block' || r.classList.contains('aberto');
-        if (visivel) {
-            r.classList.remove('aberto');
-            setTimeout(function() {
-                r.style.display = 'none';
-            }, 280);
-        } else {
-            r.classList.add('resumo-anim');
-            r.style.display = 'block';
-            void r.offsetWidth;
-            r.classList.add('aberto');
-        }
-    };
-})();
+// Resumo: animação já está em abrirResumoMobile + sincronizarResumoComAba
+// (patch antigo removido para não sobrescrever a lógica unificada)
 
 
 // Garante animação também na edição de produto
