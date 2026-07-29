@@ -439,9 +439,16 @@ header {
   display: flex;
   gap: 8px;
   margin-bottom: 18px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  overscroll-behavior-x: contain;
 }
+.categorias-materiais::-webkit-scrollbar { display: none; }
 .categorias-materiais button {
+  flex-shrink: 0;
   padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -450,6 +457,7 @@ header {
   font-weight: 700;
   font-size: 12px;
   transition: .15s ease;
+  white-space: nowrap;
 }
 .categorias-materiais button:hover {
   background: #f8fafc;
@@ -461,6 +469,14 @@ header {
   border-color: var(--ink);
   box-shadow: 0 6px 14px rgba(15,23,42,.18);
 }
+.grupo-card .categorias-materiais {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.grupo-card .categorias-materiais::-webkit-scrollbar { display: none; }
+.grupo-card .categorias-materiais button { flex-shrink: 0; }
 
 .cat-loja-chip {
   display: inline-flex;
@@ -1071,12 +1087,97 @@ header {
   font-weight: 600;
 }
 .hist-financeiro {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  margin: 10px 0;
+  margin: 12px 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.hist-financeiro .hf-item,
+.hist-financeiro > div {
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 10px 10px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hist-financeiro .hf-label,
+.hist-financeiro span {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .35px;
+  margin-bottom: 0;
+}
+.hist-financeiro .hf-valor,
+.hist-financeiro b {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -.2px;
+  line-height: 1.25;
+  word-break: break-word;
+}
+.hist-financeiro .hf-sub {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 1px;
+}
+.hist-financeiro .hf-cobrado {
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+  border-color: #dbeafe;
+}
+.hist-financeiro .hf-cobrado .hf-valor,
+.hist-financeiro .hf-cobrado b { color: #1d4ed8; }
+.hist-financeiro .hf-custos {
+  background: linear-gradient(180deg, #fff7ed 0%, #f8fafc 100%);
+  border-color: #fed7aa;
+}
+.hist-financeiro .hf-custos .hf-valor,
+.hist-financeiro .hf-custos b { color: #c2410c; }
+.hist-financeiro .hf-lucro.pos,
+.hist-financeiro .pos {
+  background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 100%);
+  border-color: #a7f3d0;
+}
+.hist-financeiro .hf-lucro.pos .hf-valor,
+.hist-financeiro .pos b { color: #047857 !important; }
+.hist-financeiro .hf-lucro.neg,
+.hist-financeiro .neg {
+  background: linear-gradient(180deg, #fef2f2 0%, #fff5f5 100%);
+  border-color: #fecaca;
+}
+.hist-financeiro .hf-lucro.neg .hf-valor,
+.hist-financeiro .neg b { color: #b91c1c !important; }
+
+@media (max-width: 480px) {
+  .hist-financeiro {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .hist-financeiro .hf-item,
+  .hist-financeiro > div {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  .hist-financeiro .hf-sub {
+    width: 100%;
+    order: 3;
+  }
 }
 .hist-detalhes {
   border-top: 1px solid #f1f5f9;
@@ -1147,13 +1248,31 @@ header {
 /* =========================================================
    AGENDA
    ========================================================= */
-.agenda-filtros-bar,
+.agenda-filtros-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  margin-bottom: 12px;
+  padding-bottom: 2px;
+  overscroll-behavior-x: contain;
+}
+.agenda-filtros-bar::-webkit-scrollbar { display: none; }
 .agenda-contadores {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
+.grupo-card .agenda-filtros-bar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.grupo-card .agenda-filtros-bar::-webkit-scrollbar { display: none; }
 .agenda-chip,
 .agenda-contador {
   border: 1px solid var(--line);
@@ -1164,6 +1283,8 @@ header {
   font-size: 12px;
   font-weight: 700;
   transition: .15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .agenda-chip.active,
 .agenda-chip:hover {

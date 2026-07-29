@@ -1071,7 +1071,7 @@ async function editarProduto(id) {
             let custoDesloc = parseFloat(item.deslocamento) || 0;
             let valorCobrado = parseFloat(item.totalCobrado) || 0;
             
-            let lucroReal = valorCobrado - custoMat - custoDesloc;
+            let lucroReal = valorCobrado - parseFloat(custoMat) - parseFloat(custoMaoObra) - custoDesloc;
 
             const statusAtual = item.status || 'Orçamento';
             let classeStatus = 'status-orcamento';
@@ -1102,9 +1102,20 @@ async function editarProduto(id) {
                         <p class="hist-meta">🔧 ${veiculo.tipo_servico || '---'}</p>
                     </div>
                     <div class="hist-financeiro">
-                        <div><span>Cobrado</span><b>R$ ${valorCobrado.toFixed(2).replace('.', ',')}</b></div>
-                        <div><span>Custos</span><b>R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b></div>
-                        <div class="${lucroReal >= 0 ? 'pos' : 'neg'}"><span>Lucro</span><b>R$ ${lucroReal.toFixed(2).replace('.', ',')}</b></div>
+                        <div class="hf-item hf-cobrado">
+                            <span class="hf-label">Cobrado</span>
+                            <b class="hf-valor">R$ ${valorCobrado.toFixed(2).replace('.', ',')}</b>
+                        </div>
+                        <div class="hf-item hf-custos">
+                            <span class="hf-label">Custos</span>
+                            <b class="hf-valor">R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b>
+                            <span class="hf-sub">Mat. + M.O.${custoDesloc > 0 ? ' + Desloc.' : ''}</span>
+                        </div>
+                        <div class="hf-item hf-lucro ${lucroReal >= 0 ? 'pos' : 'neg'}">
+                            <span class="hf-label">Lucro</span>
+                            <b class="hf-valor">R$ ${lucroReal.toFixed(2).replace('.', ',')}</b>
+                            <span class="hf-sub">${valorCobrado > 0 ? ((lucroReal / valorCobrado) * 100).toFixed(0) + '% margem' : '—'}</span>
+                        </div>
                     </div>
                     ${(item.fotos && item.fotos.length) ? '<div class="hist-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto '+(fi+1)+'" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : ''}
                     <details class="hist-detalhes">
