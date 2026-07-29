@@ -2803,12 +2803,24 @@ function isRegistroVenda(item) {
     return false;
 }
 
+function isRegistroAgendamento(item) {
+    if (!item) return false;
+    return item.tipo_registro === 'AGENDAMENTO' || !!(item.agendamento && item.agendamento.data);
+}
+
 /** Venda só entra no dashboard depois que o dono confirma (status pago). */
 function isVendaPaga(item) {
     if (!item) return false;
     const status = String(item.status || '').trim().toLowerCase();
     // Aceita: "Pago", "Pago PIX", "pago", etc. — NÃO conta "Aguardando PIX"
     return status.includes('pago') && !status.includes('aguardando');
+}
+
+/** Agendamento da vitrine/painel só entra no dashboard após Concluir. */
+function isAgendamentoConcluido(item) {
+    if (!isRegistroAgendamento(item)) return false;
+    return String(item.status || '').trim().toLowerCase() === 'concluído' ||
+           String(item.status || '').trim().toLowerCase() === 'concluido';
 }
 
 function valorVenda(item) {
@@ -2819,6 +2831,35 @@ function valorVenda(item) {
 
 function valorOrcamento(item) {
     return parseFloat(item.totalCobrado) || parseFloat(item.total) || 0;
+}
+
+/** Valor do serviço de agenda (preço da vitrine ou totalCobrado). */
+function valorServicoAgenda(item) {
+    if (!item) return 0;
+    let v = item.totalCobrado;
+    if (v === undefined || v === null || v === '' || parseFloat(v) === 0) {
+        v = item.servico_preco;
+    }
+    if (v === undefined || v === null || v === '') v = 0;
+    if (typeof v === 'string') v = parseFloat(v.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    return parseFloat(v) || 0;
+}
+
+function dataReferenciaDashboard(item) {
+    // Preferência: data de conclusão / confirmação / agendamento / registro
+    if (item.concluido_em) {
+        const d = new Date(item.concluido_em);
+        if (!isNaN(d.getTime())) return d;
+    }
+    if (item.confirmado_em) {
+        const d = new Date(item.confirmado_em);
+        if (!isNaN(d.getTime())) return d;
+    }
+    if (item.agendamento && item.agendamento.data) {
+        const d = new Date(item.agendamento.data + 'T12:00:00');
+        if (!isNaN(d.getTime())) return d;
+    }
+    return parseDataHistorico(item.data);
 }
 
 function custoMateriaisOrc(item) {
@@ -2906,15 +2947,16 @@ function dataNoPeriodo(data, ini, fim) {
 function calcularDadosPorPeriodo(ini, fim) {
     // Agrega por mês dentro do período (para o gráfico)
     const mapa = {}; // chave YYYY-MM
-    let totalFatOrc = 0, totalMat = 0, totalVendas = 0, qtdOrc = 0, qtdVendas = 0;
+    let totalFatOrc = 0, totalMat = 0, totalVendas = 0, totalServicos = 0;
+    let qtdOrc = 0, qtdVendas = 0, qtdServicos = 0;
 
     const lista = Array.isArray(historico) ? historico : [];
     lista.forEach(item => {
-        const data = parseDataHistorico(item.data);
+        const data = dataReferenciaDashboard(item);
         if (!dataNoPeriodo(data, ini, fim)) return;
 
         const chave = data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0');
-        if (!mapa[chave]) mapa[chave] = { fatOrc: 0, materiais: 0, vendas: 0, qtdOrc: 0, qtdVendas: 0, label: '' };
+        if (!mapa[chave]) mapa[chave] = { fatOrc: 0, materiais: 0, vendas: 0, servicos: 0, qtdOrc: 0, qtdVendas: 0, qtdServicos: 0, label: '' };
         const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
         mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
 
@@ -2926,33 +2968,50 @@ function calcularDadosPorPeriodo(ini, fim) {
             mapa[chave].qtdVendas += 1;
             totalVendas += v;
             qtdVendas += 1;
-        } else {
-            const status = (item.status || '').toString().trim().toLowerCase();
-            if (status !== 'pago') return;
-            const fat = valorOrcamento(item);
-            const mat = custoMateriaisOrc(item);
-            mapa[chave].fatOrc += fat;
-            mapa[chave].materiais += mat;
-            mapa[chave].qtdOrc += 1;
-            totalFatOrc += fat;
-            totalMat += mat;
-            qtdOrc += 1;
+            return;
         }
+
+        if (isRegistroAgendamento(item)) {
+            // Só computa serviço da agenda/vitrine depois de Concluir
+            if (!isAgendamentoConcluido(item)) return;
+            const v = valorServicoAgenda(item);
+            if (v <= 0) return; // sem preço definido na vitrine, não soma
+            mapa[chave].servicos += v;
+            mapa[chave].qtdServicos += 1;
+            totalServicos += v;
+            qtdServicos += 1;
+            return;
+        }
+
+        // Orçamento tradicional — só com status Pago
+        const status = (item.status || '').toString().trim().toLowerCase();
+        if (status !== 'pago') return;
+        const fat = valorOrcamento(item);
+        const mat = custoMateriaisOrc(item);
+        mapa[chave].fatOrc += fat;
+        mapa[chave].materiais += mat;
+        mapa[chave].qtdOrc += 1;
+        totalFatOrc += fat;
+        totalMat += mat;
+        qtdOrc += 1;
     });
 
     const chaves = Object.keys(mapa).sort();
     return {
-        totalFatOrc, totalMat, totalVendas, qtdOrc, qtdVendas,
+        totalFatOrc, totalMat, totalVendas, totalServicos, qtdOrc, qtdVendas, qtdServicos,
         labels: chaves.map(k => mapa[k].label),
         fatOrc: chaves.map(k => mapa[k].fatOrc),
+        servicos: chaves.map(k => mapa[k].servicos),
         materiais: chaves.map(k => mapa[k].materiais),
         vendas: chaves.map(k => mapa[k].vendas),
         linhas: chaves.map(k => ({
             label: mapa[k].label,
             fatOrc: mapa[k].fatOrc,
+            servicos: mapa[k].servicos,
             materiais: mapa[k].materiais,
             vendas: mapa[k].vendas,
             qtdOrc: mapa[k].qtdOrc,
+            qtdServicos: mapa[k].qtdServicos,
             qtdVendas: mapa[k].qtdVendas
         }))
     };
@@ -2985,36 +3044,43 @@ function renderDashboard() {
     }
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    const lucroTotal = (dados.totalFatOrc + dados.totalServicos + dados.totalVendas) - dados.totalMat;
     set('kpi-fat-orc', formatarBRL(dados.totalFatOrc));
+    set('kpi-servicos', formatarBRL(dados.totalServicos));
     set('kpi-materiais', formatarBRL(dados.totalMat));
     set('kpi-vendas', formatarBRL(dados.totalVendas));
-    set('kpi-lucro', formatarBRL(dados.totalFatOrc - dados.totalMat));
+    set('kpi-lucro', formatarBRL(lucroTotal));
     set('kpi-fat-orc-sub', dados.qtdOrc + ' orçamento(s) pago(s) no período');
+    set('kpi-servicos-sub', dados.qtdServicos + ' serviço(s) concluído(s)');
     set('kpi-materiais-sub', 'Materiais das OS pagas no período');
     set('kpi-vendas-sub', dados.qtdVendas + ' venda(s) paga(s) no período');
+    set('kpi-lucro-sub', 'OS + serviços + vendas − materiais');
 
     const tbody = document.getElementById('tabela-resumo-mensal');
     if (tbody) {
         let html = '';
         dados.linhas.forEach(m => {
-            const lucro = m.fatOrc - m.materiais;
+            const lucro = (m.fatOrc + (m.servicos || 0) + m.vendas) - m.materiais;
             html += `<tr>
                 <td>${m.label}</td>
                 <td class="val-pos">${formatarBRL(m.fatOrc)}</td>
+                <td style="color:#7c3aed;font-weight:700;">${formatarBRL(m.servicos || 0)}</td>
                 <td class="val-neg">${formatarBRL(m.materiais)}</td>
                 <td class="${lucro >= 0 ? 'val-pos' : 'val-neg'}">${formatarBRL(lucro)}</td>
                 <td style="color:#d97706;font-weight:700;">${formatarBRL(m.vendas)}</td>
                 <td>${m.qtdOrc}</td>
+                <td>${m.qtdServicos || 0}</td>
                 <td>${m.qtdVendas}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado neste período</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado neste período</td></tr>`;
     }
 
     if (graficoFinanceiroInstance) graficoFinanceiroInstance.destroy();
 
     const labels = dados.labels.length ? dados.labels : ['Sem dados'];
     const fatOrc = dados.labels.length ? dados.fatOrc : [0];
+    const servicos = dados.labels.length ? (dados.servicos || []) : [0];
     const mat = dados.labels.length ? dados.materiais : [0];
     const vendas = dados.labels.length ? dados.vendas : [0];
 
@@ -3027,6 +3093,14 @@ function renderDashboard() {
                     label: 'Orçamentos (Pagos)',
                     data: fatOrc,
                     backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 22
+                },
+                {
+                    label: 'Serviços concluídos',
+                    data: servicos,
+                    backgroundColor: 'rgba(139, 92, 246, 0.85)',
                     borderRadius: 6,
                     borderSkipped: false,
                     maxBarThickness: 22
@@ -3690,10 +3764,39 @@ function renderAgenda() {
 
 async function alterarStatusAgendamento(idx, novoStatus) {
     if (idx < 0 || idx >= historico.length) return;
-    historico[idx].status = novoStatus;
+    const item = historico[idx];
+    item.status = novoStatus;
+
+    // Ao concluir: garante valor no dashboard (preço da vitrine) e data de conclusão
+    if (String(novoStatus).toLowerCase().indexOf('conclu') === 0) {
+        item.concluido_em = new Date().toISOString();
+        const precoVitrine = parseFloat(item.servico_preco) || 0;
+        const cobrado = parseFloat(item.totalCobrado) || 0;
+        if (precoVitrine > 0 && cobrado <= 0) {
+            item.totalCobrado = precoVitrine;
+        }
+        // lucro simples do serviço quando não há materiais
+        if (!item.lucro && (parseFloat(item.totalCobrado) || 0) > 0) {
+            item.lucro = parseFloat(item.totalCobrado) || 0;
+        }
+    }
+
     await salvarNoBanco();
     renderAgenda();
-    if (typeof mostrarToast === 'function') mostrarToast('Status: ' + novoStatus, 'sucesso');
+    if (typeof renderDashboard === 'function') {
+        const dash = document.getElementById('aba-dashboard');
+        if (dash && dash.style.display !== 'none') renderDashboard();
+    }
+    if (typeof mostrarToast === 'function') {
+        if (String(novoStatus).toLowerCase().indexOf('conclu') === 0) {
+            const v = valorServicoAgenda(item);
+            mostrarToast(v > 0
+                ? ('Serviço concluído! R$ ' + v.toFixed(2).replace('.', ',') + ' no dashboard.')
+                : 'Serviço concluído!', 'sucesso');
+        } else {
+            mostrarToast('Status: ' + novoStatus, 'sucesso');
+        }
+    }
 }
 
 async function deletarAgendamento(idx) {
@@ -5436,3 +5539,184 @@ async function carregarDadosOficinaVitrine(idOficina){
         bind();
     }
 })();
+
+
+// ========================================================
+// RELATÓRIO DO DASHBOARD — exportar CSV / PDF
+// ========================================================
+function coletarLinhasRelatorioDashboard(ini, fim) {
+    const linhas = [];
+    const lista = Array.isArray(historico) ? historico : [];
+    lista.forEach(item => {
+        const data = dataReferenciaDashboard(item);
+        if (!dataNoPeriodo(data, ini, fim)) return;
+        const dataStr = data ? data.toLocaleDateString('pt-BR') : '';
+        const cliente = (item.cliente && item.cliente.nome) || item.cliente_nome || '';
+        const tel = (item.cliente && item.cliente.tel) || '';
+
+        if (isRegistroVenda(item)) {
+            if (!isVendaPaga(item)) return;
+            linhas.push({
+                data: dataStr,
+                tipo: 'Venda loja',
+                cliente: cliente,
+                telefone: tel,
+                descricao: item.produto_nome || item.nome_produto || 'Produto',
+                status: item.status || '',
+                valor: valorVenda(item),
+                materiais: 0,
+                obs: 'Qtd: ' + (item.quantidade || 1)
+            });
+            return;
+        }
+        if (isRegistroAgendamento(item)) {
+            if (!isAgendamentoConcluido(item)) return;
+            const v = valorServicoAgenda(item);
+            if (v <= 0) return;
+            const serv = item.servico_nome || (item.veiculo && item.veiculo.tipo_servico) || 'Serviço';
+            const ag = item.agendamento || {};
+            linhas.push({
+                data: dataStr,
+                tipo: 'Serviço agenda',
+                cliente: cliente,
+                telefone: tel,
+                descricao: serv,
+                status: item.status || 'Concluído',
+                valor: v,
+                materiais: 0,
+                obs: (ag.label || ((ag.data || '') + ' ' + (ag.hora || ''))).trim()
+            });
+            return;
+        }
+        const status = (item.status || '').toString().trim().toLowerCase();
+        if (status !== 'pago') return;
+        const veic = item.veiculo || {};
+        linhas.push({
+            data: dataStr,
+            tipo: 'Orçamento OS',
+            cliente: cliente,
+            telefone: tel,
+            descricao: veic.tipo_servico || veic.modelo || 'Orçamento',
+            status: item.status || 'Pago',
+            valor: valorOrcamento(item),
+            materiais: custoMateriaisOrc(item),
+            obs: (veic.placa ? 'Placa ' + veic.placa : '')
+        });
+    });
+    linhas.sort((a, b) => {
+        // dd/mm/yyyy rough sort via parts
+        const pa = String(a.data).split('/');
+        const pb = String(b.data).split('/');
+        const da = pa.length === 3 ? pa[2] + pa[1] + pa[0] : a.data;
+        const db = pb.length === 3 ? pb[2] + pb[1] + pb[0] : b.data;
+        return String(da).localeCompare(String(db));
+    });
+    return linhas;
+}
+
+function exportarRelatorioDashboard(formato) {
+    formato = (formato || 'csv').toLowerCase();
+    const { ini, fim } = obterPeriodoDashboard();
+    const linhas = coletarLinhasRelatorioDashboard(ini, fim);
+    if (!linhas.length) {
+        if (typeof mostrarToast === 'function') mostrarToast('Nenhum valor no período para exportar.', 'aviso');
+        else alert('Nenhum valor no período para exportar.');
+        return;
+    }
+    if (formato === 'pdf') {
+        exportarRelatorioDashboardPDF(linhas, ini, fim);
+    } else {
+        exportarRelatorioDashboardCSV(linhas, ini, fim);
+    }
+}
+
+function exportarRelatorioDashboardCSV(linhas, ini, fim) {
+    const sep = ';';
+    const header = ['Data', 'Tipo', 'Cliente', 'Telefone', 'Descrição', 'Status', 'Valor (R$)', 'Materiais (R$)', 'Obs'];
+    const esc = (v) => {
+        const s = String(v == null ? '' : v).replace(/"/g, '""');
+        return '"' + s + '"';
+    };
+    const rows = [header.map(esc).join(sep)];
+    let totValor = 0, totMat = 0;
+    linhas.forEach(l => {
+        totValor += l.valor || 0;
+        totMat += l.materiais || 0;
+        rows.push([
+            l.data, l.tipo, l.cliente, l.telefone, l.descricao, l.status,
+            (l.valor || 0).toFixed(2).replace('.', ','),
+            (l.materiais || 0).toFixed(2).replace('.', ','),
+            l.obs || ''
+        ].map(esc).join(sep));
+    });
+    rows.push([esc('TOTAL'), '', '', '', '', '', esc(totValor.toFixed(2).replace('.', ',')), esc(totMat.toFixed(2).replace('.', ',')), ''].join(sep));
+
+    const bom = '\ufeff';
+    const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d1 = ini ? ini.toISOString().slice(0, 10) : 'inicio';
+    const d2 = fim ? fim.toISOString().slice(0, 10) : 'fim';
+    a.href = url;
+    a.download = 'relatorio-aldineicar-' + d1 + '_' + d2 + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+    if (typeof mostrarToast === 'function') mostrarToast('CSV exportado!', 'sucesso');
+}
+
+function exportarRelatorioDashboardPDF(linhas, ini, fim) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        if (typeof mostrarToast === 'function') mostrarToast('jsPDF não carregado.', 'erro');
+        else alert('jsPDF não carregado.');
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const nomeOficina = (typeof dadosOficina !== 'undefined' && dadosOficina.nome) ? dadosOficina.nome : 'ALDINEICAR';
+    let y = 14;
+    doc.setFont('Helvetica', 'bold').setFontSize(14);
+    doc.text(nomeOficina + ' — Relatório financeiro', 14, y); y += 7;
+    doc.setFont('Helvetica', 'normal').setFontSize(10).setTextColor(80);
+    doc.text('Período: ' + formatarDataBR(ini) + ' até ' + formatarDataBR(fim), 14, y); y += 5;
+    doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 14, y); y += 8;
+    doc.setTextColor(0);
+
+    const colX = [14, 32, 55, 95, 130, 155, 180];
+    doc.setFont('Helvetica', 'bold').setFontSize(8);
+    ['Data', 'Tipo', 'Cliente', 'Descrição', 'Status', 'Valor', 'Mater.'].forEach((h, i) => doc.text(h, colX[i], y));
+    y += 2;
+    doc.setDrawColor(200).line(14, y, 196, y); y += 5;
+
+    let totValor = 0, totMat = 0;
+    doc.setFont('Helvetica', 'normal').setFontSize(8);
+    linhas.forEach(l => {
+        if (y > 280) { doc.addPage(); y = 14; }
+        totValor += l.valor || 0;
+        totMat += l.materiais || 0;
+        const vals = [
+            l.data,
+            (l.tipo || '').slice(0, 12),
+            (l.cliente || '').slice(0, 18),
+            (l.descricao || '').slice(0, 16),
+            (l.status || '').slice(0, 10),
+            'R$ ' + (l.valor || 0).toFixed(2),
+            'R$ ' + (l.materiais || 0).toFixed(2)
+        ];
+        vals.forEach((v, i) => doc.text(String(v), colX[i], y));
+        y += 5;
+    });
+    y += 3;
+    doc.setDrawColor(180).line(14, y, 196, y); y += 6;
+    doc.setFont('Helvetica', 'bold').setFontSize(10);
+    doc.text('Total valores: R$ ' + totValor.toFixed(2), 14, y);
+    doc.text('Total materiais: R$ ' + totMat.toFixed(2), 100, y);
+    y += 6;
+    doc.setFont('Helvetica', 'normal').setFontSize(9);
+    doc.text('Lucro aproximado (valores − materiais): R$ ' + (totValor - totMat).toFixed(2), 14, y);
+
+    const d1 = ini ? ini.toISOString().slice(0, 10) : 'inicio';
+    const d2 = fim ? fim.toISOString().slice(0, 10) : 'fim';
+    doc.save('relatorio-aldineicar-' + d1 + '_' + d2 + '.pdf');
+    if (typeof mostrarToast === 'function') mostrarToast('PDF gerado!', 'sucesso');
+}

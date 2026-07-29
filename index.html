@@ -292,6 +292,10 @@ function mostrarSecao(id) {
                                 <div class="page-head-text">
                                     <h2>📊 Dashboard</h2>
                                 </div>
+                                <div class="page-head-actions">
+                                    <button type="button" class="btn-page-action btn-page-secondary" onclick="exportarRelatorioDashboard('csv')">⬇ Exportar CSV</button>
+                                    <button type="button" class="btn-page-action" onclick="exportarRelatorioDashboard('pdf')">📄 Relatório PDF</button>
+                                </div>
                             </div>
 
                             <div class="grupo-card">
@@ -326,6 +330,11 @@ function mostrarSecao(id) {
                                     <div class="dash-kpi-value" id="kpi-fat-orc">R$ 0,00</div>
                                     <div class="dash-kpi-sub" id="kpi-fat-orc-sub">Pagos no período</div>
                                 </div>
+                                <div class="dash-kpi kpi-purple">
+                                    <div class="dash-kpi-label">Serviços concluídos</div>
+                                    <div class="dash-kpi-value" id="kpi-servicos">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-servicos-sub">Agenda / vitrine</div>
+                                </div>
                                 <div class="dash-kpi kpi-red">
                                     <div class="dash-kpi-label">Materiais</div>
                                     <div class="dash-kpi-value" id="kpi-materiais">R$ 0,00</div>
@@ -337,9 +346,9 @@ function mostrarSecao(id) {
                                     <div class="dash-kpi-sub" id="kpi-vendas-sub">Vitrine / balcão</div>
                                 </div>
                                 <div class="dash-kpi kpi-blue">
-                                    <div class="dash-kpi-label">Lucro OS</div>
+                                    <div class="dash-kpi-label">Lucro total</div>
                                     <div class="dash-kpi-value" id="kpi-lucro">R$ 0,00</div>
-                                    <div class="dash-kpi-sub">Fat. − materiais</div>
+                                    <div class="dash-kpi-sub" id="kpi-lucro-sub">OS + serviços + vendas − mat.</div>
                                 </div>
                             </div>
 
@@ -348,6 +357,7 @@ function mostrarSecao(id) {
                                 <div class="grupo-card-body">
                                     <div class="dash-legend">
                                         <span><i style="background:#10b981"></i> Orçamentos</span>
+                                        <span><i style="background:#8b5cf6"></i> Serviços</span>
                                         <span><i style="background:#e11d48"></i> Materiais</span>
                                         <span><i style="background:#f59e0b"></i> Vendas</span>
                                     </div>
@@ -365,15 +375,17 @@ function mostrarSecao(id) {
                                             <tr>
                                                 <th>Mês</th>
                                                 <th>Orçamentos</th>
+                                                <th>Serviços</th>
                                                 <th>Materiais</th>
-                                                <th>Lucro OS</th>
+                                                <th>Lucro</th>
                                                 <th>Vendas</th>
                                                 <th>Qtd OS</th>
+                                                <th>Qtd Serv.</th>
                                                 <th>Qtd Vendas</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tabela-resumo-mensal">
-                                            <tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
+                                            <tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
