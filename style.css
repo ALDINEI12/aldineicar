@@ -3675,15 +3675,17 @@ html, body {
   .cal-nome-evt { display: none; }
 }
 
-
 /* Foto nos serviços da vitrine */
 .serv-foto-box { margin-bottom: 4px; }
 .serv-foto-preview {
   width: 100%;
-  height: 140px;
+  height: 180px;
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
-  background: #f8fafc center/cover no-repeat;
+  background-color: #f1f5f9;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3694,34 +3696,51 @@ html, body {
 }
 .serv-foto-preview.tem-foto {
   border-style: solid;
+  border-color: #e2e8f0;
   color: transparent;
   font-size: 0;
+  background-color: #0f172a;
 }
+
 .servico-admin-item {
   display: flex !important;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
-.servico-admin-thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  object-fit: cover;
+.servico-admin-thumb-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  overflow: hidden;
   flex-shrink: 0;
-  background: #f1f5f9;
-}
-.servico-admin-thumb-empty {
+  background: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
   border: 1px solid #e2e8f0;
 }
-.servico-admin-info { flex: 1; min-width: 0; }
+.servico-admin-thumb-wrap.empty {
+  background: #f8fafc;
+  font-size: 22px;
+}
+.servico-admin-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.servico-admin-info { flex: 1; min-width: 120px; }
 .servico-admin-info strong { display: block; font-size: 14px; color: #0f172a; }
 .servico-admin-info span { display: block; font-size: 13px; font-weight: 800; color: #dc2626; }
 .servico-admin-info small { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
+.servico-admin-acoes {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
 
+/* Vitrine pública — foto completa, sem corte agressivo */
 .vt-servico-card {
   overflow: hidden;
   padding: 0 !important;
@@ -3730,15 +3749,21 @@ html, body {
 }
 .vt-servico-foto {
   width: 100%;
-  height: 160px;
-  background: #1a1f2a;
+  aspect-ratio: 16 / 10;
+  max-height: 220px;
+  background: #0a0a0b;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .vt-servico-foto img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* mostra a foto inteira */
+  object-position: center;
   display: block;
+  background: #0a0a0b;
 }
 .vt-servico-body {
   padding: 14px 16px 16px;
@@ -3750,4 +3775,10 @@ html, body {
 .vt-servico-body .vt-servico-foot {
   margin-top: auto;
   padding-top: 10px;
+}
+@media (min-width: 720px) {
+  .vt-servico-foto {
+    aspect-ratio: 16 / 9;
+    max-height: 240px;
+  }
 }
