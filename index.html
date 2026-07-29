@@ -30,30 +30,55 @@
     <header class="vt-header">
         <div class="vt-brand">
             <span class="vt-logo" id="vt-header-nome">ALDINEI<span>CAR</span></span>
-            <span class="vt-badge">Vitrine</span>
+            <span class="vt-badge">Oficina</span>
         </div>
         <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">📅 Agendar</button>
     </header>
 
     <section class="vt-hero">
         <div class="vt-hero-inner">
-            <h1 id="vt-hero-titulo">Peças e serviços para o seu veículo</h1>
-            <p id="vt-hero-sub">Escolha um produto ou agende um atendimento com a oficina.</p>
-            <button type="button" class="vt-btn-outline" onclick="abrirModalOrcamentoCliente()">Solicitar orçamento</button>
+            <h1 id="vt-hero-titulo">Serviços profissionais para o seu veículo</h1>
+            <p id="vt-hero-sub">Conheça nossos serviços, escolha o que precisa e agende com a oficina.</p>
+            <div class="vt-hero-actions">
+                <button type="button" class="vt-btn-agenda" onclick="abrirModalOrcamentoCliente()">Agendar serviço</button>
+                <button type="button" class="vt-btn-outline" onclick="vitrineMostrarAba('loja')">Loja da Oficina</button>
+            </div>
         </div>
     </section>
 
+    <nav class="vt-contatos" id="vt-contatos" aria-label="Contatos da oficina">
+        <a id="vt-link-whatsapp" class="vt-contato-btn vt-wa" href="#" target="_blank" rel="noopener" style="display:none;">WhatsApp</a>
+        <a id="vt-link-instagram" class="vt-contato-btn vt-ig" href="#" target="_blank" rel="noopener" style="display:none;">Instagram</a>
+        <a id="vt-link-maps" class="vt-contato-btn vt-maps" href="#" target="_blank" rel="noopener" style="display:none;">Localização</a>
+    </nav>
+    <p id="vt-endereco-txt" class="vt-endereco" style="display:none;"></p>
+
+    <div class="vt-tabs">
+        <button type="button" class="vt-tab active" id="vt-tab-servicos" onclick="vitrineMostrarAba('servicos')">🔧 Serviços</button>
+        <button type="button" class="vt-tab" id="vt-tab-loja" onclick="vitrineMostrarAba('loja')">🛒 Loja da Oficina</button>
+    </div>
+
     <main class="vt-main">
-        <div class="vt-section-head">
-            <h2>Catálogo</h2>
-            <p id="vt-contagem-produtos" class="vt-count"></p>
-        </div>
-        <div id="filtros-vitrine-publica" class="vt-filtros"></div>
-        <div id="vitrine-publica-cliente" class="vt-grid"></div>
+        <section id="vt-secao-servicos" class="vt-secao">
+            <div class="vt-section-head">
+                <h2>Nossos serviços</h2>
+                <p id="vt-contagem-servicos" class="vt-count"></p>
+            </div>
+            <div id="vitrine-servicos-lista" class="vt-servicos-grid"></div>
+        </section>
+
+        <section id="vt-secao-loja" class="vt-secao" style="display:none;">
+            <div class="vt-section-head">
+                <h2>Loja da Oficina</h2>
+                <p id="vt-contagem-produtos" class="vt-count"></p>
+            </div>
+            <div id="filtros-vitrine-publica" class="vt-filtros"></div>
+            <div id="vitrine-publica-cliente" class="vt-grid"></div>
+        </section>
     </main>
 
     <footer class="vt-footer">
-        <p>© 2026 ALDINEICAR · Vitrine oficial</p>
+        <p>© 2026 <span id="vt-footer-nome">ALDINEICAR</span> · Vitrine oficial</p>
     </footer>
 </div>
 
@@ -70,8 +95,12 @@
 
         <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Seu Veículo (Modelo/Ano)</label>
         <input type="text" id="cliOrcVeiculo" placeholder="Ex: Gol 2018" style="width: 100%; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;">
+
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Tipo de serviço *</label>
+        <select id="cliOrcServico" onchange="onCliOrcServicoChange()" style="width: 100%; margin-bottom: 8px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px;"><option value="">Carregando serviços...</option></select>
+        <p id="cliOrcServicoPreco" style="font-size:12px;color:#22c55e;font-weight:700;margin:0 0 12px;min-height:16px;"></p>
         
-        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">O que você precisa?</label>
+        <label style="font-size: 12px; font-weight: 600; color: #a1a1aa; display: block; margin-bottom: 6px;">Observações (opcional)</label>
         <textarea id="cliOrcDescricao" placeholder="Descreva a peça ou o defeito..." style="width: 100%; height: 80px; margin-bottom: 15px; padding: 11px; background: #09090b; border: 1px solid #27272a; border-radius: 6px; color: white; font-size: 14px; resize: none;"></textarea>
 
         <div style="background:#09090b; border:1px solid #27272a; border-radius:8px; padding:14px; margin-bottom:14px;">
@@ -369,7 +398,32 @@ function mostrarSecao(id) {
                                                                         <div id="aba-agenda" style="display:none;">
                             <div class="page-head">
                                 <div class="page-head-text"><h2>📅 Agenda</h2></div>
-                                <button type="button" class="btn-page-action" onclick="abrirModalNovoAgendamento()">＋ Novo</button>
+                                <div class="page-head-actions">
+                                    <button type="button" class="btn-page-action btn-page-secondary" onclick="togglePainelBloqueio()">🚫 Bloqueio</button>
+                                    <button type="button" class="btn-page-action" onclick="abrirModalNovoAgendamento()">＋ Novo</button>
+                                </div>
+                            </div>
+
+                            <div id="painel-bloqueio-agenda" class="painel-bloqueio-agenda" style="display:none;">
+                                <details class="grupo-card" id="painel-disponibilidade-wrap" open>
+                                <summary class="grupo-card-summary">🚫 Bloqueio de agenda</summary>
+                                <div class="grupo-card-body" id="painel-disponibilidade">
+                                    <div id="painel-disp-conteudo">
+                                        <p class="grupo-hint">Defina dias/horários de atendimento e bloqueie datas. O cliente só vê horários livres.</p>
+                                        <p class="grupo-label">Dias da semana</p>
+                                        <div id="disp-dias-semana" class="disp-chips"></div>
+                                        <p class="grupo-label">Horários</p>
+                                        <div id="disp-horarios" class="disp-chips"></div>
+                                        <p class="grupo-label">Bloquear data</p>
+                                        <div class="disp-bloquear-row">
+                                            <input type="date" id="disp-data-bloquear">
+                                            <button type="button" onclick="bloquearDataDisponibilidade()" class="btn-bloq">Bloquear</button>
+                                            <button type="button" onclick="salvarDisponibilidadeAgenda()" class="btn-salvar-disp">💾 Salvar</button>
+                                        </div>
+                                        <div id="disp-lista-bloqueados" class="disp-bloqueados"></div>
+                                    </div>
+                                </div>
+                            </details>
                             </div>
 
                             <div class="grupo-card grupo-card-tight">
@@ -531,28 +585,7 @@ function mostrarSecao(id) {
                                     <button type="button" class="btn-loja-prim" onclick="adicionarServicoVitrine()">＋ Adicionar serviço</button>
                                 </div>
                             </details>
-
-                            <details class="grupo-card" id="painel-disponibilidade-wrap">
-                                <summary class="grupo-card-summary">🗓️ Minha disponibilidade</summary>
-                                <div class="grupo-card-body" id="painel-disponibilidade">
-                                    <div id="painel-disp-conteudo">
-                                        <p class="grupo-hint">Dias e horários em que você atende. O cliente só vê datas livres na vitrine.</p>
-                                        <p class="grupo-label">Dias da semana</p>
-                                        <div id="disp-dias-semana" class="disp-chips"></div>
-                                        <p class="grupo-label">Horários</p>
-                                        <div id="disp-horarios" class="disp-chips"></div>
-                                        <p class="grupo-label">Bloquear data</p>
-                                        <div class="disp-bloquear-row">
-                                            <input type="date" id="disp-data-bloquear">
-                                            <button type="button" onclick="bloquearDataDisponibilidade()" class="btn-bloq">Bloquear</button>
-                                            <button type="button" onclick="salvarDisponibilidadeAgenda()" class="btn-salvar-disp">💾 Salvar</button>
-                                        </div>
-                                        <div id="disp-lista-bloqueados" class="disp-bloqueados"></div>
-                                    </div>
-                                </div>
-                            </details>
-
-                        </div>
+</div>
 
 <div id="aba-loja" style="display:none;">
                             <div class="page-head">
@@ -747,6 +780,10 @@ function mostrarSecao(id) {
             <input type="text" id="oficinaFone" placeholder="Telefone(s)">
             <input type="text" id="oficinaEmail" placeholder="E-mail">
             <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento">
+            <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:14px;">CONTATOS NA VITRINE</label>
+            <input type="text" id="oficinaWhatsapp" placeholder="WhatsApp (DDD, ex: 75999999999)">
+            <input type="text" id="oficinaInstagram" placeholder="Instagram (@usuario)">
+            <input type="text" id="oficinaMaps" placeholder="Link Google Maps (opcional)">
             <button class="btn-green" onclick="salvarDadosOficina()">Salvar Dados</button>
             <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
         </div>

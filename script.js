@@ -28,6 +28,10 @@
         pix: '11684388538', 
         logoBase64: '',
         profissao: 'pintor',
+        whatsapp: '',
+        instagram: '',
+        maps_url: '',
+        servicos_vitrine: [],
         servicos_vitrine: []
     };
     let categoriaAtual = 'Todos';
@@ -713,7 +717,14 @@ async function editarProduto(id) {
         document.getElementById('oficinaFone').value = dadosOficina.fone || '';
         document.getElementById('oficinaEmail').value = dadosOficina.email || '';
         document.getElementById('oficinaPix').value = dadosOficina.pix || '';
-        document.getElementById('oficinaProfissao').value = dadosOficina.profissao || 'pintor'; 
+        document.getElementById('oficinaProfissao').value = dadosOficina.profissao || 'pintor';
+        var wa = document.getElementById('oficinaWhatsapp');
+        var ig = document.getElementById('oficinaInstagram');
+        var mp = document.getElementById('oficinaMaps');
+        if (wa) wa.value = dadosOficina.whatsapp || dadosOficina.fone || '';
+        if (ig) ig.value = dadosOficina.instagram || '';
+        if (mp) mp.value = dadosOficina.maps_url || '';
+        if (typeof renderServicosVitrineAdmin === 'function') renderServicosVitrineAdmin(); 
         
         const preview = document.getElementById('previewLogoModal');
         if (dadosOficina.logoBase64 && preview) {
@@ -1291,6 +1302,8 @@ async function editarProduto(id) {
         if (el) {
             el.style.display = 'block';
             renderAgenda();
+            const painel = document.getElementById('painel-bloqueio-agenda');
+            if (painel) painel.style.display = 'none';
         }
         return;
     }
@@ -1300,9 +1313,6 @@ async function editarProduto(id) {
         if (typeof atualizarCardLinkVitrine === 'function') atualizarCardLinkVitrine();
         if (typeof preencherCamposTextosVitrineAdmin === 'function') preencherCamposTextosVitrineAdmin();
         if (typeof renderServicosVitrineAdmin === 'function') renderServicosVitrineAdmin();
-        if (typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
-        const wrap = document.getElementById('painel-disponibilidade-wrap');
-        if (wrap) wrap.open = true;
         return;
     }
     if (nome === 'loja') {
@@ -2095,9 +2105,18 @@ async function enviarOrcamentoCliente() {
     const desc = document.getElementById('cliOrcDescricao').value.trim();
     const dataAg = document.getElementById('cliOrcData') ? document.getElementById('cliOrcData').value : '';
     const horaAg = document.getElementById('cliOrcHora') ? document.getElementById('cliOrcHora').value : '';
+    const selServ = document.getElementById('cliOrcServico');
+    const servId = selServ ? selServ.value : '';
+    const servOpt = selServ && selServ.selectedIndex >= 0 ? selServ.options[selServ.selectedIndex] : null;
+    const servNome = servOpt ? (servOpt.getAttribute('data-nome') || '').trim() : '';
+    const servPreco = servOpt ? parseFloat(servOpt.getAttribute('data-preco') || '0') : 0;
 
-    if (!nome || !telefone || !desc) {
-        alert('Preencha Nome, Telefone e a Solicitação!');
+    if (!nome || !telefone) {
+        alert('Preencha Nome e Telefone!');
+        return;
+    }
+    if ((!servId || servId === 'outro') && !desc) {
+        alert('Selecione o tipo de serviço ou descreva o que precisa!');
         return;
     }
     if (!dataAg || !horaAg) {
@@ -2139,8 +2158,8 @@ async function enviarOrcamentoCliente() {
             tipo_registro: 'AGENDAMENTO',
             agendamento: { data: dataAg, hora: horaAg, data_br: dataBR, label: dataBR + ' às ' + horaAg },
             cliente: { nome, endereco: 'Agendamento Online', tel: telefone, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
-            veiculo: { modelo: veiculo || '---', placa: '---', ano: '', cor: '', avaliador: 'Agendamento Online', tipo_servico: desc },
-            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: 0, lucro: 0,
+            veiculo: { modelo: veiculo || '---', placa: '---', ano: '', cor: '', avaliador: 'Agendamento Online', tipo_servico: (servNome && servId !== 'outro' ? servNome : (desc || servNome || 'Serviço')).trim() },
+            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: (servId && servId !== 'outro' ? (servPreco||0) : 0), lucro: 0, servico_preco: servPreco||0, servico_nome: servNome||'',
             fotos: (typeof fotosAgendamentoCliente !== 'undefined' && fotosAgendamentoCliente.length) ? fotosAgendamentoCliente.slice() : []
         };
         listaHistorico.unshift(novoAgendamento);
@@ -4909,3 +4928,158 @@ async function removerServicoVitrine(i) {
   renderServicosVitrineAdmin();
   if (typeof salvarNoBanco==='function') await salvarNoBanco();
 }
+
+
+function togglePainelBloqueio() {
+  var painel = document.getElementById('painel-bloqueio-agenda');
+  if (!painel) return;
+  var open = painel.style.display === 'none' || !painel.style.display;
+  painel.style.display = open ? 'block' : 'none';
+  if (open && typeof renderPainelDisponibilidade === 'function') renderPainelDisponibilidade();
+  var wrap = document.getElementById('painel-disponibilidade-wrap');
+  if (wrap && open) wrap.open = true;
+}
+
+function obterServicosVitrine(fonte) {
+  var d = fonte || (typeof dadosOficina !== 'undefined' ? dadosOficina : {}) || {};
+  return Array.isArray(d.servicos_vitrine) ? d.servicos_vitrine : [];
+}
+function renderServicosVitrineAdmin() {
+  var box = document.getElementById('lista-servicos-vitrine-admin');
+  if (!box) return;
+  var lista = obterServicosVitrine();
+  if (!lista.length) { box.innerHTML = '<p class="grupo-hint">Nenhum serviço cadastrado ainda.</p>'; return; }
+  box.innerHTML = lista.map(function(s,i){
+    var preco = parseFloat(s.preco)||0;
+    return '<div class="servico-admin-item"><div><strong>'+(s.nome||'Serviço')+'</strong><span>R$ '+preco.toFixed(2).replace('.',',')+'</span>'+(s.descricao?'<small>'+s.descricao+'</small>':'')+'</div><button type="button" class="btn-loja-toggle" onclick="removerServicoVitrine('+i+')">Remover</button></div>';
+  }).join('');
+}
+async function adicionarServicoVitrine() {
+  var nome = (document.getElementById('servVitrineNome')&&document.getElementById('servVitrineNome').value||'').trim();
+  var preco = parseFloat(document.getElementById('servVitrinePreco')&&document.getElementById('servVitrinePreco').value||'0');
+  var desc = (document.getElementById('servVitrineDesc')&&document.getElementById('servVitrineDesc').value||'').trim();
+  if (!nome) { alert('Informe o nome do serviço.'); return; }
+  if (!dadosOficina.servicos_vitrine) dadosOficina.servicos_vitrine = [];
+  dadosOficina.servicos_vitrine.push({id:'srv-'+Date.now(), nome:nome, preco:isNaN(preco)?0:preco, descricao:desc});
+  ['servVitrineNome','servVitrinePreco','servVitrineDesc'].forEach(function(id){var el=document.getElementById(id); if(el) el.value='';});
+  renderServicosVitrineAdmin();
+  if (typeof salvarNoBanco==='function') await salvarNoBanco();
+  if (typeof mostrarToast==='function') mostrarToast('Serviço adicionado!','sucesso');
+}
+async function removerServicoVitrine(i) {
+  if (!dadosOficina.servicos_vitrine) return;
+  dadosOficina.servicos_vitrine.splice(i,1);
+  renderServicosVitrineAdmin();
+  if (typeof salvarNoBanco==='function') await salvarNoBanco();
+}
+function normalizarWhatsappNumero(v){ return String(v||'').replace(/\D/g,''); }
+function normalizarInstagramUser(v){
+  return String(v||'').trim().replace(/^@/,'').replace(/https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/$/,'');
+}
+function linkGoogleMaps(oficina){
+  var d=oficina||{};
+  if (d.maps_url && String(d.maps_url).trim()) return String(d.maps_url).trim();
+  var end=[d.end,d.cep].filter(Boolean).join(', ');
+  if (!end) return '';
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(end);
+}
+function aplicarContatosVitrinePublica(oficina){
+  var d=oficina||{};
+  var waNum=normalizarWhatsappNumero(d.whatsapp||d.fone||'');
+  var ig=normalizarInstagramUser(d.instagram||'');
+  var maps=linkGoogleMaps(d);
+  var aWa=document.getElementById('vt-link-whatsapp');
+  var aIg=document.getElementById('vt-link-instagram');
+  var aMp=document.getElementById('vt-link-maps');
+  var endTxt=document.getElementById('vt-endereco-txt');
+  if (aWa){ if(waNum){ aWa.href='https://wa.me/55'+waNum.replace(/^55/,''); aWa.style.display='inline-flex'; aWa.textContent='WhatsApp'; } else aWa.style.display='none'; }
+  if (aIg){ if(ig){ aIg.href='https://instagram.com/'+ig; aIg.style.display='inline-flex'; aIg.textContent='@'+ig; } else aIg.style.display='none'; }
+  if (aMp){ if(maps){ aMp.href=maps; aMp.style.display='inline-flex'; aMp.textContent='Localização'; } else aMp.style.display='none'; }
+  if (endTxt){ var end=[d.end,d.cep].filter(Boolean).join(' · '); if(end){ endTxt.textContent='📍 '+end; endTxt.style.display='block'; } else endTxt.style.display='none'; }
+  var ft=document.getElementById('vt-footer-nome'); if(ft) ft.textContent=(d.nome||'ALDINEICAR');
+}
+function vitrineMostrarAba(aba){
+  var secS=document.getElementById('vt-secao-servicos');
+  var secL=document.getElementById('vt-secao-loja');
+  var tabS=document.getElementById('vt-tab-servicos');
+  var tabL=document.getElementById('vt-tab-loja');
+  var isLoja=aba==='loja';
+  if(secS) secS.style.display=isLoja?'none':'block';
+  if(secL) secL.style.display=isLoja?'block':'none';
+  if(tabS) tabS.classList.toggle('active',!isLoja);
+  if(tabL) tabL.classList.toggle('active',isLoja);
+  if(isLoja && typeof renderVitrinePublicaFiltrada==='function'){ try{ renderVitrinePublicaFiltrada(); }catch(e){} }
+}
+function renderServicosVitrinePublica(lista){
+  var box=document.getElementById('vitrine-servicos-lista');
+  var cont=document.getElementById('vt-contagem-servicos');
+  if(!box) return;
+  var items=Array.isArray(lista)?lista:[];
+  if(cont) cont.textContent=items.length?(items.length+' serviço'+(items.length>1?'s':'')):'';
+  if(!items.length){
+    box.innerHTML='<div class="vt-empty"><div class="vt-empty-icon">🔧</div><p>Serviços em atualização. Use Agendar e descreva o que precisa.</p></div>';
+    return;
+  }
+  box.innerHTML=items.map(function(s){
+    var preco=parseFloat(s.preco)||0;
+    var id=String(s.id||s.nome||'').replace(/'/g,"\\'");
+    return '<article class="vt-servico-card"><h3 class="vt-servico-titulo">'+(s.nome||'Serviço')+'</h3>'+(s.descricao?'<p class="vt-servico-desc">'+s.descricao+'</p>':'')+'<div class="vt-servico-foot"><div class="vt-servico-preco">R$ '+preco.toFixed(2).replace('.',',')+'</div><button type="button" class="vt-servico-btn" onclick="agendarServicoVitrine(\''+id+'\')">Agendar</button></div></article>';
+  }).join('');
+}
+function agendarServicoVitrine(servId){
+  if(typeof abrirModalOrcamentoCliente==='function') abrirModalOrcamentoCliente();
+  setTimeout(function(){
+    var sel=document.getElementById('cliOrcServico'); if(!sel) return;
+    for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===String(servId)){ sel.selectedIndex=i; onCliOrcServicoChange(); break; } }
+  },250);
+}
+function preencherSelectServicosCliente(lista){
+  var sel=document.getElementById('cliOrcServico'); if(!sel) return;
+  var items=Array.isArray(lista)?lista:[];
+  if(!items.length){ sel.innerHTML='<option value="">Outro / descrever abaixo</option>'; return; }
+  sel.innerHTML='<option value="">Selecione o serviço</option>'+items.map(function(s){
+    var preco=parseFloat(s.preco)||0; var id=s.id||s.nome;
+    return '<option value="'+String(id).replace(/"/g,'&quot;')+'" data-nome="'+String(s.nome||'').replace(/"/g,'&quot;')+'" data-preco="'+preco+'">'+(s.nome||'Serviço')+' — R$ '+preco.toFixed(2).replace('.',',')+'</option>';
+  }).join('')+'<option value="outro" data-nome="Outro" data-preco="0">Outro / descrever abaixo</option>';
+}
+function onCliOrcServicoChange(){
+  var sel=document.getElementById('cliOrcServico'); var precoEl=document.getElementById('cliOrcServicoPreco');
+  if(!sel||!precoEl) return;
+  var opt=sel.options[sel.selectedIndex];
+  if(!opt||!opt.value||opt.value==='outro'){ precoEl.textContent=''; return; }
+  var preco=parseFloat(opt.getAttribute('data-preco')||'0')||0;
+  precoEl.textContent=preco>0?('Valor de referência: R$ '+preco.toFixed(2).replace('.',',')):'';
+}
+window.__oficinaVitrineCache=window.__oficinaVitrineCache||null;
+async function carregarDadosOficinaVitrine(idOficina){
+  try{
+    var res=await supabaseClient.from('user_data').select('dados_oficina').eq('user_id',idOficina).maybeSingle();
+    if(res.error) throw res.error;
+    var of=(res.data&&res.data.dados_oficina)?res.data.dados_oficina:{};
+    window.__oficinaVitrineCache=of;
+    if(typeof aplicarTextosVitrinePublica==='function') aplicarTextosVitrinePublica(of);
+    aplicarContatosVitrinePublica(of);
+    renderServicosVitrinePublica(obterServicosVitrine(of));
+    preencherSelectServicosCliente(obterServicosVitrine(of));
+    return of;
+  }catch(e){ console.warn(e); renderServicosVitrinePublica([]); preencherSelectServicosCliente([]); return {}; }
+}
+(function(){
+  var orig=typeof abrirModalOrcamentoCliente==='function'?abrirModalOrcamentoCliente:null;
+  if(!orig||orig.__servPatched) return;
+  window.abrirModalOrcamentoCliente=function(){
+    var r=orig.apply(this,arguments);
+    preencherSelectServicosCliente(obterServicosVitrine(window.__oficinaVitrineCache||(typeof dadosOficina!=='undefined'?dadosOficina:null)));
+    var p=document.getElementById('cliOrcServicoPreco'); if(p) p.textContent='';
+    return r;
+  };
+  window.abrirModalOrcamentoCliente.__servPatched=true;
+})();
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var id=params.get('id')||params.get('loja')||params.get('user_id');
+  if(!id) return;
+  var run=function(){ carregarDadosOficinaVitrine(id); vitrineMostrarAba('servicos'); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else setTimeout(run,80);
+})();
+

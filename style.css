@@ -178,7 +178,7 @@ header {
 }
 .sidebar button:active { transform: scale(.98); }
 .sidebar .btn-logout {
-  margin-top: auto;
+  margin-top: 12px;
   justify-content: center;
   background: rgba(220,38,38,.12);
   color: #fb7185;
@@ -2742,4 +2742,119 @@ html, body {
     touch-action: pan-x !important;
   }
 }
+
+
+/* ===== PAGE HEAD ACTIONS + BLOQUEIO ===== */
+.page-head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-page-secondary {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+.btn-page-secondary:hover {
+  background: #f8fafc !important;
+}
+.painel-bloqueio-agenda {
+  margin-bottom: 14px;
+}
+.painel-bloqueio-agenda .grupo-card {
+  margin-bottom: 0;
+}
+
+/* ===== SIDEBAR: sem “buraco” branco embaixo ===== */
+.container {
+  align-items: stretch !important;
+  min-height: calc(100dvh - var(--header-h, 64px)) !important;
+}
+.sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-height: calc(100dvh - var(--header-h, 64px)) !important;
+  height: auto !important;
+  background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
+  align-self: stretch !important;
+  position: sticky !important;
+  top: var(--header-h, 64px) !important;
+  max-height: calc(100vh - var(--header-h, 64px)) !important;
+  overflow-y: auto !important;
+  padding-bottom: 16px !important;
+}
+.sidebar .btn-logout {
+  margin-top: 12px !important; /* sem empurrar com auto para “vazio” enorme */
+  flex-shrink: 0;
+}
+.sidebar button:not(.btn-logout) {
+  flex-shrink: 0;
+}
+/* preenche o resto da coluna com a mesma cor (sem branco) */
+.sidebar::after {
+  content: '';
+  flex: 1 1 auto;
+  min-height: 8px;
+  background: transparent;
+}
+
+/* ===== VITRINE PUBLICA: servicos + contatos ===== */
+.vt-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.vt-contatos {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  padding: 0 16px 8px; max-width: 720px; margin: 0 auto; width: 100%;
+}
+.vt-contato-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 14px; border-radius: 999px; font-size: 13px; font-weight: 800;
+  text-decoration: none; color: #fff; border: 1px solid transparent;
+}
+.vt-contato-btn.vt-wa { background: #075e54; }
+.vt-contato-btn.vt-ig { background: linear-gradient(135deg, #833ab4, #fd1d1d 60%, #fcb045); }
+.vt-contato-btn.vt-maps { background: #1d4ed8; }
+.vt-endereco {
+  text-align: center; color: #a1a1aa; font-size: 12px; font-weight: 600;
+  padding: 0 16px 12px; margin: 0;
+}
+.vt-tabs {
+  display: flex; gap: 8px; padding: 0 16px 12px;
+  max-width: 720px; margin: 0 auto; width: 100%;
+}
+.vt-tab {
+  flex: 1; border: 1px solid #2a303c; background: #12171f; color: #a1a1aa;
+  border-radius: 12px; padding: 12px 10px; font-weight: 800; font-size: 13px;
+}
+.vt-tab.active {
+  background: #dc2626; border-color: #dc2626; color: #fff;
+  box-shadow: 0 8px 18px rgba(220,38,38,.3);
+}
+.vt-servicos-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 720px) {
+  .vt-servicos-grid { grid-template-columns: 1fr 1fr; }
+}
+.vt-servico-card {
+  background: #12171f; border: 1px solid #222833; border-radius: 16px; padding: 16px;
+}
+.vt-servico-titulo { margin: 0 0 6px; font-size: 16px; font-weight: 900; color: #fff; }
+.vt-servico-desc { margin: 0 0 12px; font-size: 13px; color: #a1a1aa; line-height: 1.4; }
+.vt-servico-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border-top: 1px solid #222833; padding-top: 12px;
+}
+.vt-servico-preco { font-size: 18px; font-weight: 900; color: #fb7185; }
+.vt-servico-btn {
+  background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none;
+  border-radius: 10px; padding: 10px 14px; font-weight: 800; font-size: 13px;
+}
+.servicos-admin-lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.servico-admin-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc;
+}
+.servico-admin-item strong { display: block; font-size: 14px; color: #0f172a; }
+.servico-admin-item span { display: block; font-size: 13px; font-weight: 800; color: #dc2626; }
+.servico-admin-item small { display: block; font-size: 12px; color: #64748b; margin-top: 2px; }
 
