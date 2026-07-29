@@ -2611,3 +2611,81 @@ textarea:focus-visible {
 
 .active { /* generic helper kept for chips/buttons that only toggle .active */ }
 .aberto { /* class toggled by JS for modals/sheets — opacity handled per-component */ }
+
+
+/* ===== TRAVA PÁGINA NO MOBILE + SÓ CATEGORIAS/FILTROS ROLAM ===== */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  position: relative;
+  overscroll-behavior-x: none !important;
+}
+
+#appContainer,
+.container,
+.content,
+.main-layout,
+.aba-container,
+.cards,
+.grupo-card,
+.grupo-card-body {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Faixas que PODEM rolar na horizontal */
+.categorias-materiais,
+.agenda-filtros-bar,
+.vt-filtros,
+#botoesCategoriasLoja {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  touch-action: pan-x !important;          /* só permite gesto horizontal AQUI */
+  overscroll-behavior-x: contain !important;
+  overscroll-behavior-y: none !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  gap: 8px !important;
+  padding-bottom: 4px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.categorias-materiais::-webkit-scrollbar,
+.agenda-filtros-bar::-webkit-scrollbar,
+.vt-filtros::-webkit-scrollbar,
+#botoesCategoriasLoja::-webkit-scrollbar {
+  display: none !important;
+  height: 0 !important;
+}
+
+.categorias-materiais button,
+.agenda-chip,
+.agenda-filtros-bar button,
+.vt-chip,
+.cat-loja-chip,
+#botoesCategoriasLoja button,
+#botoesCategoriasLoja .cat-loja-chip {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Resto da página: só vertical */
+body,
+#appContainer,
+.content {
+  touch-action: pan-y !important;
+}
+
+/* As faixas sobrescrevem o pan-y do pai */
+.categorias-materiais,
+.agenda-filtros-bar,
+.vt-filtros,
+#botoesCategoriasLoja {
+  touch-action: pan-x !important;
+}

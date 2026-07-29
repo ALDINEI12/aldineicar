@@ -1071,7 +1071,7 @@ async function editarProduto(id) {
             let custoDesloc = parseFloat(item.deslocamento) || 0;
             let valorCobrado = parseFloat(item.totalCobrado) || 0;
             
-            let lucroReal = valorCobrado - parseFloat(custoMat) - parseFloat(custoMaoObra) - custoDesloc;
+            let lucroReal = valorCobrado - custoMat - custoDesloc;
 
             const statusAtual = item.status || 'Orçamento';
             let classeStatus = 'status-orcamento';
@@ -1102,20 +1102,9 @@ async function editarProduto(id) {
                         <p class="hist-meta">🔧 ${veiculo.tipo_servico || '---'}</p>
                     </div>
                     <div class="hist-financeiro">
-                        <div class="hf-item hf-cobrado">
-                            <span class="hf-label">Cobrado</span>
-                            <b class="hf-valor">R$ ${valorCobrado.toFixed(2).replace('.', ',')}</b>
-                        </div>
-                        <div class="hf-item hf-custos">
-                            <span class="hf-label">Custos</span>
-                            <b class="hf-valor">R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b>
-                            <span class="hf-sub">Mat. + M.O.${custoDesloc > 0 ? ' + Desloc.' : ''}</span>
-                        </div>
-                        <div class="hf-item hf-lucro ${lucroReal >= 0 ? 'pos' : 'neg'}">
-                            <span class="hf-label">Lucro</span>
-                            <b class="hf-valor">R$ ${lucroReal.toFixed(2).replace('.', ',')}</b>
-                            <span class="hf-sub">${valorCobrado > 0 ? ((lucroReal / valorCobrado) * 100).toFixed(0) + '% margem' : '—'}</span>
-                        </div>
+                        <div><span>Cobrado</span><b>R$ ${valorCobrado.toFixed(2).replace('.', ',')}</b></div>
+                        <div><span>Custos</span><b>R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b></div>
+                        <div class="${lucroReal >= 0 ? 'pos' : 'neg'}"><span>Lucro</span><b>R$ ${lucroReal.toFixed(2).replace('.', ',')}</b></div>
                     </div>
                     ${(item.fotos && item.fotos.length) ? '<div class="hist-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto '+(fi+1)+'" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : ''}
                     <details class="hist-detalhes">
@@ -4880,3 +4869,57 @@ function fecharLightboxFoto() {
     const lb = document.getElementById('foto-lightbox');
     if (lb) lb.classList.remove('aberto');
 }
+
+
+// ========================================================
+// Scroll horizontal isolado (categorias / filtros)
+// Impede a página de "ir pro lado" no celular
+// ========================================================
+(function isoladorScrollHorizontal() {
+    function bind(el) {
+        if (!el || el.__scrollIsoBound) return;
+        el.__scrollIsoBound = true;
+        let startX = 0, startY = 0, locking = null;
+        el.addEventListener('touchstart', function(e) {
+            if (!e.touches || !e.touches[0]) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            locking = null;
+        }, { passive: true });
+        el.addEventListener('touchmove', function(e) {
+            if (!e.touches || !e.touches[0]) return;
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+            if (locking === null) {
+                locking = Math.abs(dx) > Math.abs(dy);
+            }
+            if (locking) {
+                // gestos horizontais ficam na faixa; não deixa a página se mover
+                e.stopPropagation();
+            }
+        }, { passive: true });
+    }
+    function scan() {
+        document.querySelectorAll('.categorias-materiais, .agenda-filtros-bar, .vt-filtros, #botoesCategoriasLoja').forEach(bind);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scan);
+    } else {
+        scan();
+    }
+    // re-bind quando a UI re-renderiza
+    const obs = new MutationObserver(function() { scan(); });
+    if (document.body) {
+        obs.observe(document.body, { childList: true, subtree: true });
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            obs.observe(document.body, { childList: true, subtree: true });
+        });
+    }
+    // trava overflow da página
+    try {
+        document.documentElement.style.overflowX = 'hidden';
+        document.body.style.overflowX = 'hidden';
+    } catch (e) {}
+})();
+
