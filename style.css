@@ -2725,12 +2725,14 @@ html, body {
   max-height: none !important;
   height: auto !important;
 }
+@media (min-width: 993px) {
 .sidebar {
   overflow-y: auto !important;
   max-height: calc(100vh - var(--header-h, 64px));
   position: sticky;
   top: var(--header-h, 64px);
   align-self: flex-start;
+}
 }
 @media (min-width: 993px) {
   body, #appContainer, .content {
@@ -2767,38 +2769,70 @@ html, body {
   margin-bottom: 0;
 }
 
-/* ===== SIDEBAR: sem “buraco” branco embaixo ===== */
-.container {
-  align-items: stretch !important;
-  min-height: calc(100dvh - var(--header-h, 64px)) !important;
+/* ===== SIDEBAR desktop only + mobile hide ===== */
+@media (min-width: 993px) {
+  .container {
+    align-items: stretch !important;
+    min-height: calc(100dvh - var(--header-h, 64px)) !important;
+  }
+  .sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    min-height: calc(100dvh - var(--header-h, 64px)) !important;
+    height: auto !important;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
+    align-self: stretch !important;
+    position: sticky !important;
+    top: var(--header-h, 64px) !important;
+    max-height: calc(100vh - var(--header-h, 64px)) !important;
+    overflow-y: auto !important;
+    padding-bottom: 16px !important;
+  }
+  .sidebar .btn-logout {
+    margin-top: 12px !important;
+    flex-shrink: 0;
+  }
+  .sidebar button:not(.btn-logout) {
+    flex-shrink: 0;
+  }
+  .sidebar::after {
+    content: '';
+    flex: 1 1 auto;
+    min-height: 8px;
+    background: transparent;
+  }
+  .bottom-nav,
+  #bottom-nav,
+  #bottom-nav.bottom-nav,
+  .menu-mais-sheet {
+    display: none !important;
+  }
 }
-.sidebar {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  min-height: calc(100dvh - var(--header-h, 64px)) !important;
-  height: auto !important;
-  background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
-  align-self: stretch !important;
-  position: sticky !important;
-  top: var(--header-h, 64px) !important;
-  max-height: calc(100vh - var(--header-h, 64px)) !important;
-  overflow-y: auto !important;
-  padding-bottom: 16px !important;
-}
-.sidebar .btn-logout {
-  margin-top: 12px !important; /* sem empurrar com auto para “vazio” enorme */
-  flex-shrink: 0;
-}
-.sidebar button:not(.btn-logout) {
-  flex-shrink: 0;
-}
-/* preenche o resto da coluna com a mesma cor (sem branco) */
-.sidebar::after {
-  content: '';
-  flex: 1 1 auto;
-  min-height: 8px;
-  background: transparent;
+
+/* MOBILE: só menu de baixo — sidebar some de vez */
+@media (max-width: 992px) {
+  .sidebar,
+  aside.sidebar,
+  .container > .sidebar {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    pointer-events: none !important;
+  }
+  .bottom-nav,
+  #bottom-nav,
+  #bottom-nav.bottom-nav {
+    display: flex !important;
+    visibility: visible !important;
+  }
 }
 
 /* ===== VITRINE PUBLICA: servicos + contatos ===== */
