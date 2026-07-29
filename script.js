@@ -21,15 +21,15 @@
 // ========================================================
 const TAXA_CADASTRO = {
     ativo: true,                 // false = cadastro livre
-    valor: 49.90,                // R$
+    valor: 10,                // R$
     metodo: 'mercadopago',       // 'mercadopago' | 'pix_manual' | 'off'
     descricao: 'Ativacao ALDINEICAR Profissional',
 
     // --- Mercado Pago (Checkout Pro) ---
     mercadoPago: {
         // Cole suas credenciais (Teste ou Produção)
-        accessToken: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',         // APP_USR-... (Access Token)
-        publicKey: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',           // APP_USR-... (Public Key) — opcional no Checkout Pro
+        accessToken: 'APP_USR-3073092483175820-072900-ba141d1743e703b0a188377b75778fe8-2348896496',         // APP_USR-... (Access Token)
+        publicKey: 'APP_USR-b5678a25-4640-41a8-815d-aae44a6391bc',           // APP_USR-... (Public Key) — opcional no Checkout Pro
         // Se tiver Edge Function/proxy, coloque a URL aqui e deixe accessToken vazio no front:
         // preferenceProxyUrl: 'https://SEU_PROJETO.supabase.co/functions/v1/mp-criar-preferencia',
         preferenceProxyUrl: ''
