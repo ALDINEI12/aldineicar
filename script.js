@@ -33,6 +33,9 @@
     let categoriaLojaAtual = 'Todos';
     let produtosLoja = [];
     let acaoConfirmada = null;
+    let fotosOrcamentoAtual = [];
+    let fotosAgendamentoCliente = [];
+    const MAX_FOTOS_SERVICO = 4;
 
     const configuracoesProfissoes = {
         pintor: {
@@ -1033,10 +1036,12 @@ async function editarProduto(id) {
             
             deslocamento: custoDesloc,
             totalCobrado: valorCobrado,
-            lucro: valorCobrado - totalMateriais - custoDesloc
+            lucro: valorCobrado - totalMateriais - custoDesloc,
+            fotos: (fotosOrcamentoAtual && fotosOrcamentoAtual.length) ? fotosOrcamentoAtual.slice() : []
         };
         
         historico.unshift(novoOrcamento);
+        if (typeof limparFotosOrcamento === 'function') limparFotosOrcamento();
         
         const clienteExiste = clientes.some(c => c.nome.toLowerCase() === clienteNome.toLowerCase());
         if(!clienteExiste && clienteNome !== 'Sem nome') {
@@ -1101,6 +1106,7 @@ async function editarProduto(id) {
                         <div><span>Custos</span><b>R$ ${(parseFloat(custoMat)+parseFloat(custoMaoObra)+custoDesloc).toFixed(2).replace('.', ',')}</b></div>
                         <div class="${lucroReal >= 0 ? 'pos' : 'neg'}"><span>Lucro</span><b>R$ ${lucroReal.toFixed(2).replace('.', ',')}</b></div>
                     </div>
+                    ${(item.fotos && item.fotos.length) ? '<div class="hist-fotos">' + item.fotos.map(function(f, fi){ return '<img src="'+f+'" alt="Foto '+(fi+1)+'" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : ''}
                     <details class="hist-detalhes">
                         <summary>Detalhes e ações</summary>
                         <div class="hist-detalhes-body">
@@ -1201,6 +1207,11 @@ async function editarProduto(id) {
 
         if (item.mao_obra && typeof maoObraItens !== 'undefined') {
             maoObraItens = [...item.mao_obra];
+        }
+
+        if (typeof fotosOrcamentoAtual !== 'undefined') {
+            fotosOrcamentoAtual = (item.fotos && Array.isArray(item.fotos)) ? item.fotos.slice() : [];
+            if (typeof renderFotosOrcamento === 'function') renderFotosOrcamento();
         }
 
         setTimeout(() => {
@@ -1607,21 +1618,40 @@ async function editarProduto(id) {
     function abrirConfirmacao(texto, callback){
         const modal = document.getElementById('modalConfirmar');
         const textoEl = document.getElementById('textoConfirmacao');
-        if (modal) modal.style.display = 'block';
         if (textoEl) textoEl.innerText = texto;
         acaoConfirmada = callback;
+        if (!modal) return;
+        // Sem .aberto o modal fica opacity:0 e trava a tela
+        if (typeof animAbrirModal === 'function') {
+            animAbrirModal(modal, 'flex');
+        } else {
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('aberto');
+        }
     }
     function fecharConfirmacao(){
         const modal = document.getElementById('modalConfirmar');
-        if (modal) modal.style.display = 'none';
+        if (!modal) return;
+        if (typeof animFecharModal === 'function') {
+            animFecharModal(modal);
+        } else {
+            modal.classList.remove('aberto');
+            setTimeout(function() {
+                if (!modal.classList.contains('aberto')) modal.style.display = 'none';
+            }, 280);
+        }
     }
     function confirmarAcaoExclusao() {
-        if (typeof acaoConfirmada === 'function') {
-            const fn = acaoConfirmada;
-            acaoConfirmada = null;
-            fn();
-        }
+        const fn = (typeof acaoConfirmada === 'function') ? acaoConfirmada : null;
+        acaoConfirmada = null;
         fecharConfirmacao();
+        if (fn) {
+            try {
+                const r = fn();
+                if (r && typeof r.then === 'function') r.catch(function(err){ console.error(err); });
+            } catch (err) { console.error(err); }
+        }
     }
 
     async function deletarHistorico(index){ abrirConfirmacao('Deseja excluir este orçamento do histórico?', async function(){ historico.splice(index,1); renderHistorico(); await salvarNoBanco(); }); }
@@ -1634,6 +1664,7 @@ async function editarProduto(id) {
             document.getElementById('veiculoPlaca').value = ''; document.getElementById('veiculoAno').value = '';
             document.getElementById('veiculoCor').value = ''; document.getElementById('nomeAvaliador').value = '';
             document.getElementById('valorCliente').value = '';
+            if (typeof limparFotosOrcamento === 'function') limparFotosOrcamento();
             render(); renderMaoObra(); atualizarResumo(); await salvarNoBanco();
         });
     }
@@ -2081,30 +2112,6 @@ async function enviarOrcamentoCliente() {
             return;
         }
     } catch (e) {}
-    
-    // --- Validação de horário indisponível (vitrine) ---
-    try {
-        const { data: dadosFresh, error: errFresh } = await supabaseClient
-            .from('user_data')
-            .select('historico, dados_oficina')
-            .eq('user_id', idOficinaDaLojaAtual)
-            .maybeSingle();
-        if (!errFresh && dadosFresh) {
-            window.__histAgendaCliente = Array.isArray(dadosFresh.historico) ? dadosFresh.historico : [];
-            if (dadosFresh.dados_oficina && typeof obterDisponibilidadeOficina === 'function') {
-                __dispClienteCache = obterDisponibilidadeOficina(dadosFresh.dados_oficina);
-            }
-        }
-    } catch (e) { console.warn(e); }
-
-    const dispCli = __dispClienteCache || (typeof obterDisponibilidadePadrao === 'function' ? obterDisponibilidadePadrao() : null);
-    if (typeof horarioEstaDisponivel === 'function' && !horarioEstaDisponivel(dataAg, horaAg, dispCli, window.__histAgendaCliente || [])) {
-        alert('Este horário acabou de ficar indisponível. Escolha outra data ou horário.');
-        if (typeof carregarDatasDisponiveisCliente === 'function') await carregarDatasDisponiveisCliente();
-        if (typeof atualizarHorariosCliente === 'function') atualizarHorariosCliente();
-        return;
-    }
-
     if (!idOficinaDaLojaAtual) {
         alert('Identificador da oficina ausente.');
         return;
@@ -2127,7 +2134,8 @@ async function enviarOrcamentoCliente() {
             agendamento: { data: dataAg, hora: horaAg, data_br: dataBR, label: dataBR + ' às ' + horaAg },
             cliente: { nome, endereco: 'Agendamento Online', tel: telefone, cidade: 'Sátiro Dias/BA', city: 'Sátiro Dias/BA' },
             veiculo: { modelo: veiculo || '---', placa: '---', ano: '', cor: '', avaliador: 'Agendamento Online', tipo_servico: desc },
-            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: 0, lucro: 0
+            materiais: [], mao_obra: [], totalMateriais: 0, totalMateriaisCalculado: 0, totalMaoObraCalculado: 0, deslocamento: 0, totalCobrado: 0, lucro: 0,
+            fotos: (typeof fotosAgendamentoCliente !== 'undefined' && fotosAgendamentoCliente.length) ? fotosAgendamentoCliente.slice() : []
         };
         listaHistorico.unshift(novoAgendamento);
         const clienteExiste = listaClientes.some(c => c && c.nome && c.nome.toLowerCase() === nome.toLowerCase());
@@ -2144,6 +2152,7 @@ async function enviarOrcamentoCliente() {
         ['cliOrcNome','cliOrcTelefone','cliOrcVeiculo','cliOrcDescricao','cliOrcData','cliOrcHora'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
         });
+        if (typeof limparFotosAgendamento === 'function') limparFotosAgendamento();
         if (typeof historico !== 'undefined' && idOficinaDaLojaAtual === usuarioAtualId) {
             historico.unshift(novoAgendamento);
             if (typeof renderAgenda === 'function') renderAgenda();
@@ -3147,70 +3156,6 @@ async function salvarDisponibilidadeAgenda() {
 
 let __dispClienteCache = null;
 
-/** Lista horários já ocupados em uma data (agendamentos não cancelados). */
-function obterHorariosOcupados(isoDate, listaHistorico) {
-    const ocupados = {};
-    (listaHistorico || []).forEach(function(item) {
-        if (!item) return;
-        if (item.tipo_registro !== 'AGENDAMENTO') return;
-        if ((item.status || '') === 'Cancelado') return;
-        const ag = item.agendamento || {};
-        if (ag.data === isoDate && ag.hora) ocupados[String(ag.hora)] = true;
-    });
-    return ocupados;
-}
-
-/** True se a data é hoje e o horário já passou (com margem de 5 min). */
-function horarioJaPassou(isoDate, hora) {
-    if (!isoDate || !hora) return false;
-    try {
-        const agora = new Date();
-        const hojeIso = (typeof dataISO === 'function')
-            ? dataISO(agora)
-            : (agora.getFullYear() + '-' + String(agora.getMonth()+1).padStart(2,'0') + '-' + String(agora.getDate()).padStart(2,'0'));
-        if (isoDate !== hojeIso) return false;
-        const parts = String(hora).split(':');
-        const h = parseInt(parts[0], 10);
-        const m = parseInt(parts[1] || '0', 10);
-        if (isNaN(h)) return false;
-        const slot = new Date(agora);
-        slot.setHours(h, m, 0, 0);
-        return slot.getTime() <= (agora.getTime() - 5 * 60 * 1000);
-    } catch (e) {
-        return false;
-    }
-}
-
-/**
- * Retorna horários livres para a data.
- * opts.showOcupados: se true, devolve { livres, ocupadosMap } e permite montar select com disabled.
- */
-function listarHorariosLivres(isoDate, disp, listaHistorico) {
-    const base = (disp && Array.isArray(disp.horarios) && disp.horarios.length)
-        ? disp.horarios.slice()
-        : ((typeof HORARIOS_PADRAO_AGENDA !== 'undefined') ? HORARIOS_PADRAO_AGENDA.slice() : ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00']);
-    const ocupados = obterHorariosOcupados(isoDate, listaHistorico);
-    const livres = [];
-    const indisponiveis = [];
-    base.forEach(function(h) {
-        if (ocupados[h]) {
-            indisponiveis.push({ hora: h, motivo: 'ocupado' });
-        } else if (horarioJaPassou(isoDate, h)) {
-            indisponiveis.push({ hora: h, motivo: 'passado' });
-        } else {
-            livres.push(h);
-        }
-    });
-    return { livres: livres, indisponiveis: indisponiveis, ocupados: ocupados };
-}
-
-function horarioEstaDisponivel(isoDate, hora, disp, listaHistorico) {
-    if (!isoDate || !hora) return false;
-    if (disp && typeof diaEstaDisponivel === 'function' && !diaEstaDisponivel(isoDate, disp)) return false;
-    const info = listarHorariosLivres(isoDate, disp, listaHistorico);
-    return info.livres.indexOf(hora) !== -1;
-}
-
 async function carregarDatasDisponiveisCliente() {
     const selData = document.getElementById('cliOrcData');
     const selHora = document.getElementById('cliOrcHora');
@@ -3247,8 +3192,6 @@ async function carregarDatasDisponiveisCliente() {
             } catch (netErr) {
                 console.warn('Disponibilidade: rede/offline, usando padrão', netErr);
             }
-        } else if (typeof historico !== 'undefined' && Array.isArray(historico)) {
-            window.__histAgendaCliente = historico;
         }
     } catch (e) {
         console.warn('Disponibilidade: erro geral, usando padrão', e);
@@ -3260,17 +3203,12 @@ async function carregarDatasDisponiveisCliente() {
         const datas = (typeof listarProximasDatasDisponiveis === 'function')
             ? listarProximasDatasDisponiveis(disp, 60)
             : [];
-        // Remove dias em que TODOS os horários estão ocupados/passados
-        const datasComVaga = datas.filter(function(iso) {
-            const info = listarHorariosLivres(iso, disp, window.__histAgendaCliente || []);
-            return info.livres.length > 0;
-        });
-        if (!datasComVaga.length) {
+        if (!datas.length) {
             selData.innerHTML = '<option value="">Sem datas disponíveis no momento</option>';
             return;
         }
         const nomes = (typeof NOMES_DIA_AGENDA !== 'undefined') ? NOMES_DIA_AGENDA : ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        selData.innerHTML = '<option value="">Selecione a data</option>' + datasComVaga.map(function(iso) {
+        selData.innerHTML = '<option value="">Selecione a data</option>' + datas.map(function(iso) {
             const dt = new Date(iso + 'T12:00:00');
             const nomeDia = nomes[dt.getDay()] || '';
             const label = (typeof formatarDataBR_ISO === 'function') ? formatarDataBR_ISO(iso) : iso;
@@ -3293,35 +3231,32 @@ function atualizarHorariosCliente() {
         return;
     }
 
-    const disp = __dispClienteCache || (typeof obterDisponibilidadePadrao === 'function' ? obterDisponibilidadePadrao() : null);
-    if (disp && typeof diaEstaDisponivel === 'function' && !diaEstaDisponivel(iso, disp)) {
+    const disp = __dispClienteCache || obterDisponibilidadePadrao();
+    if (!diaEstaDisponivel(iso, disp)) {
         selHora.innerHTML = '<option value="">Dia indisponível</option>';
         return;
     }
 
-    const info = listarHorariosLivres(iso, disp, window.__histAgendaCliente || []);
-    if (!info.livres.length) {
+    // Horários já ocupados (agendamentos não cancelados)
+    const ocupados = {};
+    (window.__histAgendaCliente || []).forEach(function(item) {
+        if (!item || item.tipo_registro !== 'AGENDAMENTO') return;
+        if ((item.status || '') === 'Cancelado') return;
+        const ag = item.agendamento || {};
+        if (ag.data === iso && ag.hora) ocupados[ag.hora] = true;
+    });
+
+    const livres = (disp.horarios || HORARIOS_PADRAO_AGENDA).filter(function(h) {
+        return !ocupados[h];
+    });
+
+    if (livres.length === 0) {
         selHora.innerHTML = '<option value="">Sem horários livres neste dia</option>';
         return;
     }
-
-    // Mostra livres + ocupados/passados desabilitados (transparência para o cliente)
-    let html = '<option value="">Selecione o horário</option>';
-    const todos = (disp && disp.horarios && disp.horarios.length)
-        ? disp.horarios.slice()
-        : ((typeof HORARIOS_PADRAO_AGENDA !== 'undefined') ? HORARIOS_PADRAO_AGENDA.slice() : info.livres.slice());
-    const mapaIndisp = {};
-    info.indisponiveis.forEach(function(x) { mapaIndisp[x.hora] = x.motivo; });
-    todos.forEach(function(h) {
-        if (mapaIndisp[h] === 'ocupado') {
-            html += '<option value="" disabled>' + h + ' — indisponível</option>';
-        } else if (mapaIndisp[h] === 'passado') {
-            html += '<option value="" disabled>' + h + ' — já passou</option>';
-        } else {
-            html += '<option value="' + h + '">' + h + '</option>';
-        }
-    });
-    selHora.innerHTML = html;
+    selHora.innerHTML = '<option value="">Selecione o horário</option>' + livres.map(function(h) {
+        return '<option value="' + h + '">' + h + '</option>';
+    }).join('');
 }
 
 
@@ -3508,6 +3443,7 @@ function renderAgenda() {
             + '</div>'
             + '<span class="agenda-badge ' + badgeClass + '">' + status + '</span>' + extraBadge
             + '</div>'
+            + ((item.fotos && item.fotos.length) ? '<div class="ag-fotos">' + item.fotos.map(function(f){ return '<img src="'+f+'" alt="Foto" onclick="abrirLightboxFoto(this.src)">'; }).join('') + '</div>' : '')
             + '<details class="ag-mais"><summary>Ações</summary><div class="ag-acoes">';
 
         if (status === 'Agendado') {
@@ -3566,6 +3502,10 @@ function converterAgendamentoEmOrcamento(idx) {
     setVal('veiculoAno', veiculo.ano || '');
     setVal('veiculoCor', veiculo.cor || '');
     setVal('tipoServico', veiculo.tipo_servico || '');
+    if (typeof fotosOrcamentoAtual !== 'undefined') {
+        fotosOrcamentoAtual = (item.fotos && Array.isArray(item.fotos)) ? item.fotos.slice() : [];
+        if (typeof renderFotosOrcamento === 'function') renderFotosOrcamento();
+    }
     setVal('valorCliente', '');
     materiais.forEach(m => { m.qtd = 0; });
     maoObraItens = [];
@@ -3615,38 +3555,9 @@ function fecharModalNovoAgendamento() {
 function preencherHorariosNovoAgendamento() {
     const sel = document.getElementById('agdHora');
     if (!sel) return;
-    const disp = typeof obterDisponibilidadeOficina === 'function'
-        ? obterDisponibilidadeOficina()
-        : { horarios: ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'] };
-    const dataAg = (document.getElementById('agdData') && document.getElementById('agdData').value) || '';
-    const horasBase = (disp.horarios && disp.horarios.length) ? disp.horarios : ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
-
-    if (!dataAg) {
-        sel.innerHTML = '<option value="">Selecione a data primeiro</option>';
-        return;
-    }
-
-    const info = (typeof listarHorariosLivres === 'function')
-        ? listarHorariosLivres(dataAg, disp, (typeof historico !== 'undefined' ? historico : []))
-        : { livres: horasBase, indisponiveis: [] };
-
-    const mapaIndisp = {};
-    (info.indisponiveis || []).forEach(function(x) { mapaIndisp[x.hora] = x.motivo; });
-
-    let html = '<option value="">Selecione o horário</option>';
-    horasBase.forEach(function(h) {
-        if (mapaIndisp[h] === 'ocupado') {
-            html += '<option value="" disabled>' + h + ' — ocupado</option>';
-        } else if (mapaIndisp[h] === 'passado') {
-            html += '<option value="" disabled>' + h + ' — já passou</option>';
-        } else {
-            html += '<option value="' + h + '">' + h + '</option>';
-        }
-    });
-    if (!(info.livres && info.livres.length)) {
-        html = '<option value="">Sem horários livres neste dia</option>';
-    }
-    sel.innerHTML = html;
+    const disp = typeof obterDisponibilidadeOficina === 'function' ? obterDisponibilidadeOficina() : { horarios: ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'] };
+    const horas = (disp.horarios && disp.horarios.length) ? disp.horarios : ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00'];
+    sel.innerHTML = '<option value="">Selecione</option>' + horas.map(h => '<option value="' + h + '">' + h + '</option>').join('');
 }
 
 async function salvarNovoAgendamento() {
@@ -3682,17 +3593,14 @@ async function salvarNovoAgendamento() {
         veiculo: { modelo: veiculo, placa: '', ano: '', cor: '', tipo_servico: servico || '—' }
     };
 
-    // Validação: horário passado ou já ocupado
-    const dispPainel = (typeof obterDisponibilidadeOficina === 'function') ? obterDisponibilidadeOficina() : null;
-    if (typeof horarioEstaDisponivel === 'function' && !horarioEstaDisponivel(dataAg, horaAg, dispPainel, historico || [])) {
-        const ocup = (typeof obterHorariosOcupados === 'function') ? obterHorariosOcupados(dataAg, historico || []) : {};
-        const msg = ocup[horaAg]
-            ? ('O horário ' + horaAg + ' já está ocupado. Escolha outro.')
-            : ('O horário ' + horaAg + ' não está disponível. Escolha outro.');
-        if (typeof mostrarToast === 'function') mostrarToast(msg, 'erro');
-        else alert(msg);
-        if (typeof preencherHorariosNovoAgendamento === 'function') preencherHorariosNovoAgendamento();
-        return;
+    const conflito = (historico || []).some(item => {
+        if (!item || item.tipo_registro !== 'AGENDAMENTO') return false;
+        if ((item.status || '') === 'Cancelado') return false;
+        const ag = item.agendamento || {};
+        return ag.data === dataAg && ag.hora === horaAg;
+    });
+    if (conflito) {
+        if (!confirm('Já existe um agendamento neste horário. Deseja criar mesmo assim?')) return;
     }
 
     historico.unshift(novo);
@@ -4789,6 +4697,7 @@ function abrirModalOrcamentoCliente() {
         modal.style.display = 'flex';
         modal.classList.add('aberto');
     }
+    // Carrega datas/horários da oficina (sem isso fica "Carregando datas...")
     if (typeof limparFotosAgendamento === 'function') {
         try { limparFotosAgendamento(); } catch (e) {}
     }
@@ -4800,8 +4709,11 @@ function fecharModalOrcamentoCliente() {
     if (typeof animFecharModal === 'function') {
         animFecharModal(document.getElementById('modal-orcamento-cliente'));
     } else {
-        const m = document.getElementById('modal-orcamento-cliente');
-        if (m) { m.classList.remove('aberto'); m.style.display = 'none'; }
+        const modal = document.getElementById('modal-orcamento-cliente');
+        if (modal) {
+            modal.classList.remove('aberto');
+            modal.style.display = 'none';
+        }
     }
 }
 
@@ -4861,3 +4773,99 @@ function toggleMenuMais() {
         return r;
     };
 })();
+
+// ========================================================
+// FOTOS DO SERVIÇO — orçamento (painel) + agendamento (vitrine)
+// ========================================================
+function renderFotosPreview(containerId, lista, onRemoveName) {
+    const box = document.getElementById(containerId);
+    if (!box) return;
+    if (!lista || !lista.length) { box.innerHTML = ''; return; }
+    box.innerHTML = lista.map(function(src, i) {
+        return '<div class="foto-thumb">'
+            + '<img src="' + src + '" alt="Foto ' + (i + 1) + '" onclick="abrirLightboxFoto(this.src)">'
+            + '<button type="button" class="foto-thumb-del" title="Remover" onclick="' + onRemoveName + '(' + i + ')">×</button>'
+            + '</div>';
+    }).join('');
+}
+function renderFotosOrcamento() {
+    renderFotosPreview('fotosOrcamentoPreview', fotosOrcamentoAtual, 'removerFotoOrcamento');
+}
+function renderFotosAgendamento() {
+    renderFotosPreview('fotosAgendamentoPreview', fotosAgendamentoCliente, 'removerFotoAgendamento');
+}
+function removerFotoOrcamento(i) {
+    if (i < 0 || i >= fotosOrcamentoAtual.length) return;
+    fotosOrcamentoAtual.splice(i, 1);
+    renderFotosOrcamento();
+}
+function removerFotoAgendamento(i) {
+    if (i < 0 || i >= fotosAgendamentoCliente.length) return;
+    fotosAgendamentoCliente.splice(i, 1);
+    renderFotosAgendamento();
+}
+function limparFotosOrcamento() {
+    fotosOrcamentoAtual = [];
+    const inp = document.getElementById('fotosOrcamentoFile');
+    if (inp) inp.value = '';
+    renderFotosOrcamento();
+}
+function limparFotosAgendamento() {
+    fotosAgendamentoCliente = [];
+    const inp = document.getElementById('fotosAgendamentoFile');
+    if (inp) inp.value = '';
+    renderFotosAgendamento();
+}
+async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
+    maxFotos = maxFotos || MAX_FOTOS_SERVICO || 4;
+    if (!files || !files.length) return;
+    const restantes = maxFotos - listaRef.length;
+    if (restantes <= 0) {
+        if (typeof mostrarToast === 'function') mostrarToast('Máximo de ' + maxFotos + ' fotos.', 'aviso');
+        else alert('Máximo de ' + maxFotos + ' fotos.');
+        return;
+    }
+    const arr = Array.from(files).slice(0, restantes);
+    try {
+        if (typeof mostrarToast === 'function') mostrarToast('Processando foto(s)...', 'aviso');
+        for (let i = 0; i < arr.length; i++) {
+            const file = arr[i];
+            if (!file || !file.type || file.type.indexOf('image/') !== 0) continue;
+            const dataUrl = await redimensionarImagemArquivo(file, 800, 0.65);
+            listaRef.push(dataUrl);
+        }
+        renderFn();
+        if (typeof mostrarToast === 'function') mostrarToast('Foto(s) adicionada(s)!', 'sucesso');
+    } catch (e) {
+        console.error(e);
+        if (typeof mostrarToast === 'function') mostrarToast('Não foi possível usar esta imagem.', 'erro');
+        else alert('Não foi possível usar esta imagem.');
+    }
+}
+async function onFotosOrcamentoChange(input) {
+    await adicionarFotosArquivos(input && input.files, fotosOrcamentoAtual, renderFotosOrcamento, MAX_FOTOS_SERVICO);
+    if (input) input.value = '';
+}
+async function onFotosAgendamentoChange(input) {
+    await adicionarFotosArquivos(input && input.files, fotosAgendamentoCliente, renderFotosAgendamento, MAX_FOTOS_SERVICO);
+    if (input) input.value = '';
+}
+function abrirLightboxFoto(src) {
+    if (!src) return;
+    let lb = document.getElementById('foto-lightbox');
+    if (!lb) {
+        lb = document.createElement('div');
+        lb.id = 'foto-lightbox';
+        lb.className = 'foto-lightbox';
+        lb.innerHTML = '<button type="button" class="foto-lightbox-fechar" onclick="fecharLightboxFoto()">Fechar</button><img alt="Foto ampliada">';
+        lb.addEventListener('click', function(e) { if (e.target === lb) fecharLightboxFoto(); });
+        document.body.appendChild(lb);
+    }
+    const img = lb.querySelector('img');
+    if (img) img.src = src;
+    lb.classList.add('aberto');
+}
+function fecharLightboxFoto() {
+    const lb = document.getElementById('foto-lightbox');
+    if (lb) lb.classList.remove('aberto');
+}
