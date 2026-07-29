@@ -30,7 +30,7 @@
 // ========================================================
 const TAXA_CADASTRO = {
     ativo: true,                 // false = cadastro livre
-    valor: 49.90,                // R$
+    valor: 1,                // R$
     metodo: 'mercadopago',       // 'mercadopago' | 'pix_manual' | 'off'
     descricao: 'Ativacao ALDINEICAR Profissional',
 
