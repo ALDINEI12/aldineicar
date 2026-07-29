@@ -5,16 +5,7 @@
  
  const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
-    let supabaseClient = null;
-    try {
-        if (typeof supabase !== 'undefined' && supabase.createClient) {
-            supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        } else {
-            console.error('Supabase SDK não carregou. Verifique a conexão com a internet/CDN.');
-        }
-    } catch (e) {
-        console.error('Erro ao iniciar Supabase:', e);
-    }
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ========================================================
 // TAXA DE CADASTRO + MERCADO PAGO
@@ -35,15 +26,11 @@ const TAXA_CADASTRO = {
     descricao: 'Ativacao ALDINEICAR Profissional',
 
     // --- Mercado Pago (Checkout Pro) ---
-    // Use TUDO de teste OU TUDO de produção (não misture).
-    // Token de teste costuma começar com TEST- ...
-    // Token de produção costuma começar com APP_USR- ...
     mercadoPago: {
-        accessToken: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',         // Access Token (teste OU produção — não misture)
-        publicKey: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',           // Public Key do mesmo ambiente
-        // true/false/null → null = detecta pelo token automaticamente
-        sandbox: null,
-        // Se tiver Edge Function/proxy, coloque a URL e deixe accessToken vazio no front:
+        // Cole suas credenciais (Teste ou Produção)
+        accessToken: 'APP_USR-4118846596343647-072900-d307115eca8f3fa94467c48e76acd559-3575879538',         // APP_USR-... (Access Token)
+        publicKey: 'APP_USR-e5e05e29-c33d-4032-b0da-a37b8f1fccf0',           // APP_USR-... (Public Key) — opcional no Checkout Pro
+        // Se tiver Edge Function/proxy, coloque a URL aqui e deixe accessToken vazio no front:
         // preferenceProxyUrl: 'https://SEU_PROJETO.supabase.co/functions/v1/mp-criar-preferencia',
         preferenceProxyUrl: ''
     },
@@ -877,50 +864,13 @@ async function editarProduto(id) {
     }
 
     function toggleTab(tab) {
-        try {
-            tab = (tab === 'signup') ? 'signup' : 'login';
-            var loginForm = document.getElementById('loginForm');
-            var signupForm = document.getElementById('signupForm');
-            var tabLogin = document.getElementById('tabLogin');
-            var tabSignup = document.getElementById('tabSignup');
-            if (loginForm) loginForm.style.display = tab === 'login' ? 'block' : 'none';
-            if (signupForm) signupForm.style.display = tab === 'signup' ? 'block' : 'none';
-            if (tabLogin) {
-                if (tab === 'login') {
-                    tabLogin.style.background = '#ffd700';
-                    tabLogin.style.color = '#111';
-                    tabLogin.style.border = 'none';
-                } else {
-                    tabLogin.style.background = 'transparent';
-                    tabLogin.style.color = 'white';
-                    tabLogin.style.border = '2px solid #444';
-                }
-            }
-            if (tabSignup) {
-                if (tab === 'signup') {
-                    tabSignup.style.background = '#ffd700';
-                    tabSignup.style.color = '#111';
-                    tabSignup.style.border = 'none';
-                } else {
-                    tabSignup.style.background = 'transparent';
-                    tabSignup.style.color = 'white';
-                    tabSignup.style.border = '2px solid #444';
-                }
-            }
-            if (tab === 'signup') {
-                if (typeof voltarSignupDados === 'function') voltarSignupDados();
-                if (typeof atualizarUITaxaCadastro === 'function') atualizarUITaxaCadastro();
-            }
-            // garante scroll no modal de login
-            var box = document.getElementById('loginBoxInner');
-            if (box) box.scrollTop = 0;
-        } catch (e) {
-            console.error('toggleTab', e);
-            alert('Erro ao alternar aba: ' + (e && e.message ? e.message : e));
+        document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+        if (tab === 'signup') {
+            voltarSignupDados();
+            atualizarUITaxaCadastro();
         }
     }
-    // Garante acesso pelos botões onclick do HTML
-    window.toggleTab = toggleTab;
 
     function atualizarUITaxaCadastro() {
         const v = (TAXA_CADASTRO && TAXA_CADASTRO.valor) ? Number(TAXA_CADASTRO.valor) : 0;
@@ -1019,32 +969,6 @@ async function editarProduto(id) {
         });
         u.searchParams.set('cadastro_mp', status);
         return u.toString();
-    }
-
-    function isMercadoPagoSandbox(mp) {
-        mp = mp || ((TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {}) || {};
-        // Override manual: true = forçar teste, false = forçar produção
-        if (mp.sandbox === true) return true;
-        if (mp.sandbox === false) return false;
-        const token = String(mp.accessToken || '').trim();
-        if (!token) return true; // sem token: assume teste
-        // Tokens de teste do MP
-        if (/^TEST-/i.test(token)) return true;
-        if (/sandbox/i.test(token)) return true;
-        // Alguns tokens de teste ainda usam APP_USR- mas vêm da seção "Teste"
-        // Se o usuário marcar sandbox: true no config, força teste.
-        // Padrão: APP_USR- = produção
-        if (/^APP_USR-/i.test(token)) return false;
-        return false;
-    }
-
-    function escolherInitPointMercadoPago(pref, mp) {
-        pref = pref || {};
-        const sandbox = isMercadoPagoSandbox(mp);
-        if (sandbox) {
-            return pref.sandbox_init_point || pref.init_point || '';
-        }
-        return pref.init_point || pref.sandbox_init_point || '';
     }
 
     async function criarPreferenciaMercadoPago(dados) {
@@ -1178,14 +1102,8 @@ async function editarProduto(id) {
                 metodo: 'mercadopago'
             });
             const pref = await criarPreferenciaMercadoPago({ nome, email, txid });
-            const mpCfg = (TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {};
-            const initPoint = escolherInitPointMercadoPago(pref, mpCfg);
+            const initPoint = pref.init_point || pref.sandbox_init_point;
             if (!initPoint) throw new Error('Preferência criada, mas sem link de pagamento (init_point).');
-            // Log útil no console para debug teste/produção
-            try {
-                console.log('[MP] ambiente:', isMercadoPagoSandbox(mpCfg) ? 'TESTE (sandbox)' : 'PRODUÇÃO',
-                    '| preference:', pref.id, '| url:', initPoint.substring(0, 48) + '...');
-            } catch (e) {}
 
             // guarda preference id
             const pend = carregarSignupPendente() || {};
@@ -1226,17 +1144,7 @@ async function editarProduto(id) {
         }
 
         if (TAXA_CADASTRO.metodo === 'mercadopago') {
-            var mp = TAXA_CADASTRO.mercadoPago || {};
-            var mpOk = (mp.accessToken && String(mp.accessToken).trim()) || (mp.preferenceProxyUrl && String(mp.preferenceProxyUrl).trim());
-            if (mpOk) {
-                await iniciarCadastroMercadoPago(nome, email, password);
-                return;
-            }
-            // Sem credenciais MP: usa PIX manual (evita trava no teste)
-            if (typeof mostrarToast === 'function') {
-                mostrarToast('Mercado Pago ainda sem Access Token — usando PIX manual.', 'aviso');
-            }
-            await iniciarCadastroPixManual(nome, email, password);
+            await iniciarCadastroMercadoPago(nome, email, password);
             return;
         }
         await iniciarCadastroPixManual(nome, email, password);
@@ -1418,19 +1326,7 @@ async function editarProduto(id) {
         await iniciarCadastroComPagamento();
     }
 
-    window.handleSignup = handleSignup;
-    window.iniciarCadastroComPagamento = iniciarCadastroComPagamento;
-    window.confirmarPagamentoECriarConta = confirmarPagamentoECriarConta;
-    window.voltarSignupDados = voltarSignupDados;
-    window.copiarSignupPix = copiarSignupPix;
-
     async function handleLogin() {
-        if (!supabaseClient) {
-            if (typeof mostrarToast === 'function') mostrarToast('Sistema de login não carregou. Atualize a página (Ctrl+F5).', 'erro');
-            else alert('Sistema de login não carregou. Atualize a página (Ctrl+F5).');
-            return;
-        }
-
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
         const btnEntrar = document.querySelector('#loginForm button');
@@ -1468,8 +1364,6 @@ async function editarProduto(id) {
     }
 
 
-
-    window.handleLogin = handleLogin;
 
     async function handleLogout() {
         await supabaseClient.auth.signOut();
@@ -2315,43 +2209,34 @@ async function editarProduto(id) {
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        try { if (typeof verificarModoCliente === 'function') verificarModoCliente(); } catch (e) { console.warn(e); }
-        try { toggleTab('login'); } catch (e) { console.warn(e); }
-        try { if (typeof processarRetornoMercadoPago === 'function') processarRetornoMercadoPago(); } catch (e) { console.warn(e); }
-        try { if (typeof atualizarUITaxaCadastro === 'function') atualizarUITaxaCadastro(); } catch (e) {}
-
-        if (!supabaseClient || !supabaseClient.auth) {
-            console.error('Supabase não disponível — login/cadastro desabilitados até atualizar a página.');
-            return;
-        }
-
+        toggleTab('login');
+                try { processarRetornoMercadoPago(); } catch (e) { console.warn(e); }
+        try { atualizarUITaxaCadastro(); } catch (e) {}
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            try {
-                if (window.__modoClienteVitrine) {
-                    const login = document.getElementById('loginOverlay');
-                    const app = document.getElementById('appContainer');
-                    if (login) login.style.display = 'none';
-                    if (app) app.style.display = 'none';
-                    return;
-                }
-                if (session && session.user) {
-                    await carregarDadosDoUsuario(session.user.id);
-                    const loginEl = document.getElementById('loginOverlay');
-                    if (loginEl) loginEl.style.display = 'none';
-                    const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
-                    const algumaAtiva = abas.some(id => {
-                        const el = document.getElementById(id);
-                        return el && el.style.display === 'block';
-                    });
-                    if (!algumaAtiva && typeof mostrarAba === 'function') mostrarAba('dashboard');
-                } else {
-                    const loginEl = document.getElementById('loginOverlay');
-                    if (loginEl) loginEl.style.display = 'flex';
-                    toggleTab('login');
-                }
-            } catch (err) {
-                console.error('onAuthStateChange', err);
+            if (window.__modoClienteVitrine) {
+                const login = document.getElementById('loginOverlay');
+                const app = document.getElementById('appContainer');
+                if (login) login.style.display = 'none';
+                if (app) app.style.display = 'none';
+                return;
             }
+            if (session && session.user) {
+                await carregarDadosDoUsuario(session.user.id);
+                document.getElementById('loginOverlay').style.display = 'none';
+                const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
+                const algumaAtiva = abas.some(id => {
+                    const el = document.getElementById(id);
+                    return el && el.style.display === 'block';
+                });
+                if (!algumaAtiva) mostrarAba('dashboard');
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                toggleTab('login');
+            }
+
+            window.addEventListener('DOMContentLoaded', () => {
+    verificarModoCliente();
+});
         });
     });
 
