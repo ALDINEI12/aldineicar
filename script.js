@@ -5,7 +5,16 @@
  
  const supabaseUrl = 'https://nhqipyzikujszddoxlir.supabase.co';
     const supabaseKey = 'sb_publishable_PRTUmHIzf0pbq09qn9RwvQ_DZQowl4D';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    let supabaseClient = null;
+    try {
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        } else {
+            console.error('Supabase SDK não carregou. Verifique a conexão com a internet/CDN.');
+        }
+    } catch (e) {
+        console.error('Erro ao iniciar Supabase:', e);
+    }
 
 // ========================================================
 // TAXA DE CADASTRO + MERCADO PAGO
@@ -21,23 +30,27 @@
 // ========================================================
 const TAXA_CADASTRO = {
     ativo: true,                 // false = cadastro livre
-    valor: 1,                // R$
+    valor: 49.90,                // R$
     metodo: 'mercadopago',       // 'mercadopago' | 'pix_manual' | 'off'
     descricao: 'Ativacao ALDINEICAR Profissional',
 
     // --- Mercado Pago (Checkout Pro) ---
+    // Use TUDO de teste OU TUDO de produção (não misture).
+    // Token de teste costuma começar com TEST- ...
+    // Token de produção costuma começar com APP_USR- ...
     mercadoPago: {
-        // Cole suas credenciais (Teste ou Produção)
-        accessToken: 'APP_USR-3073092483175820-072900-ba141d1743e703b0a188377b75778fe8-2348896496',         // APP_USR-... (Access Token)
-        publicKey: 'APP_USR-b5678a25-4640-41a8-815d-aae44a6391bc',           // APP_USR-... (Public Key) — opcional no Checkout Pro
-        // Se tiver Edge Function/proxy, coloque a URL aqui e deixe accessToken vazio no front:
+        accessToken: '',         // Access Token (teste OU produção — não misture)
+        publicKey: '',           // Public Key do mesmo ambiente
+        // true/false/null → null = detecta pelo token automaticamente
+        sandbox: null,
+        // Se tiver Edge Function/proxy, coloque a URL e deixe accessToken vazio no front:
         // preferenceProxyUrl: 'https://SEU_PROJETO.supabase.co/functions/v1/mp-criar-preferencia',
         preferenceProxyUrl: ''
     },
 
     // --- Fallback PIX manual (se metodo = pix_manual ou MP falhar) ---
-    pixChave: '59907544000184',
-    pixNome: 'ALDINEI BATISTA ROCHA FILHO',
+    pixChave: '11684388538',
+    pixNome: 'ALDINEICAR',
     pixCidade: 'SATIRO DIAS'
 };
 let __signupPendente = null; // { nome, email, password, txid, payload, valor, mpPreferenceId, mpPaymentId }
@@ -864,13 +877,50 @@ async function editarProduto(id) {
     }
 
     function toggleTab(tab) {
-        document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
-        document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
-        if (tab === 'signup') {
-            voltarSignupDados();
-            atualizarUITaxaCadastro();
+        try {
+            tab = (tab === 'signup') ? 'signup' : 'login';
+            var loginForm = document.getElementById('loginForm');
+            var signupForm = document.getElementById('signupForm');
+            var tabLogin = document.getElementById('tabLogin');
+            var tabSignup = document.getElementById('tabSignup');
+            if (loginForm) loginForm.style.display = tab === 'login' ? 'block' : 'none';
+            if (signupForm) signupForm.style.display = tab === 'signup' ? 'block' : 'none';
+            if (tabLogin) {
+                if (tab === 'login') {
+                    tabLogin.style.background = '#ffd700';
+                    tabLogin.style.color = '#111';
+                    tabLogin.style.border = 'none';
+                } else {
+                    tabLogin.style.background = 'transparent';
+                    tabLogin.style.color = 'white';
+                    tabLogin.style.border = '2px solid #444';
+                }
+            }
+            if (tabSignup) {
+                if (tab === 'signup') {
+                    tabSignup.style.background = '#ffd700';
+                    tabSignup.style.color = '#111';
+                    tabSignup.style.border = 'none';
+                } else {
+                    tabSignup.style.background = 'transparent';
+                    tabSignup.style.color = 'white';
+                    tabSignup.style.border = '2px solid #444';
+                }
+            }
+            if (tab === 'signup') {
+                if (typeof voltarSignupDados === 'function') voltarSignupDados();
+                if (typeof atualizarUITaxaCadastro === 'function') atualizarUITaxaCadastro();
+            }
+            // garante scroll no modal de login
+            var box = document.getElementById('loginBoxInner');
+            if (box) box.scrollTop = 0;
+        } catch (e) {
+            console.error('toggleTab', e);
+            alert('Erro ao alternar aba: ' + (e && e.message ? e.message : e));
         }
     }
+    // Garante acesso pelos botões onclick do HTML
+    window.toggleTab = toggleTab;
 
     function atualizarUITaxaCadastro() {
         const v = (TAXA_CADASTRO && TAXA_CADASTRO.valor) ? Number(TAXA_CADASTRO.valor) : 0;
@@ -943,12 +993,14 @@ async function editarProduto(id) {
     function salvarSignupPendente(obj) {
         __signupPendente = obj;
         try { sessionStorage.setItem(SIGNUP_PENDING_KEY, JSON.stringify(obj)); } catch (e) {}
+        try { localStorage.setItem(SIGNUP_PENDING_KEY, JSON.stringify(obj)); } catch (e) {}
     }
 
     function carregarSignupPendente() {
         if (__signupPendente) return __signupPendente;
         try {
-            const raw = sessionStorage.getItem(SIGNUP_PENDING_KEY);
+            var raw = sessionStorage.getItem(SIGNUP_PENDING_KEY);
+            if (!raw) raw = localStorage.getItem(SIGNUP_PENDING_KEY);
             if (raw) __signupPendente = JSON.parse(raw);
         } catch (e) {}
         return __signupPendente;
@@ -957,6 +1009,7 @@ async function editarProduto(id) {
     function limparSignupPendente() {
         __signupPendente = null;
         try { sessionStorage.removeItem(SIGNUP_PENDING_KEY); } catch (e) {}
+        try { localStorage.removeItem(SIGNUP_PENDING_KEY); } catch (e) {}
     }
 
     function urlRetornoCadastro(status) {
@@ -969,6 +1022,32 @@ async function editarProduto(id) {
         });
         u.searchParams.set('cadastro_mp', status);
         return u.toString();
+    }
+
+    function isMercadoPagoSandbox(mp) {
+        mp = mp || ((TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {}) || {};
+        // Override manual: true = forçar teste, false = forçar produção
+        if (mp.sandbox === true) return true;
+        if (mp.sandbox === false) return false;
+        const token = String(mp.accessToken || '').trim();
+        if (!token) return true; // sem token: assume teste
+        // Tokens de teste do MP
+        if (/^TEST-/i.test(token)) return true;
+        if (/sandbox/i.test(token)) return true;
+        // Alguns tokens de teste ainda usam APP_USR- mas vêm da seção "Teste"
+        // Se o usuário marcar sandbox: true no config, força teste.
+        // Padrão: APP_USR- = produção
+        if (/^APP_USR-/i.test(token)) return false;
+        return false;
+    }
+
+    function escolherInitPointMercadoPago(pref, mp) {
+        pref = pref || {};
+        const sandbox = isMercadoPagoSandbox(mp);
+        if (sandbox) {
+            return pref.sandbox_init_point || pref.init_point || '';
+        }
+        return pref.init_point || pref.sandbox_init_point || '';
     }
 
     async function criarPreferenciaMercadoPago(dados) {
@@ -1102,8 +1181,14 @@ async function editarProduto(id) {
                 metodo: 'mercadopago'
             });
             const pref = await criarPreferenciaMercadoPago({ nome, email, txid });
-            const initPoint = pref.init_point || pref.sandbox_init_point;
+            const mpCfg = (TAXA_CADASTRO && TAXA_CADASTRO.mercadoPago) ? TAXA_CADASTRO.mercadoPago : {};
+            const initPoint = escolherInitPointMercadoPago(pref, mpCfg);
             if (!initPoint) throw new Error('Preferência criada, mas sem link de pagamento (init_point).');
+            // Log útil no console para debug teste/produção
+            try {
+                console.log('[MP] ambiente:', isMercadoPagoSandbox(mpCfg) ? 'TESTE (sandbox)' : 'PRODUÇÃO',
+                    '| preference:', pref.id, '| url:', initPoint.substring(0, 48) + '...');
+            } catch (e) {}
 
             // guarda preference id
             const pend = carregarSignupPendente() || {};
@@ -1144,7 +1229,17 @@ async function editarProduto(id) {
         }
 
         if (TAXA_CADASTRO.metodo === 'mercadopago') {
-            await iniciarCadastroMercadoPago(nome, email, password);
+            var mp = TAXA_CADASTRO.mercadoPago || {};
+            var mpOk = (mp.accessToken && String(mp.accessToken).trim()) || (mp.preferenceProxyUrl && String(mp.preferenceProxyUrl).trim());
+            if (mpOk) {
+                await iniciarCadastroMercadoPago(nome, email, password);
+                return;
+            }
+            // Sem credenciais MP: usa PIX manual (evita trava no teste)
+            if (typeof mostrarToast === 'function') {
+                mostrarToast('Mercado Pago ainda sem Access Token — usando PIX manual.', 'aviso');
+            }
+            await iniciarCadastroPixManual(nome, email, password);
             return;
         }
         await iniciarCadastroPixManual(nome, email, password);
@@ -1191,14 +1286,32 @@ async function editarProduto(id) {
             });
 
             if (error) {
-                if (typeof mostrarToast === 'function') mostrarToast('Erro ao cadastrar: ' + error.message, 'erro');
+                var msg = (error && error.message) ? String(error.message) : 'erro';
+                if (/already|registered|exists|já/i.test(msg)) {
+                    if (typeof mostrarToast === 'function') mostrarToast('Conta já existe. Tentando entrar...', 'aviso');
+                    try {
+                        var loginRes = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                        if (!loginRes.error && loginRes.data && loginRes.data.user) {
+                            limparSignupPendente();
+                            var lo = document.getElementById('loginOverlay'); if (lo) lo.style.display = 'none';
+                            if (typeof carregarDadosDoUsuario === 'function') await carregarDadosDoUsuario(loginRes.data.user.id);
+                            if (typeof mostrarToast === 'function') mostrarToast('Login liberado!', 'sucesso');
+                            return;
+                        }
+                    } catch (eLogin) { console.warn(eLogin); }
+                    toggleTab('login');
+                    var le = document.getElementById('loginEmail'); if (le) le.value = email;
+                    if (typeof mostrarToast === 'function') mostrarToast('Conta existe. Entre com a senha usada no cadastro.', 'aviso');
+                    return;
+                }
+                if (typeof mostrarToast === 'function') mostrarToast('Erro ao cadastrar: ' + msg, 'erro');
                 return;
             }
 
             try {
                 const log = JSON.parse(localStorage.getItem('aldineicar_cadastros_pix') || '[]');
                 log.unshift({
-                    email, nome, txid, valor: valor || 0,
+                    email: email, nome: nome, txid: txid, valor: valor || 0,
                     metodo: pend.metodo || '',
                     mpPaymentId: pend.mpPaymentId || '',
                     em: new Date().toISOString()
@@ -1206,22 +1319,38 @@ async function editarProduto(id) {
                 localStorage.setItem('aldineicar_cadastros_pix', JSON.stringify(log.slice(0, 50)));
             } catch (e) {}
 
-            limparSignupPendente();
-            if (typeof mostrarToast === 'function') {
-                mostrarToast('Pagamento ok! Conta criada. Faça login.', 'sucesso');
-            }
-            ['signupName','signupEmail','signupPassword'].forEach(function(id) {
-                const el = document.getElementById(id); if (el) el.value = '';
-            });
-            voltarSignupDados();
-            toggleTab('login');
-            const loginEmail = document.getElementById('loginEmail');
-            if (loginEmail) loginEmail.value = email;
+            // Tenta entrar automaticamente
+            var entrou = false;
+            try {
+                var loginRes2 = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                if (!loginRes2.error && loginRes2.data && loginRes2.data.user) {
+                    entrou = true;
+                    limparSignupPendente();
+                    var lo2 = document.getElementById('loginOverlay'); if (lo2) lo2.style.display = 'none';
+                    if (typeof carregarDadosDoUsuario === 'function') await carregarDadosDoUsuario(loginRes2.data.user.id);
+                    if (typeof mostrarToast === 'function') mostrarToast('Pagamento ok! Conta liberada.', 'sucesso');
+                }
+            } catch (e3) { console.warn(e3); }
 
-            // limpa query string do retorno MP
+            if (!entrou) {
+                limparSignupPendente();
+                if (typeof mostrarToast === 'function') {
+                    mostrarToast('Conta criada! Se não entrar, desative confirmação de e-mail no Supabase (Auth → Providers → Email).', 'sucesso');
+                }
+                ['signupName','signupEmail','signupPassword'].forEach(function(id) {
+                    const el = document.getElementById(id); if (el) el.value = '';
+                });
+                voltarSignupDados();
+                toggleTab('login');
+                const loginEmail = document.getElementById('loginEmail');
+                if (loginEmail) loginEmail.value = email;
+                const loginPass = document.getElementById('loginPassword');
+                if (loginPass) loginPass.value = password;
+            }
+
             try {
                 const u = new URL(window.location.href);
-                if (u.searchParams.has('cadastro_mp')) {
+                if (u.searchParams.has('cadastro_mp') || u.searchParams.has('payment_id') || u.searchParams.has('collection_id')) {
                     u.search = '';
                     window.history.replaceState({}, '', u.pathname + u.hash);
                 }
@@ -1237,8 +1366,35 @@ async function editarProduto(id) {
     async function processarRetornoMercadoPago() {
         try {
             const params = new URLSearchParams(window.location.search);
-            const flag = params.get('cadastro_mp');
-            if (!flag) return;
+            var flag = params.get('cadastro_mp');
+            var paymentId = params.get('payment_id') || params.get('collection_id') || params.get('paymentId') || '';
+            var statusRaw = (params.get('status') || params.get('collection_status') || params.get('payment_status') || flag || '').toLowerCase();
+            if (!flag && (paymentId || statusRaw === 'approved' || params.get('preference_id') || params.get('collection_id'))) {
+                if (statusRaw === 'approved' || statusRaw === 'success') flag = 'success';
+                else if (statusRaw === 'pending' || statusRaw === 'in_process') flag = 'pending';
+                else if (statusRaw === 'rejected' || statusRaw === 'failure' || statusRaw === 'cancelled' || statusRaw === 'canceled') flag = 'failure';
+                else if (paymentId) flag = 'success';
+            }
+            if (!flag) {
+                var pend0 = carregarSignupPendente();
+                if (pend0 && pend0.metodo === 'mercadopago' && pend0.email) {
+                    try { toggleTab('signup'); } catch (e) {}
+                    mostrarSignupPix();
+                    var stBox0 = document.getElementById('signupMpStatusBox');
+                    var stTxt0 = document.getElementById('signupMpStatusTxt');
+                    var boxManual0 = document.getElementById('signupPixManualBox');
+                    if (boxManual0) boxManual0.style.display = 'none';
+                    if (stBox0) stBox0.style.display = 'block';
+                    if (stTxt0) stTxt0.innerHTML = 'Cadastro pendente para <b>' + pend0.email + '</b>. Se o pagamento já caiu, toque abaixo.';
+                    var btnConf0 = document.getElementById('btnSignupConfirmarPagamento');
+                    if (btnConf0) {
+                        btnConf0.style.display = 'block';
+                        btnConf0.textContent = '✓ Já paguei — liberar minha conta';
+                        btnConf0.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true }); };
+                    }
+                }
+                return;
+            }
 
             // Abre aba cadastrar
             try { toggleTab('signup'); } catch (e) {}
@@ -1251,13 +1407,34 @@ async function editarProduto(id) {
             const btnConf = document.getElementById('btnSignupConfirmarPagamento');
             if (btnConf) btnConf.style.display = 'none';
 
-            const paymentId = params.get('payment_id') || params.get('collection_id') || '';
-            const status = (params.get('status') || params.get('collection_status') || flag || '').toLowerCase();
+            const status = statusRaw || String(flag).toLowerCase();
             const pend = carregarSignupPendente();
 
             if (!pend) {
-                if (stTxt) stTxt.textContent = 'Pagamento retornou, mas não encontramos seus dados de cadastro neste aparelho. Preencha novamente e pague de novo, ou use o mesmo navegador.';
-                if (typeof mostrarToast === 'function') mostrarToast('Dados de cadastro não encontrados neste dispositivo.', 'aviso');
+                if (stTxt) stTxt.innerHTML = 'Pagamento ok, mas os dados do cadastro não estão neste navegador.<br>Preencha o <b>mesmo e-mail e senha</b> e toque em Continuar / Já paguei (não precisa pagar de novo).';
+                if (typeof mostrarToast === 'function') mostrarToast('Preencha novamente e-mail e senha para liberar.', 'aviso');
+                voltarSignupDados();
+                var btnCont = document.getElementById('btnSignupContinuar');
+                if (btnCont) {
+                    btnCont.textContent = '✓ Já paguei — criar conta';
+                    btnCont.onclick = async function() {
+                        var nome = (document.getElementById('signupName').value || '').trim();
+                        var email = (document.getElementById('signupEmail').value || '').trim();
+                        var password = document.getElementById('signupPassword').value || '';
+                        if (!nome || !email || password.length < 6) {
+                            if (typeof mostrarToast === 'function') mostrarToast('Preencha nome, e-mail e senha.', 'aviso');
+                            return;
+                        }
+                        salvarSignupPendente({
+                            nome: nome, email: email, password: password,
+                            txid: 'MP-RECOVER-' + Date.now(),
+                            valor: (TAXA_CADASTRO && TAXA_CADASTRO.valor) || 0,
+                            metodo: 'mercadopago',
+                            mpPaymentId: paymentId || ''
+                        });
+                        await confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true });
+                    };
+                }
                 return;
             }
 
@@ -1292,28 +1469,32 @@ async function editarProduto(id) {
             }
 
             // success / approved
-            if (stTxt) stTxt.textContent = 'Pagamento aprovado! Criando sua conta...';
-            let aprovado = (status === 'approved' || flag === 'success');
+            if (stTxt) stTxt.textContent = 'Pagamento detectado! Liberando sua conta...';
+            let aprovado = (status === 'approved' || flag === 'success' || flag === 'approved');
             if (paymentId) {
                 const pag = await verificarPagamentoMercadoPago(paymentId);
                 if (pag) {
-                    aprovado = (pag.status === 'approved');
+                    if (pag.status === 'approved') aprovado = true;
+                    else if (pag.status === 'rejected' || pag.status === 'cancelled') aprovado = false;
                     pend.mpPaymentId = String(pag.id || paymentId);
                     salvarSignupPendente(pend);
                 } else {
                     pend.mpPaymentId = String(paymentId);
                     salvarSignupPendente(pend);
+                    if (flag === 'success') aprovado = true;
                 }
+            } else if (flag === 'success') {
+                aprovado = true;
             }
 
             if (aprovado) {
-                await confirmarPagamentoECriarConta({ mpAprovado: true });
+                await confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true });
             } else {
-                if (stTxt) stTxt.innerHTML = 'Não foi possível confirmar o pagamento automaticamente. Se você já pagou, toque abaixo.';
+                if (stTxt) stTxt.innerHTML = 'Não confirmamos automaticamente. Se o valor já caiu, toque abaixo.';
                 if (btnConf) {
                     btnConf.style.display = 'block';
-                    btnConf.textContent = '✓ Confirmar e criar conta';
-                    btnConf.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true }); };
+                    btnConf.textContent = '✓ Já paguei — liberar minha conta';
+                    btnConf.onclick = function() { confirmarPagamentoECriarConta({ mpAprovado: true, forcar: true }); };
                 }
             }
         } catch (e) {
@@ -1326,7 +1507,19 @@ async function editarProduto(id) {
         await iniciarCadastroComPagamento();
     }
 
+    window.handleSignup = handleSignup;
+    window.iniciarCadastroComPagamento = iniciarCadastroComPagamento;
+    window.confirmarPagamentoECriarConta = confirmarPagamentoECriarConta;
+    window.voltarSignupDados = voltarSignupDados;
+    window.copiarSignupPix = copiarSignupPix;
+
     async function handleLogin() {
+        if (!supabaseClient) {
+            if (typeof mostrarToast === 'function') mostrarToast('Sistema de login não carregou. Atualize a página (Ctrl+F5).', 'erro');
+            else alert('Sistema de login não carregou. Atualize a página (Ctrl+F5).');
+            return;
+        }
+
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
         const btnEntrar = document.querySelector('#loginForm button');
@@ -1364,6 +1557,8 @@ async function editarProduto(id) {
     }
 
 
+
+    window.handleLogin = handleLogin;
 
     async function handleLogout() {
         await supabaseClient.auth.signOut();
@@ -2209,34 +2404,43 @@ async function editarProduto(id) {
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        toggleTab('login');
-                try { processarRetornoMercadoPago(); } catch (e) { console.warn(e); }
-        try { atualizarUITaxaCadastro(); } catch (e) {}
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (window.__modoClienteVitrine) {
-                const login = document.getElementById('loginOverlay');
-                const app = document.getElementById('appContainer');
-                if (login) login.style.display = 'none';
-                if (app) app.style.display = 'none';
-                return;
-            }
-            if (session && session.user) {
-                await carregarDadosDoUsuario(session.user.id);
-                document.getElementById('loginOverlay').style.display = 'none';
-                const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
-                const algumaAtiva = abas.some(id => {
-                    const el = document.getElementById(id);
-                    return el && el.style.display === 'block';
-                });
-                if (!algumaAtiva) mostrarAba('dashboard');
-            } else {
-                document.getElementById('loginOverlay').style.display = 'flex';
-                toggleTab('login');
-            }
+        try { if (typeof verificarModoCliente === 'function') verificarModoCliente(); } catch (e) { console.warn(e); }
+        try { toggleTab('login'); } catch (e) { console.warn(e); }
+        try { if (typeof processarRetornoMercadoPago === 'function') processarRetornoMercadoPago(); } catch (e) { console.warn(e); }
+        try { if (typeof atualizarUITaxaCadastro === 'function') atualizarUITaxaCadastro(); } catch (e) {}
 
-            window.addEventListener('DOMContentLoaded', () => {
-    verificarModoCliente();
-});
+        if (!supabaseClient || !supabaseClient.auth) {
+            console.error('Supabase não disponível — login/cadastro desabilitados até atualizar a página.');
+            return;
+        }
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            try {
+                if (window.__modoClienteVitrine) {
+                    const login = document.getElementById('loginOverlay');
+                    const app = document.getElementById('appContainer');
+                    if (login) login.style.display = 'none';
+                    if (app) app.style.display = 'none';
+                    return;
+                }
+                if (session && session.user) {
+                    await carregarDadosDoUsuario(session.user.id);
+                    const loginEl = document.getElementById('loginOverlay');
+                    if (loginEl) loginEl.style.display = 'none';
+                    const abas = ['aba-materiais', 'aba-clientes', 'aba-historico', 'aba-maoobra'];
+                    const algumaAtiva = abas.some(id => {
+                        const el = document.getElementById(id);
+                        return el && el.style.display === 'block';
+                    });
+                    if (!algumaAtiva && typeof mostrarAba === 'function') mostrarAba('dashboard');
+                } else {
+                    const loginEl = document.getElementById('loginOverlay');
+                    if (loginEl) loginEl.style.display = 'flex';
+                    toggleTab('login');
+                }
+            } catch (err) {
+                console.error('onAuthStateChange', err);
+            }
         });
     });
 

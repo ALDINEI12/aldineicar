@@ -219,7 +219,7 @@ function mostrarSecao(id) {
 </button>
 
     <div id="loginOverlay" style="display:flex; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; z-index:9999;">
-        <div style="background:#1e1e1e; padding:35px; border-radius:16px; width:90%; max-width:400px; text-align:center;">
+        <div id="loginBoxInner" style="background:#1e1e1e; padding:28px 22px; border-radius:16px; width:90%; max-width:400px; text-align:center; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
             <h1 style="color:#ffd700; margin-bottom:8px;">ALDINEICAR</h1>
             <p style="color:#888; margin-bottom:25px;">Sistema Profissional</p>
 
@@ -232,6 +232,7 @@ function mostrarSecao(id) {
                 <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <input type="password" id="loginPassword" placeholder="Senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <button onclick="handleLogin()" style="width:100%; padding:14px; background:#d40000; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Entrar</button>
+                <button type="button" id="btnJaPagueiRecuperar" onclick="if(typeof processarRetornoMercadoPago==='function')processarRetornoMercadoPago(); else toggleTab('signup');" style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#94a3b8; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">Já paguei e não liberou? Toque aqui</button>
             </div>
 
             <div id="signupForm" style="display:none;">
