@@ -286,6 +286,12 @@ function ensureQRCode() {
     if (typeof atualizarCardLinkVitrine === 'function') atualizarCardLinkVitrine();
     if (typeof iniciarMonitorNotificacoes === 'function') iniciarMonitorNotificacoes();
     if (typeof iniciarRealtimeWebhook === 'function') iniciarRealtimeWebhook();
+    // Migra Base64 antigos → Storage em background (não trava a tela)
+    setTimeout(function() {
+        if (typeof migrarFotosBase64ParaStorage === 'function') {
+            migrarFotosBase64ParaStorage().catch(function(e) { console.warn(e); });
+        }
+    }, 1800);
 }
 
 async function cadastrarProdutoLoja() {
@@ -844,8 +850,12 @@ async function inicializarSistema() {
                 });
             }
             if (typeof mostrarToast === 'function') mostrarToast('Enviando logo...', 'aviso');
+            const logoAntiga = dadosOficina.logoBase64;
             const urlFinal = await uploadFotoOficina(dataUrl, 'logo');
             dadosOficina.logoBase64 = urlFinal;
+            if (logoAntiga && logoAntiga !== urlFinal) {
+                try { await apagarFotoStorageSeExistir(logoAntiga); } catch (e) {}
+            }
             const preview = document.getElementById('previewLogoModal');
             if (preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
             if (typeof atualizarLogoHeader === 'function') atualizarLogoHeader();
@@ -5776,12 +5786,16 @@ function limparFotoProduto() {
     const hidden = document.getElementById('prodImgUrl');
     const file = document.getElementById('prodImgFile');
     const prev = document.getElementById('prodImgPreview');
+    const antiga = hidden ? hidden.value : '';
     if (hidden) hidden.value = '';
     if (file) file.value = '';
     if (prev) {
         prev.style.backgroundImage = '';
-        prev.classList.remove('has-img');
-        prev.textContent = '📷 Toque para escolher da galeria';
+        prev.classList.remove('tem-foto');
+        prev.innerHTML = '📷 Toque para escolher da galeria';
+    }
+    if (antiga) {
+        apagarFotoStorageSeExistir(antiga).catch(function(){});
     }
 }
 
@@ -5866,6 +5880,165 @@ async function uploadFotoOficina(dataUrl, pasta) {
     }
 }
 
+function isDataUrlImagem(v) {
+    return typeof v === 'string' && v.indexOf('data:image') === 0;
+}
+
+function isUrlStorageOficina(v) {
+    if (!v || typeof v !== 'string') return false;
+    if (v.indexOf('http') !== 0) return false;
+    return v.indexOf('/storage/v1/object/public/' + STORAGE_BUCKET_FOTOS + '/') >= 0
+        || v.indexOf('/storage/v1/object/sign/' + STORAGE_BUCKET_FOTOS + '/') >= 0
+        || (v.indexOf(STORAGE_BUCKET_FOTOS) >= 0 && v.indexOf('supabase') >= 0);
+}
+
+/** Extrai o path interno do arquivo no bucket a partir da URL pública */
+function extrairPathStorage(url) {
+    try {
+        if (!url || typeof url !== 'string') return null;
+        var marker = '/object/public/' + STORAGE_BUCKET_FOTOS + '/';
+        var i = url.indexOf(marker);
+        if (i < 0) {
+            marker = '/object/sign/' + STORAGE_BUCKET_FOTOS + '/';
+            i = url.indexOf(marker);
+        }
+        if (i < 0) return null;
+        var path = decodeURIComponent(url.slice(i + marker.length).split('?')[0]);
+        return path || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+/** Apaga do Storage se for URL do nosso bucket (não faz nada com Base64/externas) */
+async function apagarFotoStorageSeExistir(url) {
+    try {
+        if (!isUrlStorageOficina(url)) return false;
+        if (!supabaseClient || !supabaseClient.storage || !usuarioAtualId) return false;
+        var path = extrairPathStorage(url);
+        if (!path) return false;
+        // segurança: só apaga arquivos da pasta do usuário logado
+        if (path.indexOf(usuarioAtualId + '/') !== 0) {
+            console.warn('[Storage] recusou apagar path de outro usuário');
+            return false;
+        }
+        var res = await supabaseClient.storage.from(STORAGE_BUCKET_FOTOS).remove([path]);
+        if (res.error) {
+            console.warn('[Storage] falha ao apagar:', res.error.message || res.error);
+            return false;
+        }
+        console.log('[Storage] arquivo removido:', path);
+        return true;
+    } catch (e) {
+        console.warn('[Storage] erro ao apagar:', e);
+        return false;
+    }
+}
+
+/**
+ * Migra Base64 antigos para Storage (logo, serviços, histórico recente, produtos).
+ * Roda em background após o login — não trava a UI.
+ */
+var __migracaoFotosRodando = false;
+async function migrarFotosBase64ParaStorage() {
+    if (__migracaoFotosRodando) return;
+    if (!usuarioAtualId || !navigator.onLine) return;
+    if (!supabaseClient || !supabaseClient.storage) return;
+    __migracaoFotosRodando = true;
+    var mudou = false;
+    var migradas = 0;
+    try {
+        // 1) Logo
+        if (dadosOficina && isDataUrlImagem(dadosOficina.logoBase64)) {
+            var logoUrl = await uploadFotoOficina(dadosOficina.logoBase64, 'logo');
+            if (logoUrl && logoUrl !== dadosOficina.logoBase64 && !isDataUrlImagem(logoUrl)) {
+                dadosOficina.logoBase64 = logoUrl;
+                mudou = true;
+                migradas++;
+                if (typeof atualizarLogoHeader === 'function') atualizarLogoHeader();
+            }
+        }
+
+        // 2) Serviços da vitrine
+        if (dadosOficina && Array.isArray(dadosOficina.servicos_vitrine)) {
+            for (var s = 0; s < dadosOficina.servicos_vitrine.length; s++) {
+                var serv = dadosOficina.servicos_vitrine[s];
+                if (!serv) continue;
+                var foto = serv.foto || serv.imagem || serv.imagem_url;
+                if (isDataUrlImagem(foto)) {
+                    var u = await uploadFotoOficina(foto, 'servicos');
+                    if (u && !isDataUrlImagem(u)) {
+                        if (serv.foto !== undefined) serv.foto = u;
+                        if (serv.imagem !== undefined) serv.imagem = u;
+                        if (serv.imagem_url !== undefined) serv.imagem_url = u;
+                        if (serv.foto === undefined && serv.imagem === undefined) serv.foto = u;
+                        mudou = true;
+                        migradas++;
+                    }
+                }
+            }
+        }
+
+        // 3) Histórico — só os 30 mais recentes, max 2 fotos cada (evita sessão longa)
+        if (Array.isArray(historico)) {
+            var limite = Math.min(historico.length, 30);
+            for (var h = 0; h < limite; h++) {
+                var item = historico[h];
+                if (!item || !Array.isArray(item.fotos) || !item.fotos.length) continue;
+                for (var f = 0; f < item.fotos.length && f < 4; f++) {
+                    if (isDataUrlImagem(item.fotos[f])) {
+                        var uf = await uploadFotoOficina(item.fotos[f], 'orcamentos');
+                        if (uf && !isDataUrlImagem(uf)) {
+                            item.fotos[f] = uf;
+                            mudou = true;
+                            migradas++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4) Produtos da loja (tabela produtos_loja)
+        try {
+            var pr = await supabaseClient
+                .from('produtos_loja')
+                .select('id, imagem_url')
+                .eq('user_id', usuarioAtualId);
+            if (pr.data && pr.data.length) {
+                for (var p = 0; p < pr.data.length; p++) {
+                    var prod = pr.data[p];
+                    if (!prod || !isDataUrlImagem(prod.imagem_url)) continue;
+                    var up = await uploadFotoOficina(prod.imagem_url, 'produtos');
+                    if (up && !isDataUrlImagem(up)) {
+                        await supabaseClient.from('produtos_loja').update({ imagem_url: up }).eq('id', prod.id);
+                        migradas++;
+                        mudou = true;
+                    }
+                }
+                if (typeof carregarProdutosDaLoja === 'function') carregarProdutosDaLoja();
+                else if (typeof carregarProdutosLoja === 'function') carregarProdutosLoja();
+            }
+        } catch (ep) {
+            console.warn('[Storage] migração produtos:', ep);
+        }
+
+        if (mudou) {
+            if (typeof salvarNoBanco === 'function') {
+                try { await salvarNoBanco(true, true); } catch (es) {
+                    try { await salvarNoBanco(true); } catch (e2) {}
+                }
+            }
+            if (typeof mostrarToast === 'function' && migradas > 0) {
+                mostrarToast(migradas + ' foto(s) antiga(s) enviada(s) ao Storage.', 'sucesso');
+            }
+        }
+    } catch (e) {
+        console.warn('[Storage] migração:', e);
+    } finally {
+        __migracaoFotosRodando = false;
+    }
+}
+
 function redimensionarImagemArquivo(file, maxLado, qualidade) {
     maxLado = maxLado || 900;
     qualidade = (qualidade == null ? 0.72 : qualidade);
@@ -5923,8 +6096,13 @@ async function onProdImgFileChange(input) {
         if (typeof mostrarToast === 'function') mostrarToast('Processando foto...', 'aviso');
         const dataUrl = await redimensionarImagemArquivo(file, 900, 0.72);
         if (typeof mostrarToast === 'function') mostrarToast('Enviando foto...', 'aviso');
+        const hid = document.getElementById('prodImgUrl');
+        const antiga = hid ? hid.value : '';
         const urlFinal = await uploadFotoOficina(dataUrl, 'produtos');
         mostrarPreviewProduto(urlFinal);
+        if (antiga && antiga !== urlFinal) {
+            try { await apagarFotoStorageSeExistir(antiga); } catch (e) {}
+        }
         if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
     } catch (e) {
         console.error(e);
@@ -6220,12 +6398,16 @@ function renderFotosAgendamento() {
 }
 function removerFotoOrcamento(i) {
     if (i < 0 || i >= fotosOrcamentoAtual.length) return;
+    var removida = fotosOrcamentoAtual[i];
     fotosOrcamentoAtual.splice(i, 1);
+    if (removida) apagarFotoStorageSeExistir(removida).catch(function(){});
     renderFotosOrcamento();
 }
 function removerFotoAgendamento(i) {
     if (i < 0 || i >= fotosAgendamentoCliente.length) return;
+    var removida = fotosAgendamentoCliente[i];
     fotosAgendamentoCliente.splice(i, 1);
+    if (removida) apagarFotoStorageSeExistir(removida).catch(function(){});
     renderFotosAgendamento();
 }
 function limparFotosOrcamento() {
@@ -6306,12 +6488,16 @@ function limparFotoServicoVitrine() {
   var hid = document.getElementById('servVitrineFoto');
   var prev = document.getElementById('servVitrineFotoPreview');
   var file = document.getElementById('servVitrineFotoFile');
+  var antiga = hid ? hid.value : '';
   if (hid) hid.value = '';
   if (file) file.value = '';
   if (prev) {
     prev.innerHTML = '📷 Toque para escolher da galeria';
     prev.classList.remove('tem-foto');
     prev.style.backgroundImage = '';
+  }
+  if (antiga) {
+    apagarFotoStorageSeExistir(antiga).catch(function(){});
   }
 }
 
@@ -6350,8 +6536,13 @@ async function onServVitrineFotoChange(input) {
       });
     }
     if (typeof mostrarToast === 'function') mostrarToast('Enviando foto...', 'aviso');
+    var hidAnt = document.getElementById('servVitrineFoto');
+    var antiga = hidAnt ? hidAnt.value : '';
     var urlFinal = await uploadFotoOficina(dataUrl, 'servicos');
     aplicarPreviewFotoServico(urlFinal);
+    if (antiga && antiga !== urlFinal) {
+      try { await apagarFotoStorageSeExistir(antiga); } catch (e) {}
+    }
     if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
   } catch (e) {
     console.error(e);
