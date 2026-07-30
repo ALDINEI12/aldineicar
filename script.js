@@ -2129,13 +2129,6 @@ async function editarProduto(id) {
         renderHistorico();
     }
 
-v>
-                    </details>
-                </div>
-            `;
-        });
-    }
-
     function renderClientes(){
         const c = document.getElementById('listaClientes');
         if(!c) return; c.innerHTML='';
