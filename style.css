@@ -747,6 +747,7 @@ header {
 .kpi-blue::before { background: #2563eb; }
 .kpi-orange::before { background: #f59e0b; }
 .kpi-purple::before { background: #8b5cf6; }
+.kpi-slate::before { background: #64748b; }
 .dash-kpi:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
@@ -3851,4 +3852,73 @@ html, body {
 }
 @media (min-width: 720px) {
   .vt-grid { gap: 18px !important; }
+}
+
+/* =========================================================
+   GASTOS OFICINA
+   ========================================================= */
+.gasto-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.gasto-item-main { flex: 1; min-width: 160px; }
+.gasto-item-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.gasto-cat {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+.gasto-data {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.gasto-desc {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.gasto-obs {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.gasto-item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.gasto-valor {
+  font-size: 16px;
+  font-weight: 800;
+  color: #dc2626;
+  letter-spacing: -.3px;
+}
+.gasto-acoes {
+  display: flex;
+  gap: 6px;
 }

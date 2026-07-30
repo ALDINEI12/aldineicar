@@ -307,6 +307,7 @@ function mostrarSecao(id) {
                 <button onclick="mostrarAba('loja')">🛒 Minha Loja</button>
                 <button onclick="mostrarAba('vitrine')">🌐 Vitrine</button>
                 <button onclick="mostrarAba('vendas')">💰 Vendas</button>
+                <button onclick="mostrarAba('gastos')">💸 Gastos Oficina</button>
                 <button onclick="abrirModalOficina()">⚙️ Configurar Oficina</button>
             </div>
             <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
@@ -382,10 +383,15 @@ function mostrarSecao(id) {
                                     <div class="dash-kpi-value" id="kpi-vendas">R$ 0,00</div>
                                     <div class="dash-kpi-sub" id="kpi-vendas-sub">Vitrine / balcão</div>
                                 </div>
+                                <div class="dash-kpi kpi-slate">
+                                    <div class="dash-kpi-label">Gastos oficina</div>
+                                    <div class="dash-kpi-value" id="kpi-gastos">R$ 0,00</div>
+                                    <div class="dash-kpi-sub" id="kpi-gastos-sub">Despesas no período</div>
+                                </div>
                                 <div class="dash-kpi kpi-blue">
                                     <div class="dash-kpi-label">Lucro total</div>
                                     <div class="dash-kpi-value" id="kpi-lucro">R$ 0,00</div>
-                                    <div class="dash-kpi-sub" id="kpi-lucro-sub">OS + serviços + vendas − mat.</div>
+                                    <div class="dash-kpi-sub" id="kpi-lucro-sub">Receitas − mat. − gastos</div>
                                 </div>
                             </div>
 
@@ -397,6 +403,7 @@ function mostrarSecao(id) {
                                         <span><i style="background:#8b5cf6"></i> Serviços</span>
                                         <span><i style="background:#e11d48"></i> Materiais</span>
                                         <span><i style="background:#f59e0b"></i> Vendas</span>
+                                        <span><i style="background:#64748b"></i> Gastos</span>
                                     </div>
                                     <div class="dash-chart-wrap">
                                         <canvas id="graficoFinanceiro"></canvas>
@@ -414,6 +421,7 @@ function mostrarSecao(id) {
                                                 <th>Orçamentos</th>
                                                 <th>Serviços</th>
                                                 <th>Materiais</th>
+                                                <th>Gastos</th>
                                                 <th>Lucro</th>
                                                 <th>Vendas</th>
                                                 <th>Qtd OS</th>
@@ -422,7 +430,7 @@ function mostrarSecao(id) {
                                             </tr>
                                         </thead>
                                         <tbody id="tabela-resumo-mensal">
-                                            <tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
+                                            <tr><td colspan="10" style="text-align:center; color:#94a3b8; padding:20px;">Sem dados</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -763,6 +771,62 @@ function mostrarSecao(id) {
                             <h2>Histórico de Orçamentos</h2>
                             <div id="historicoLista" style="margin-top: 15px;"></div>
                         </div>
+
+                        <!-- ===== GASTOS OFICINA ===== -->
+                        <div id="aba-gastos" style="display:none;">
+                            <div class="page-head">
+                                <div class="page-head-text">
+                                    <h2>💸 Gastos Oficina</h2>
+                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Despesas do mês (aluguel, energia, salários…). Entram automaticamente no Dashboard e no lucro.</p>
+                                </div>
+                            </div>
+
+                            <div class="grupo-card">
+                                <div class="grupo-card-head">
+                                    <span>Nova despesa</span>
+                                </div>
+                                <div class="grupo-card-body">
+                                    <input type="hidden" id="gastoEditId" value="">
+                                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                                        <div style="flex:1;min-width:140px;">
+                                            <label class="loja-label">Data *</label>
+                                            <input type="date" id="gastoData" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                        </div>
+                                        <div style="flex:1;min-width:140px;">
+                                            <label class="loja-label">Categoria</label>
+                                            <select id="gastoCategoria" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;"></select>
+                                        </div>
+                                        <div style="flex:1;min-width:120px;">
+                                            <label class="loja-label">Valor (R$) *</label>
+                                            <input type="number" id="gastoValor" step="0.01" min="0" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                        </div>
+                                    </div>
+                                    <label class="loja-label">Descrição *</label>
+                                    <input type="text" id="gastoDescricao" placeholder="Ex: Conta de luz julho" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <label class="loja-label">Observação (opcional)</label>
+                                    <input type="text" id="gastoObs" placeholder="Detalhe extra..." style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button type="button" class="btn-loja-prim" id="btnSalvarGasto" onclick="salvarGastoOficina()">＋ Adicionar despesa</button>
+                                        <button type="button" class="btn-loja-sec" id="btnCancelarEditGasto" style="display:none;" onclick="cancelarEdicaoGasto()">Cancelar edição</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grupo-card">
+                                <div class="grupo-card-head" style="flex-wrap:wrap;gap:10px;">
+                                    <span>Despesas do mês</span>
+                                    <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;">
+                                        <input type="month" id="gastosFiltroMes" onchange="onFiltroMesGastosChange()" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;background:#fff;color:#0f172a;">
+                                        <strong id="gastosTotalMes" style="color:#dc2626;font-size:15px;">R$ 0,00</strong>
+                                        <span id="gastosContagemMes" class="grupo-card-sub">—</span>
+                                    </div>
+                                </div>
+                                <div class="grupo-card-body" style="padding-top:8px;">
+                                    <div id="lista-gastos-oficina"></div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="resumo">
@@ -938,6 +1002,7 @@ function mostrarSecao(id) {
         <button type="button" onclick="mostrarAba('clientes');toggleMenuMais();"><span>👤</span> Clientes</button>
         <button type="button" onclick="mostrarAba('historico');toggleMenuMais();"><span>📋</span> Histórico</button>
         <button type="button" onclick="mostrarAba('vendas');toggleMenuMais();"><span>💰</span> Vendas</button>
+        <button type="button" onclick="mostrarAba('gastos');toggleMenuMais();"><span>💸</span> Gastos Oficina</button>
         <button type="button" onclick="mostrarAba('vitrine');toggleMenuMais();"><span>🌐</span> Vitrine</button>
         <button type="button" onclick="abrirModalOficina();toggleMenuMais();"><span>⚙️</span> Configurar Oficina</button>
         <button type="button" class="menu-mais-sair" onclick="handleLogout();toggleMenuMais();"><span>🚪</span> Sair</button>

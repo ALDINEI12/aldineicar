@@ -68,6 +68,7 @@ const SIGNUP_PENDING_KEY = 'aldineicar_signup_pendente';
     let historico = [];
     let clientes = []; 
     let maoObraItens = [];
+    let gastosOficina = []; // despesas da oficina (aluguel, energia, etc.)
     let dadosOficina = { 
         nome: 'ALDINEICAR', 
         cnpj: '', 
@@ -163,10 +164,14 @@ const SIGNUP_PENDING_KEY = 'aldineicar_signup_pendente';
         clientes = parsed.clientes || [];
         maoObraItens = parsed.maoObraItens || [];
         dadosOficina = parsed.dadosOficina || dadosOficina;
+        gastosOficina = Array.isArray(parsed.gastosOficina)
+            ? parsed.gastosOficina
+            : (Array.isArray(dadosOficina.gastos) ? dadosOficina.gastos : []);
         // Garantimos que a variável seja atribuída corretamente
         localTimestamp = parsed.local_updated_at || 0; 
     } else {
         materiais = [...materiaisPadrao];
+        gastosOficina = [];
     }
 
     try {
@@ -193,6 +198,13 @@ const SIGNUP_PENDING_KEY = 'aldineicar_signup_pendente';
                 }
                 if (registro.mao_obra && registro.mao_obra.length > 0) maoObraItens = registro.mao_obra;
                 if (registro.dados_oficina) dadosOficina = registro.dados_oficina;
+                if (Array.isArray(dadosOficina.gastos)) {
+                    gastosOficina = dadosOficina.gastos;
+                } else if (Array.isArray(registro.gastos_oficina)) {
+                    gastosOficina = registro.gastos_oficina;
+                } else {
+                    gastosOficina = [];
+                }
                 
                 salvarFallbackLocal();
             }
@@ -620,11 +632,14 @@ async function inicializarSistema() {
 
     function salvarFallbackLocal() {
         if (!usuarioAtualId) return;
+        if (!dadosOficina || typeof dadosOficina !== 'object') dadosOficina = {};
+        dadosOficina.gastos = Array.isArray(gastosOficina) ? gastosOficina : [];
         localStorage.setItem(`aldineicar_fallback_${usuarioAtualId}`, JSON.stringify({
             materiais, 
             historico, 
             clientes, 
-            maoObraItens, 
+            maoObraItens,
+            gastosOficina: dadosOficina.gastos,
             dadosOficina,
             local_updated_at: new Date().getTime() 
         }));
@@ -644,6 +659,8 @@ async function inicializarSistema() {
 
     async function salvarNoBanco(silencioso = false) {
         if (!usuarioAtualId) return;
+        if (!dadosOficina || typeof dadosOficina !== 'object') dadosOficina = {};
+        dadosOficina.gastos = Array.isArray(gastosOficina) ? gastosOficina : [];
         salvarFallbackLocal();
         
         if (!navigator.onLine) {
@@ -1645,8 +1662,8 @@ async function editarProduto(id) {
     async function handleLogout() {
         await supabaseClient.auth.signOut();
         usuarioAtualId = null;
-        materiais = []; historico = []; clientes = []; maoObraItens = [];
-        dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '' };
+        materiais = []; historico = []; clientes = []; maoObraItens = []; gastosOficina = [];
+        dadosOficina = { nome: 'ALDINEICAR', cnpj: '', end: '', cep: '', fone: '', email: '', pix: '', logoBase64: '', gastos: [] };
         localStorage.clear();
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
@@ -2041,7 +2058,7 @@ async function editarProduto(id) {
    function mostrarAba(nome) {
     if (window.__modoClienteVitrine) return;
     window.__abaAtual = nome;
-    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vitrine', 'vendas', 'agenda'];
+    const ids = ['dashboard', 'materiais', 'clientes', 'historico', 'maoobra', 'loja', 'vitrine', 'vendas', 'agenda', 'gastos'];
     ids.forEach(id => {
         const el = document.getElementById('aba-' + id);
         if (el) el.style.display = 'none';
@@ -2112,6 +2129,13 @@ async function editarProduto(id) {
         const el = document.getElementById('aba-vendas');
         if (el) el.style.display = 'block';
         renderizarListaVendasExclusiva();
+        return;
+    }
+    if (nome === 'gastos') {
+        const el = document.getElementById('aba-gastos');
+        if (el) el.style.display = 'block';
+        if (typeof renderGastosOficina === 'function') renderGastosOficina();
+        return;
     }
 }
 
@@ -3662,10 +3686,17 @@ function definirPeriodoRapido(tipo) {
         ini = new Date(hoje.getFullYear(), 0, 1);
         fim = new Date(hoje.getFullYear(), 11, 31);
     } else {
-        // tudo: varre histórico
+        // tudo: varre histórico + gastos
         let minT = null, maxT = null;
         (historico || []).forEach(item => {
             const d = parseDataHistorico(item.data);
+            if (!d) return;
+            const t = d.getTime();
+            if (minT === null || t < minT) minT = t;
+            if (maxT === null || t > maxT) maxT = t;
+        });
+        (gastosOficina || []).forEach(g => {
+            const d = typeof parseDataGasto === 'function' ? parseDataGasto(g) : null;
             if (!d) return;
             const t = d.getTime();
             if (minT === null || t < minT) minT = t;
@@ -3694,11 +3725,36 @@ function dataNoPeriodo(data, ini, fim) {
     return true;
 }
 
+function parseDataGasto(g) {
+    if (!g) return null;
+    const raw = g.data || g.data_gasto || g.created_at || '';
+    if (!raw) return null;
+    if (typeof parseDataHistorico === 'function') {
+        const d = parseDataHistorico(raw);
+        if (d && !isNaN(d.getTime())) return d;
+    }
+    const m = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
+        if (!isNaN(d.getTime())) return d;
+    }
+    const d2 = new Date(raw);
+    return isNaN(d2.getTime()) ? null : d2;
+}
+
 function calcularDadosPorPeriodo(ini, fim) {
-    // Agrega por mês dentro do período (para o gráfico)
-    const mapa = {}; // chave YYYY-MM
-    let totalFatOrc = 0, totalMat = 0, totalVendas = 0, totalServicos = 0;
-    let qtdOrc = 0, qtdVendas = 0, qtdServicos = 0;
+    const mapa = {};
+    let totalFatOrc = 0, totalMat = 0, totalVendas = 0, totalServicos = 0, totalGastos = 0;
+    let qtdOrc = 0, qtdVendas = 0, qtdServicos = 0, qtdGastos = 0;
+    const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+    function garantirMes(chave, dataRef) {
+        if (!mapa[chave]) {
+            mapa[chave] = { fatOrc: 0, materiais: 0, vendas: 0, servicos: 0, gastos: 0, qtdOrc: 0, qtdVendas: 0, qtdServicos: 0, qtdGastos: 0, label: '' };
+        }
+        if (dataRef) mapa[chave].label = nomes[dataRef.getMonth()] + '/' + dataRef.getFullYear();
+        return mapa[chave];
+    }
 
     const lista = Array.isArray(historico) ? historico : [];
     lista.forEach(item => {
@@ -3706,63 +3762,75 @@ function calcularDadosPorPeriodo(ini, fim) {
         if (!dataNoPeriodo(data, ini, fim)) return;
 
         const chave = data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0');
-        if (!mapa[chave]) mapa[chave] = { fatOrc: 0, materiais: 0, vendas: 0, servicos: 0, qtdOrc: 0, qtdVendas: 0, qtdServicos: 0, label: '' };
-        const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        mapa[chave].label = nomes[data.getMonth()] + '/' + data.getFullYear();
+        const slot = garantirMes(chave, data);
 
         if (isRegistroVenda(item)) {
-            // Só computa venda no dashboard após "✓ Recebi" (status pago)
             if (!isVendaPaga(item)) return;
             const v = valorVenda(item);
-            mapa[chave].vendas += v;
-            mapa[chave].qtdVendas += 1;
+            slot.vendas += v;
+            slot.qtdVendas += 1;
             totalVendas += v;
             qtdVendas += 1;
             return;
         }
 
         if (isRegistroAgendamento(item)) {
-            // Só computa serviço da agenda/vitrine depois de Concluir
             if (!isAgendamentoConcluido(item)) return;
             const v = valorServicoAgenda(item);
-            if (v <= 0) return; // sem preço definido na vitrine, não soma
-            mapa[chave].servicos += v;
-            mapa[chave].qtdServicos += 1;
+            if (v <= 0) return;
+            slot.servicos += v;
+            slot.qtdServicos += 1;
             totalServicos += v;
             qtdServicos += 1;
             return;
         }
 
-        // Orçamento tradicional — só com status Pago
         const status = (item.status || '').toString().trim().toLowerCase();
         if (status !== 'pago') return;
         const fat = valorOrcamento(item);
         const mat = custoMateriaisOrc(item);
-        mapa[chave].fatOrc += fat;
-        mapa[chave].materiais += mat;
-        mapa[chave].qtdOrc += 1;
+        slot.fatOrc += fat;
+        slot.materiais += mat;
+        slot.qtdOrc += 1;
         totalFatOrc += fat;
         totalMat += mat;
         qtdOrc += 1;
     });
 
+    (Array.isArray(gastosOficina) ? gastosOficina : []).forEach(g => {
+        const data = parseDataGasto(g);
+        if (!dataNoPeriodo(data, ini, fim)) return;
+        const chave = data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0');
+        const slot = garantirMes(chave, data);
+        const v = parseFloat(g.valor) || 0;
+        if (v <= 0) return;
+        slot.gastos += v;
+        slot.qtdGastos += 1;
+        totalGastos += v;
+        qtdGastos += 1;
+    });
+
     const chaves = Object.keys(mapa).sort();
     return {
-        totalFatOrc, totalMat, totalVendas, totalServicos, qtdOrc, qtdVendas, qtdServicos,
+        totalFatOrc, totalMat, totalVendas, totalServicos, totalGastos,
+        qtdOrc, qtdVendas, qtdServicos, qtdGastos,
         labels: chaves.map(k => mapa[k].label),
         fatOrc: chaves.map(k => mapa[k].fatOrc),
         servicos: chaves.map(k => mapa[k].servicos),
         materiais: chaves.map(k => mapa[k].materiais),
         vendas: chaves.map(k => mapa[k].vendas),
+        gastos: chaves.map(k => mapa[k].gastos),
         linhas: chaves.map(k => ({
             label: mapa[k].label,
             fatOrc: mapa[k].fatOrc,
             servicos: mapa[k].servicos,
             materiais: mapa[k].materiais,
             vendas: mapa[k].vendas,
+            gastos: mapa[k].gastos,
             qtdOrc: mapa[k].qtdOrc,
             qtdServicos: mapa[k].qtdServicos,
-            qtdVendas: mapa[k].qtdVendas
+            qtdVendas: mapa[k].qtdVendas,
+            qtdGastos: mapa[k].qtdGastos
         }))
     };
 }
@@ -3794,28 +3862,33 @@ function renderDashboard() {
     }
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    const lucroTotal = (dados.totalFatOrc + dados.totalServicos + dados.totalVendas) - dados.totalMat;
+    const totalGastos = dados.totalGastos || 0;
+    const lucroTotal = (dados.totalFatOrc + dados.totalServicos + dados.totalVendas) - dados.totalMat - totalGastos;
     set('kpi-fat-orc', formatarBRL(dados.totalFatOrc));
     set('kpi-servicos', formatarBRL(dados.totalServicos));
     set('kpi-materiais', formatarBRL(dados.totalMat));
     set('kpi-vendas', formatarBRL(dados.totalVendas));
+    set('kpi-gastos', formatarBRL(totalGastos));
     set('kpi-lucro', formatarBRL(lucroTotal));
     set('kpi-fat-orc-sub', dados.qtdOrc + ' orçamento(s) pago(s) no período');
     set('kpi-servicos-sub', dados.qtdServicos + ' serviço(s) concluído(s)');
     set('kpi-materiais-sub', 'Materiais das OS pagas no período');
     set('kpi-vendas-sub', dados.qtdVendas + ' venda(s) paga(s) no período');
-    set('kpi-lucro-sub', 'OS + serviços + vendas − materiais');
+    set('kpi-gastos-sub', (dados.qtdGastos || 0) + ' despesa(s) no período');
+    set('kpi-lucro-sub', 'Receitas − materiais − gastos oficina');
 
     const tbody = document.getElementById('tabela-resumo-mensal');
     if (tbody) {
         let html = '';
         dados.linhas.forEach(m => {
-            const lucro = (m.fatOrc + (m.servicos || 0) + m.vendas) - m.materiais;
+            const g = m.gastos || 0;
+            const lucro = (m.fatOrc + (m.servicos || 0) + m.vendas) - m.materiais - g;
             html += `<tr>
                 <td>${m.label}</td>
                 <td class="val-pos">${formatarBRL(m.fatOrc)}</td>
                 <td style="color:#7c3aed;font-weight:700;">${formatarBRL(m.servicos || 0)}</td>
                 <td class="val-neg">${formatarBRL(m.materiais)}</td>
+                <td style="color:#64748b;font-weight:700;">${formatarBRL(g)}</td>
                 <td class="${lucro >= 0 ? 'val-pos' : 'val-neg'}">${formatarBRL(lucro)}</td>
                 <td style="color:#d97706;font-weight:700;">${formatarBRL(m.vendas)}</td>
                 <td>${m.qtdOrc}</td>
@@ -3823,7 +3896,7 @@ function renderDashboard() {
                 <td>${m.qtdVendas}</td>
             </tr>`;
         });
-        tbody.innerHTML = html || `<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado neste período</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:20px;">Nenhum dado neste período</td></tr>`;
     }
 
     if (graficoFinanceiroInstance) graficoFinanceiroInstance.destroy();
@@ -3833,6 +3906,7 @@ function renderDashboard() {
     const servicos = dados.labels.length ? (dados.servicos || []) : [0];
     const mat = dados.labels.length ? dados.materiais : [0];
     const vendas = dados.labels.length ? dados.vendas : [0];
+    const gastosChart = dados.labels.length ? (dados.gastos || []) : [0];
 
     graficoFinanceiroInstance = new Chart(canvas, {
         type: 'bar',
@@ -3867,6 +3941,14 @@ function renderDashboard() {
                     label: 'Vendas Loja',
                     data: vendas,
                     backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    maxBarThickness: 22
+                },
+                {
+                    label: 'Gastos Oficina',
+                    data: gastosChart,
+                    backgroundColor: 'rgba(100, 116, 139, 0.9)',
                     borderRadius: 6,
                     borderSkipped: false,
                     maxBarThickness: 22
@@ -6575,3 +6657,250 @@ function exportarRelatorioDashboardPDF(linhas, ini, fim) {
     doc.save('relatorio-aldineicar-' + d1 + '_' + d2 + '.pdf');
     if (typeof mostrarToast === 'function') mostrarToast('PDF gerado!', 'sucesso');
 }
+
+
+// ========================================================
+// GASTOS DA OFICINA — despesas mensais → Dashboard
+// ========================================================
+const CATEGORIAS_GASTOS = [
+    'Aluguel',
+    'Energia',
+    'Água',
+    'Internet / Telefone',
+    'Salários / Pró-labore',
+    'Impostos / Taxas',
+    'Manutenção',
+    'Combustível',
+    'Material de escritório',
+    'Ferramentas / Equipamentos',
+    'Marketing',
+    'Outros'
+];
+
+function obterMesFiltroGastos() {
+    const el = document.getElementById('gastosFiltroMes');
+    if (el && el.value) return el.value;
+    const hoje = new Date();
+    return hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+}
+
+function preencherSelectCategoriasGastos() {
+    const sel = document.getElementById('gastoCategoria');
+    if (!sel) return;
+    const atual = sel.value;
+    sel.innerHTML = CATEGORIAS_GASTOS.map(c =>
+        '<option value="' + c + '">' + c + '</option>'
+    ).join('');
+    if (atual && CATEGORIAS_GASTOS.indexOf(atual) >= 0) sel.value = atual;
+}
+
+function limparFormGasto() {
+    const idEl = document.getElementById('gastoEditId');
+    if (idEl) idEl.value = '';
+    const dataEl = document.getElementById('gastoData');
+    if (dataEl) {
+        const hoje = new Date();
+        dataEl.value = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
+    }
+    const desc = document.getElementById('gastoDescricao');
+    if (desc) desc.value = '';
+    const val = document.getElementById('gastoValor');
+    if (val) val.value = '';
+    const obs = document.getElementById('gastoObs');
+    if (obs) obs.value = '';
+    const cat = document.getElementById('gastoCategoria');
+    if (cat) cat.value = CATEGORIAS_GASTOS[0];
+    const btn = document.getElementById('btnSalvarGasto');
+    if (btn) btn.textContent = '＋ Adicionar despesa';
+    const btnCancel = document.getElementById('btnCancelarEditGasto');
+    if (btnCancel) btnCancel.style.display = 'none';
+}
+
+async function salvarGastoOficina() {
+    const data = (document.getElementById('gastoData') && document.getElementById('gastoData').value) || '';
+    const descricao = ((document.getElementById('gastoDescricao') && document.getElementById('gastoDescricao').value) || '').trim();
+    const categoria = (document.getElementById('gastoCategoria') && document.getElementById('gastoCategoria').value) || 'Outros';
+    const valor = parseFloat(document.getElementById('gastoValor') && document.getElementById('gastoValor').value);
+    const obs = ((document.getElementById('gastoObs') && document.getElementById('gastoObs').value) || '').trim();
+    const editId = (document.getElementById('gastoEditId') && document.getElementById('gastoEditId').value) || '';
+
+    if (!data) {
+        if (typeof mostrarToast === 'function') mostrarToast('Informe a data da despesa.', 'aviso');
+        else alert('Informe a data da despesa.');
+        return;
+    }
+    if (!descricao) {
+        if (typeof mostrarToast === 'function') mostrarToast('Informe a descrição.', 'aviso');
+        else alert('Informe a descrição.');
+        return;
+    }
+    if (isNaN(valor) || valor <= 0) {
+        if (typeof mostrarToast === 'function') mostrarToast('Informe um valor válido.', 'aviso');
+        else alert('Informe um valor válido.');
+        return;
+    }
+
+    if (!Array.isArray(gastosOficina)) gastosOficina = [];
+
+    if (editId) {
+        const idx = gastosOficina.findIndex(g => String(g.id) === String(editId));
+        if (idx >= 0) {
+            gastosOficina[idx] = {
+                ...gastosOficina[idx],
+                data: data,
+                descricao: descricao,
+                categoria: categoria,
+                valor: valor,
+                obs: obs
+            };
+            if (typeof mostrarToast === 'function') mostrarToast('Despesa atualizada!', 'sucesso');
+        }
+    } else {
+        gastosOficina.unshift({
+            id: 'gst-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+            data: data,
+            descricao: descricao,
+            categoria: categoria,
+            valor: valor,
+            obs: obs,
+            created_at: new Date().toISOString()
+        });
+        if (typeof mostrarToast === 'function') mostrarToast('Despesa adicionada!', 'sucesso');
+    }
+
+    limparFormGasto();
+    renderGastosOficina();
+    if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+    const dash = document.getElementById('aba-dashboard');
+    if (dash && dash.style.display !== 'none' && typeof renderDashboard === 'function') {
+        renderDashboard();
+    }
+}
+
+function prepararEdicaoGasto(id) {
+    if (!Array.isArray(gastosOficina)) return;
+    const g = gastosOficina.find(x => String(x.id) === String(id));
+    if (!g) return;
+    const idEl = document.getElementById('gastoEditId');
+    if (idEl) idEl.value = g.id;
+    const dataEl = document.getElementById('gastoData');
+    if (dataEl) dataEl.value = (g.data || '').toString().slice(0, 10);
+    const desc = document.getElementById('gastoDescricao');
+    if (desc) desc.value = g.descricao || '';
+    const cat = document.getElementById('gastoCategoria');
+    if (cat) {
+        preencherSelectCategoriasGastos();
+        cat.value = g.categoria || 'Outros';
+        if (cat.value !== (g.categoria || 'Outros') && g.categoria) {
+            const opt = document.createElement('option');
+            opt.value = g.categoria;
+            opt.textContent = g.categoria;
+            cat.appendChild(opt);
+            cat.value = g.categoria;
+        }
+    }
+    const val = document.getElementById('gastoValor');
+    if (val) val.value = g.valor != null ? g.valor : '';
+    const obs = document.getElementById('gastoObs');
+    if (obs) obs.value = g.obs || '';
+    const btn = document.getElementById('btnSalvarGasto');
+    if (btn) btn.textContent = '💾 Salvar alteração';
+    const btnCancel = document.getElementById('btnCancelarEditGasto');
+    if (btnCancel) btnCancel.style.display = '';
+    const form = document.getElementById('gastoDescricao');
+    if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelarEdicaoGasto() {
+    limparFormGasto();
+}
+
+async function removerGastoOficina(id) {
+    if (!Array.isArray(gastosOficina)) return;
+    const fazer = async function () {
+        gastosOficina = gastosOficina.filter(g => String(g.id) !== String(id));
+        const editId = document.getElementById('gastoEditId');
+        if (editId && String(editId.value) === String(id)) limparFormGasto();
+        renderGastosOficina();
+        if (typeof salvarNoBanco === 'function') await salvarNoBanco();
+        const dash = document.getElementById('aba-dashboard');
+        if (dash && dash.style.display !== 'none' && typeof renderDashboard === 'function') {
+            renderDashboard();
+        }
+        if (typeof mostrarToast === 'function') mostrarToast('Despesa removida.', 'sucesso');
+    };
+    if (typeof abrirConfirmacao === 'function') {
+        abrirConfirmacao('Excluir esta despesa?', fazer);
+    } else if (confirm('Excluir esta despesa?')) {
+        await fazer();
+    }
+}
+
+function renderGastosOficina() {
+    preencherSelectCategoriasGastos();
+    const listaEl = document.getElementById('lista-gastos-oficina');
+    const totalEl = document.getElementById('gastosTotalMes');
+    const contEl = document.getElementById('gastosContagemMes');
+    const mes = obterMesFiltroGastos();
+
+    const filtro = document.getElementById('gastosFiltroMes');
+    if (filtro && !filtro.value) filtro.value = mes;
+
+    // data padrão no form se vazia
+    const dataEl = document.getElementById('gastoData');
+    if (dataEl && !dataEl.value) {
+        const hoje = new Date();
+        dataEl.value = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
+    }
+
+    if (!Array.isArray(gastosOficina)) gastosOficina = [];
+
+    const filtrados = gastosOficina
+        .filter(g => {
+            const d = (g.data || '').toString().slice(0, 7);
+            return d === mes;
+        })
+        .sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')));
+
+    let total = 0;
+    filtrados.forEach(g => { total += parseFloat(g.valor) || 0; });
+
+    if (totalEl) totalEl.textContent = typeof formatarBRL === 'function' ? formatarBRL(total) : ('R$ ' + total.toFixed(2));
+    if (contEl) contEl.textContent = filtrados.length ? (filtrados.length + ' despesa' + (filtrados.length > 1 ? 's' : '')) : 'Nenhuma despesa';
+
+    if (!listaEl) return;
+    if (!filtrados.length) {
+        listaEl.innerHTML = '<p class="grupo-hint" style="padding:20px;text-align:center;">Nenhuma despesa neste mês. Adicione acima — o valor entra automaticamente no Dashboard.</p>';
+        return;
+    }
+
+    listaEl.innerHTML = filtrados.map(g => {
+        const dataBr = (function () {
+            const p = String(g.data || '').split('-');
+            if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
+            return g.data || '—';
+        })();
+        const valor = parseFloat(g.valor) || 0;
+        const idEsc = String(g.id).replace(/'/g, "\\'");
+        return '<div class="gasto-item">'
+            + '<div class="gasto-item-main">'
+            + '<div class="gasto-item-top">'
+            + '<span class="gasto-cat">' + (g.categoria || 'Outros') + '</span>'
+            + '<span class="gasto-data">' + dataBr + '</span>'
+            + '</div>'
+            + '<strong class="gasto-desc">' + (g.descricao || 'Despesa') + '</strong>'
+            + (g.obs ? '<small class="gasto-obs">' + g.obs + '</small>' : '')
+            + '</div>'
+            + '<div class="gasto-item-side">'
+            + '<span class="gasto-valor">' + (typeof formatarBRL === 'function' ? formatarBRL(valor) : ('R$ ' + valor.toFixed(2))) + '</span>'
+            + '<div class="gasto-acoes">'
+            + '<button type="button" class="btn-loja-sec" onclick="prepararEdicaoGasto(\'' + idEsc + '\')">Editar</button>'
+            + '<button type="button" class="btn-loja-toggle" onclick="removerGastoOficina(\'' + idEsc + '\')">Excluir</button>'
+            + '</div></div></div>';
+    }).join('');
+}
+
+function onFiltroMesGastosChange() {
+    renderGastosOficina();
+}
+
