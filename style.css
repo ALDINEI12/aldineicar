@@ -3960,3 +3960,24 @@ html, body {
   display: flex;
   gap: 6px;
 }
+
+
+/* Histórico — carregar mais */
+.hist-carregar-mais-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 28px;
+}
+.hist-btn-carregar-mais {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, .28);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hist-btn-carregar-mais:active { transform: scale(.97); opacity: .9; }

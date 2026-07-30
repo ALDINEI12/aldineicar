@@ -148,6 +148,8 @@ function ensureQRCode() {
     let produtosLoja = [];
     let acaoConfirmada = null;
     let fotosOrcamentoAtual = [];
+    const HISTORICO_PAGE_SIZE = 25;
+    let historicoLimiteExibicao = HISTORICO_PAGE_SIZE;
     let fotosAgendamentoCliente = [];
     const MAX_FOTOS_SERVICO = 4;
 
@@ -2021,8 +2023,30 @@ async function editarProduto(id) {
     function renderHistorico(){
         const h = document.getElementById('historicoLista');
         if(!h) return; h.innerHTML='';
-        historico.forEach((item, index)=>{
-            if (item.tipo_registro === 'VENDA_DIRETA_BALCAO' || item.tipo_registro === 'AGENDAMENTO') return;
+
+        const indices = [];
+        for (let i = 0; i < historico.length; i++) {
+            const it = historico[i];
+            if (!it) continue;
+            if (it.tipo_registro === 'VENDA_DIRETA_BALCAO' || it.tipo_registro === 'AGENDAMENTO') continue;
+            indices.push(i);
+        }
+        const totalHist = indices.length;
+        if (!historicoLimiteExibicao || historicoLimiteExibicao < HISTORICO_PAGE_SIZE) historicoLimiteExibicao = HISTORICO_PAGE_SIZE;
+        const mostrarIdx = indices.slice(0, historicoLimiteExibicao);
+        const meta = document.getElementById('historicoMeta');
+        if (meta) {
+            if (totalHist === 0) meta.textContent = 'Nenhum orçamento no histórico.';
+            else if (mostrarIdx.length < totalHist) meta.textContent = 'Mostrando ' + mostrarIdx.length + ' de ' + totalHist + ' orçamentos.';
+            else meta.textContent = totalHist + ' orçamento(s) no histórico.';
+        }
+        if (totalHist === 0) {
+            h.innerHTML = '<p style="color:#64748b;font-size:14px;padding:16px 4px;">Nenhum orçamento salvo ainda.</p>';
+            return;
+        }
+
+        mostrarIdx.forEach((index)=>{
+            const item = historico[index];
             const cliente = item.cliente || { nome: 'Sem nome', endereco: '', tel: '', cidade: '' };
             const veiculo = item.veiculo || { modelo: 'Não informado', placa: '---', ano: '', cor: '', avaliador: '', tipo_servico: '---' };
 
@@ -2089,6 +2113,23 @@ async function editarProduto(id) {
                                 <button onclick="deletarHistorico(${index})" class="hist-btn hist-btn-del">🗑️</button>
                             </div>
                         </div>
+                    </details>
+                </div>
+            `;
+        });
+
+        if (historicoLimiteExibicao < totalHist) {
+            const rest = totalHist - historicoLimiteExibicao;
+            h.innerHTML += '<div class="hist-carregar-mais-wrap"><button type="button" class="hist-btn-carregar-mais" onclick="carregarMaisHistorico()">Carregar mais · ' + rest + ' restante' + (rest === 1 ? '' : 's') + '</button></div>';
+        }
+    }
+
+    function carregarMaisHistorico() {
+        historicoLimiteExibicao += HISTORICO_PAGE_SIZE;
+        renderHistorico();
+    }
+
+v>
                     </details>
                 </div>
             `;
