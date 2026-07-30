@@ -2068,14 +2068,18 @@ async function editarProduto(id) {
         const oc = b.getAttribute('onclick') || '';
         if (oc.includes("'" + nome + "'") || oc.includes('"' + nome + '"')) b.classList.add('active');
     });
-    // Bottom nav sync
+    // Bottom nav sync + rola o item ativo para o centro
     document.querySelectorAll('#bottom-nav .bn-item').forEach(b => {
         const aba = b.getAttribute('data-aba');
-        const principais = ['dashboard','materiais','agenda','loja'];
         if (aba === nome) b.classList.add('active');
-        else if (aba === 'mais' && !principais.includes(nome)) b.classList.add('active');
         else b.classList.remove('active');
     });
+    try {
+        const ativo = document.querySelector('#bottom-nav .bn-item.active');
+        if (ativo && typeof ativo.scrollIntoView === 'function') {
+            ativo.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    } catch (e) {}
     // Esconde search fora de materiais
     const search = document.querySelector('header .search');
     if (search) search.style.display = (nome === 'materiais') ? '' : 'none';

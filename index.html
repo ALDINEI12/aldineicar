@@ -977,21 +977,44 @@ function mostrarSecao(id) {
 
 <!-- Bottom Navigation (mobile app style) -->
 <nav id="bottom-nav" class="bottom-nav" aria-label="Menu principal">
-    <button type="button" class="bn-item active" data-aba="dashboard" onclick="mostrarAba('dashboard')">
-        <span class="bn-icon">📊</span><span class="bn-label">Início</span>
-    </button>
-    <button type="button" class="bn-item" data-aba="materiais" onclick="mostrarAba('materiais')">
-        <span class="bn-icon">📦</span><span class="bn-label">Materiais</span>
-    </button>
-    <button type="button" class="bn-item" data-aba="agenda" onclick="mostrarAba('agenda')">
-        <span class="bn-icon">📅</span><span class="bn-label">Agenda</span>
-    </button>
-    <button type="button" class="bn-item" data-aba="loja" onclick="mostrarAba('loja')">
-        <span class="bn-icon">🛒</span><span class="bn-label">Loja</span>
-    </button>
-    <button type="button" class="bn-item" data-aba="mais" onclick="toggleMenuMais()">
-        <span class="bn-icon">☰</span><span class="bn-label">Mais</span>
-    </button>
+    <div class="bn-scroll" id="bn-scroll">
+        <button type="button" class="bn-item active" data-aba="dashboard" onclick="mostrarAba('dashboard')">
+            <span class="bn-icon">📊</span><span class="bn-label">Início</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="materiais" onclick="mostrarAba('materiais')">
+            <span class="bn-icon">📦</span><span class="bn-label">Materiais</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="agenda" onclick="mostrarAba('agenda')">
+            <span class="bn-icon">📅</span><span class="bn-label">Agenda</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="loja" onclick="mostrarAba('loja')">
+            <span class="bn-icon">🛒</span><span class="bn-label">Loja</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="maoobra" onclick="mostrarAba('maoobra')">
+            <span class="bn-icon">🔧</span><span class="bn-label">Mão obra</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="clientes" onclick="mostrarAba('clientes')">
+            <span class="bn-icon">👤</span><span class="bn-label">Clientes</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="historico" onclick="mostrarAba('historico')">
+            <span class="bn-icon">📋</span><span class="bn-label">Histórico</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="vendas" onclick="mostrarAba('vendas')">
+            <span class="bn-icon">💰</span><span class="bn-label">Vendas</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="gastos" onclick="mostrarAba('gastos')">
+            <span class="bn-icon">💸</span><span class="bn-label">Gastos</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="vitrine" onclick="mostrarAba('vitrine')">
+            <span class="bn-icon">🌐</span><span class="bn-label">Vitrine</span>
+        </button>
+        <button type="button" class="bn-item" data-aba="config" onclick="abrirModalOficina()">
+            <span class="bn-icon">⚙️</span><span class="bn-label">Config</span>
+        </button>
+        <button type="button" class="bn-item bn-sair" data-aba="sair" onclick="handleLogout()">
+            <span class="bn-icon">🚪</span><span class="bn-label">Sair</span>
+        </button>
+    </div>
 </nav>
 <div id="menu-mais-sheet" class="menu-mais-sheet" style="display:none;">
     <div class="menu-mais-backdrop" onclick="toggleMenuMais()"></div>

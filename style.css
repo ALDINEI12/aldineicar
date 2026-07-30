@@ -1726,7 +1726,7 @@ header {
   -webkit-backdrop-filter: blur(18px);
   border-top: 1px solid rgba(255,255,255,.07);
   z-index: 3000;
-  padding: 0 6px;
+  padding: 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
   box-shadow: 0 -12px 36px rgba(0,0,0,.28);
   transform: translate3d(0,0,0) !important;
@@ -1739,8 +1739,28 @@ header {
 }
 #bottom-nav.bottom-nav { display: none; }
 
+/* Trilho rolável horizontal — todas as seções no celular */
+.bn-scroll {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  height: 100%;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding: 0 8px;
+  gap: 2px;
+  box-sizing: border-box;
+}
+.bn-scroll::-webkit-scrollbar { display: none; height: 0; }
+
 .bn-item {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1749,13 +1769,15 @@ header {
   background: transparent;
   border: none;
   color: #94a3b8;
-  padding: 8px 4px;
-  margin: 6px 2px;
+  padding: 8px 10px;
+  margin: 6px 0;
   border-radius: 14px;
   transition: color .15s ease, background .15s ease;
   -webkit-tap-highlight-color: transparent;
   min-height: 48px;
+  min-width: 64px;
   position: relative;
+  scroll-snap-align: center;
 }
 .bn-item .bn-icon {
   font-size: 20px;
@@ -1782,6 +1804,8 @@ header {
   background: #dc2626;
 }
 .bn-item:active { opacity: .75; }
+.bn-item.bn-sair { color: #fb7185; }
+.bn-item.bn-sair.active { color: #fecdd3; background: rgba(220,38,38,.12); }
 
 .menu-mais-sheet {
   position: fixed;
