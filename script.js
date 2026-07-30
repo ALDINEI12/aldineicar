@@ -56,6 +56,64 @@ const TAXA_CADASTRO = {
 let __signupPendente = null; // { nome, email, password, txid, payload, valor, mpPreferenceId, mpPaymentId }
 const SIGNUP_PENDING_KEY = 'aldineicar_signup_pendente';
 
+// ========================================================
+// LAZY LOAD — Chart.js / jsPDF / QRCode só quando precisar
+// ========================================================
+const LIB_CDN = {
+    jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    chartjs: 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    qrcode: 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js'
+};
+const __libLoadPromises = {};
+
+function carregarScriptOnce(url) {
+    if (__libLoadPromises[url]) return __libLoadPromises[url];
+    __libLoadPromises[url] = new Promise(function(resolve, reject) {
+        var existing = document.querySelector('script[src="' + url + '"]');
+        if (existing) {
+            if (existing.getAttribute('data-loaded') === '1') { resolve(); return; }
+            existing.addEventListener('load', function() { resolve(); });
+            existing.addEventListener('error', function() { reject(new Error('Falha ao carregar script')); });
+            return;
+        }
+        var s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.onload = function() { s.setAttribute('data-loaded', '1'); resolve(); };
+        s.onerror = function() {
+            delete __libLoadPromises[url];
+            reject(new Error('Falha ao carregar: ' + url));
+        };
+        document.head.appendChild(s);
+    });
+    return __libLoadPromises[url];
+}
+
+function ensureJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+    return carregarScriptOnce(LIB_CDN.jspdf).then(function() {
+        if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDF indisponível');
+        return window.jspdf.jsPDF;
+    });
+}
+
+function ensureChartJS() {
+    if (typeof Chart !== 'undefined') return Promise.resolve(Chart);
+    return carregarScriptOnce(LIB_CDN.chartjs).then(function() {
+        if (typeof Chart === 'undefined') throw new Error('Chart.js indisponível');
+        return Chart;
+    });
+}
+
+function ensureQRCode() {
+    if (typeof QRCode !== 'undefined') return Promise.resolve(QRCode);
+    return carregarScriptOnce(LIB_CDN.qrcode).then(function() {
+        if (typeof QRCode === 'undefined') throw new Error('QRCode indisponível');
+        return QRCode;
+    });
+}
+
+
     const formatarData = (dataStr) => {
     if (!dataStr) return '--/--/----';
     // Se a data já estiver no formato brasileiro, retorna ela. 
@@ -991,8 +1049,9 @@ async function editarProduto(id) {
     function desenharQrSignup(payload) {
         const box = document.getElementById('signupPixQr');
         if (!box) return;
-        box.innerHTML = '';
-        if (typeof QRCode !== 'undefined') {
+        box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">Carregando QR...</p>';
+        ensureQRCode().then(function() {
+            box.innerHTML = '';
             try {
                 const canvas = document.createElement('canvas');
                 box.appendChild(canvas);
@@ -1001,10 +1060,12 @@ async function editarProduto(id) {
                         box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;">Use o código copia e cola abaixo.</p>';
                     }
                 });
-                return;
-            } catch (e) {}
-        }
-        box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">QR indisponível — use o copia e cola.</p>';
+            } catch (e) {
+                box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">QR indisponível — use o copia e cola.</p>';
+            }
+        }).catch(function() {
+            box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;padding:12px;">QR indisponível — use o copia e cola.</p>';
+        });
     }
 
     function salvarSignupPendente(obj) {
@@ -2141,6 +2202,15 @@ async function editarProduto(id) {
 }
 
     function construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc) {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            ensureJsPDF().then(function() {
+                construirDocumentoPDF(nomeCli, endCli, telCli, cidCli, modVeic, placVeic, anoVeic, corVeic, avaliador, tipoServico, valorFinal, dataOrc);
+            }).catch(function(err) {
+                console.error(err);
+                if (typeof mostrarToast === 'function') mostrarToast('jsPDF não carregado.', 'erro');
+            });
+            return;
+        }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         let y = 15;
@@ -2243,25 +2313,44 @@ async function editarProduto(id) {
         const avaliador = document.getElementById('nomeAvaliador').value || '';
         const tipoServico = document.getElementById('tipoServico').value || '---'; 
         const valor = parseFloat(document.getElementById('valorCliente').value) || 0;
-        
-        construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
+        if (typeof mostrarToast === 'function') mostrarToast('Preparando PDF...', 'aviso');
+        ensureJsPDF().then(function() {
+            construirDocumentoPDF(nome, end, tel, cid, modelo, placa, ano, cor, avaliador, tipoServico, valor, new Date().toLocaleDateString('pt-BR'));
+        }).catch(function(err) {
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível carregar o gerador de PDF.', 'erro');
+            else alert('Não foi possível carregar o gerador de PDF.');
+        });
     }
 
     function gerarPDFHistorico(index) {
         const item = historico[index];
         if(!item) return;
-        construirDocumentoPDF(
-            item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
-            item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
-            item.veiculo.tipo_servico || '---', 
-            item.totalCobrado, item.data.split(' ')[0]
-        );
+        if (typeof mostrarToast === 'function') mostrarToast('Preparando PDF...', 'aviso');
+        ensureJsPDF().then(function() {
+            construirDocumentoPDF(
+                item.cliente.nome, item.cliente.endereco, item.cliente.tel, item.cliente.cidade,
+                item.veiculo.modelo, item.veiculo.placa, item.veiculo.ano, item.veiculo.cor, item.veiculo.avaliador,
+                item.veiculo.tipo_servico || '---', 
+                item.totalCobrado, item.data.split(' ')[0]
+            );
+        }).catch(function(err) {
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível carregar o gerador de PDF.', 'erro');
+            else alert('Não foi possível carregar o gerador de PDF.');
+        });
     }
 
     function gerarPDFClienteCompleto(index) {
         const cli = clientes[index];
         if(!cli) return;
-        construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
+        ensureJsPDF().then(function() {
+            construirDocumentoPDF(cli.nome, cli.endereco, cli.tel, cli.cidade, '---', '---', '---', '---', '---', '---', 0, new Date().toLocaleDateString('pt-BR'));
+        }).catch(function(err) {
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível carregar o gerador de PDF.', 'erro');
+            else alert('Não foi possível carregar o gerador de PDF.');
+        });
     }
 
     function abrirModal(){
@@ -3235,30 +3324,30 @@ async function obterPixDaOficina(idDono) {
 function desenharQrSimples(payload) {
     const box = document.getElementById('pixQrBox');
     if (!box) return;
-    box.innerHTML = '';
-    if (typeof QRCode !== 'undefined') {
+    box.innerHTML = '<p style="color:#a1a1aa;font-size:12px;text-align:center;padding:12px;">Carregando QR...</p>';
+
+    function fallbackImg() {
+        const img = document.createElement('img');
+        img.width = 200; img.height = 200;
+        img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
+        box.innerHTML = '';
+        box.appendChild(img);
+    }
+
+    ensureQRCode().then(function() {
+        box.innerHTML = '';
         const canvas = document.createElement('canvas');
         canvas.style.background = '#fff';
         canvas.style.borderRadius = '8px';
         canvas.style.padding = '8px';
         box.appendChild(canvas);
         QRCode.toCanvas(canvas, payload, { width: 200, margin: 2 }, function(err) {
-            if (err) {
-                const img = document.createElement('img');
-                img.width = 200; img.height = 200;
-                img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
-                img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
-                box.innerHTML = '';
-                box.appendChild(img);
-            }
+            if (err) fallbackImg();
         });
-    } else {
-        const img = document.createElement('img');
-        img.width = 200; img.height = 200;
-        img.style.borderRadius = '8px'; img.style.background = '#fff'; img.style.padding = '8px';
-        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(payload);
-        box.appendChild(img);
-    }
+    }).catch(function() {
+        fallbackImg();
+    });
 }
 
 async function gerarPixSimplesERegistrar() {
@@ -3849,8 +3938,29 @@ function formatarDataBR(d) {
 function renderDashboard() {
     const canvas = document.getElementById('graficoFinanceiro');
     if (!canvas) return;
+
+    // Carrega Chart.js só na primeira vez que o dashboard abre
     if (typeof Chart === 'undefined') {
-        console.warn('Chart.js não carregado');
+        if (canvas.__chartLoading) return;
+        canvas.__chartLoading = true;
+        const placeholder = canvas.parentElement;
+        if (placeholder && !placeholder.querySelector('.chart-loading-hint')) {
+            const hint = document.createElement('p');
+            hint.className = 'chart-loading-hint';
+            hint.style.cssText = 'text-align:center;color:#94a3b8;font-size:13px;font-weight:600;padding:24px;';
+            hint.textContent = 'Carregando gráfico...';
+            placeholder.appendChild(hint);
+        }
+        ensureChartJS().then(function() {
+            canvas.__chartLoading = false;
+            const h = placeholder && placeholder.querySelector('.chart-loading-hint');
+            if (h) h.remove();
+            renderDashboard();
+        }).catch(function(err) {
+            canvas.__chartLoading = false;
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível carregar o gráfico.', 'erro');
+        });
         return;
     }
 
@@ -6605,8 +6715,14 @@ function exportarRelatorioDashboardCSV(linhas, ini, fim) {
 
 function exportarRelatorioDashboardPDF(linhas, ini, fim) {
     if (!window.jspdf || !window.jspdf.jsPDF) {
-        if (typeof mostrarToast === 'function') mostrarToast('jsPDF não carregado.', 'erro');
-        else alert('jsPDF não carregado.');
+        if (typeof mostrarToast === 'function') mostrarToast('Carregando gerador de PDF...', 'aviso');
+        ensureJsPDF().then(function() {
+            exportarRelatorioDashboardPDF(linhas, ini, fim);
+        }).catch(function(err) {
+            console.error(err);
+            if (typeof mostrarToast === 'function') mostrarToast('jsPDF não carregado.', 'erro');
+            else alert('jsPDF não carregado.');
+        });
         return;
     }
     const { jsPDF } = window.jspdf;
