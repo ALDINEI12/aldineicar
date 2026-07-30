@@ -715,22 +715,26 @@ async function inicializarSistema() {
         }
     }
 
-    async function salvarNoBanco(silencioso = false) {
-        if (!usuarioAtualId) return;
+    // Debounce do save na nuvem — local é sempre imediato
+    let __saveDebounceTimer = null;
+    let __saveWaiters = [];
+    let __saveSilentAcc = true;
+    const SAVE_DEBOUNCE_MS = 480;
+
+    function prepararPayloadLocal() {
         if (!dadosOficina || typeof dadosOficina !== 'object') dadosOficina = {};
         dadosOficina.gastos = Array.isArray(gastosOficina) ? gastosOficina : [];
         salvarFallbackLocal();
-        
+    }
+
+    async function __flushSalvarNuvem() {
+        if (!usuarioAtualId) return;
         if (!navigator.onLine) {
             atualizarStatusRedeVisual(false);
-            if (!silencioso) {
-                console.log("Modo Offline ativo: Alteração armazenada apenas no dispositivo.");
-            }
-            return; 
+            return;
         }
-
         atualizarStatusRedeVisual(true);
-
+        prepararPayloadLocal();
         try {
             const { error } = await supabaseClient
                 .from('user_data')
@@ -743,12 +747,69 @@ async function inicializarSistema() {
                     dados_oficina: dadosOficina,
                     updated_at: new Date()
                 }, { onConflict: 'user_id' });
-
             if (error) throw error;
-        } catch(e) {
+        } catch (e) {
             console.error("Erro ao sincronizar com a nuvem:", e);
             atualizarStatusRedeVisual(false);
+            throw e;
         }
+    }
+
+    /**
+     * Salva no aparelho na hora; sobe para a nuvem com debounce (evita spam ao tocar +/−).
+     * @param {boolean} silencioso
+     * @param {boolean} imediato  true = força envio agora (logout, config, etc.)
+     */
+    async function salvarNoBanco(silencioso = false, imediato = false) {
+        if (!usuarioAtualId) return;
+        prepararPayloadLocal();
+
+        if (!navigator.onLine) {
+            atualizarStatusRedeVisual(false);
+            if (!silencioso) {
+                console.log("Modo Offline ativo: Alteração armazenada apenas no dispositivo.");
+            }
+            return;
+        }
+
+        // imediato: cancela debounce e sobe agora
+        if (imediato) {
+            if (__saveDebounceTimer) {
+                clearTimeout(__saveDebounceTimer);
+                __saveDebounceTimer = null;
+            }
+            const pending = __saveWaiters.splice(0);
+            try {
+                await __flushSalvarNuvem();
+                pending.forEach(function(w) { w.resolve(); });
+            } catch (e) {
+                pending.forEach(function(w) { w.reject(e); });
+            }
+            return;
+        }
+
+        __saveSilentAcc = __saveSilentAcc && !!silencioso;
+
+        return new Promise(function(resolve, reject) {
+            __saveWaiters.push({ resolve: resolve, reject: reject });
+            if (__saveDebounceTimer) clearTimeout(__saveDebounceTimer);
+            __saveDebounceTimer = setTimeout(async function() {
+                __saveDebounceTimer = null;
+                const waiters = __saveWaiters.splice(0);
+                __saveSilentAcc = true;
+                try {
+                    await __flushSalvarNuvem();
+                    waiters.forEach(function(w) { w.resolve(); });
+                } catch (e) {
+                    waiters.forEach(function(w) { w.reject(e); });
+                }
+            }, SAVE_DEBOUNCE_MS);
+        });
+    }
+
+    // Atalho explícito para gravação forçada
+    async function salvarNoBancoAgora(silencioso = false) {
+        return salvarNoBanco(silencioso, true);
     }
 
     function abrirModalOficina() { 
@@ -762,16 +823,35 @@ async function inicializarSistema() {
 
 
     
-    function processarNovaLogo(input) {
-        const file = input.files[0];
+    async function processarNovaLogo(input) {
+        const file = input && input.files && input.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            dadosOficina.logoBase64 = e.target.result;
+        if (!file.type || file.type.indexOf('image/') !== 0) {
+            if (typeof mostrarToast === 'function') mostrarToast('Selecione uma imagem.', 'aviso');
+            return;
+        }
+        try {
+            if (typeof mostrarToast === 'function') mostrarToast('Otimizando logo...', 'aviso');
+            let dataUrl;
+            if (typeof redimensionarImagemArquivo === 'function') {
+                dataUrl = await redimensionarImagemArquivo(file, 512, 0.75);
+            } else {
+                dataUrl = await new Promise(function(resolve, reject) {
+                    const r = new FileReader();
+                    r.onload = function() { resolve(r.result); };
+                    r.onerror = reject;
+                    r.readAsDataURL(file);
+                });
+            }
+            dadosOficina.logoBase64 = dataUrl;
             const preview = document.getElementById('previewLogoModal');
-            if(preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
-        };
-        reader.readAsDataURL(file);
+            if (preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+            if (typeof mostrarToast === 'function') mostrarToast('Logo pronta!', 'sucesso');
+        } catch (e) {
+            console.error(e);
+            if (typeof mostrarToast === 'function') mostrarToast('Não foi possível usar esta imagem.', 'erro');
+        }
+        if (input) input.value = '';
     }
 
     function atualizarLogoHeader() {
@@ -946,9 +1026,9 @@ async function editarProduto(id) {
         configurarResumoPorProfissao(); 
         mostrarToast("Configurações profissionais salvas com sucesso!");
         
-        // Salva tudo no banco e no fallback geral
+        // Salva tudo no banco e no fallback geral (imediato — config da oficina)
         salvarFallbackLocal();
-        await salvarNoBanco();
+        await salvarNoBanco(false, true);
     }
 
     function toggleTab(tab) {
@@ -1721,6 +1801,7 @@ async function editarProduto(id) {
     window.handleLogin = handleLogin;
 
     async function handleLogout() {
+        try { if (typeof salvarNoBancoAgora === 'function') await salvarNoBancoAgora(true); } catch (e) {}
         await supabaseClient.auth.signOut();
         usuarioAtualId = null;
         materiais = []; historico = []; clientes = []; maoObraItens = []; gastosOficina = [];
@@ -5717,33 +5798,45 @@ function mostrarPreviewProduto(dataUrl) {
 
 function redimensionarImagemArquivo(file, maxLado, qualidade) {
     maxLado = maxLado || 900;
-    qualidade = qualidade || 0.72;
+    qualidade = (qualidade == null ? 0.72 : qualidade);
     return new Promise(function(resolve, reject) {
         if (!file || !file.type || file.type.indexOf('image/') !== 0) {
             reject(new Error('Arquivo inválido'));
             return;
         }
+        // Arquivo já pequeno (< 180KB): só converte se não for jpeg, senão lê direto
         const reader = new FileReader();
         reader.onerror = function() { reject(new Error('Falha ao ler imagem')); };
         reader.onload = function() {
             const img = new Image();
             img.onload = function() {
-                let w = img.width;
-                let h = img.height;
+                let w = img.width || 1;
+                let h = img.height || 1;
+                const precisaReduzir = (w > maxLado || h > maxLado || (file.size && file.size > 220000));
+                if (!precisaReduzir && file.type === 'image/jpeg' && file.size && file.size < 180000) {
+                    resolve(reader.result);
+                    return;
+                }
                 if (w > maxLado || h > maxLado) {
                     if (w > h) { h = Math.round(h * (maxLado / w)); w = maxLado; }
                     else { w = Math.round(w * (maxLado / h)); h = maxLado; }
                 }
+                // evita canvas gigante em fotos de 12MP+
+                w = Math.max(1, Math.round(w));
+                h = Math.max(1, Math.round(h));
                 const canvas = document.createElement('canvas');
                 canvas.width = w;
                 canvas.height = h;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-                let out = canvas.toDataURL('image/jpeg', qualidade);
-                // se ainda muito grande (> ~900kb), baixa qualidade
-                if (out.length > 900000) {
-                    out = canvas.toDataURL('image/jpeg', 0.55);
+                if (ctx) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
                 }
+                let out = canvas.toDataURL('image/jpeg', qualidade);
+                // se ainda muito grande, reduz qualidade em degraus
+                if (out.length > 900000) out = canvas.toDataURL('image/jpeg', 0.58);
+                if (out.length > 900000) out = canvas.toDataURL('image/jpeg', 0.45);
                 resolve(out);
             };
             img.onerror = function() { reject(new Error('Imagem inválida')); };
