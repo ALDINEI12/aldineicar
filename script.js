@@ -843,9 +843,12 @@ async function inicializarSistema() {
                     r.readAsDataURL(file);
                 });
             }
-            dadosOficina.logoBase64 = dataUrl;
+            if (typeof mostrarToast === 'function') mostrarToast('Enviando logo...', 'aviso');
+            const urlFinal = await uploadFotoOficina(dataUrl, 'logo');
+            dadosOficina.logoBase64 = urlFinal;
             const preview = document.getElementById('previewLogoModal');
             if (preview) preview.innerHTML = `<img src="${dadosOficina.logoBase64}" style="max-height:50px; margin-top:5px; border-radius:5px;">`;
+            if (typeof atualizarLogoHeader === 'function') atualizarLogoHeader();
             if (typeof mostrarToast === 'function') mostrarToast('Logo pronta!', 'sucesso');
         } catch (e) {
             console.error(e);
@@ -5796,6 +5799,73 @@ function mostrarPreviewProduto(dataUrl) {
     }
 }
 
+
+// ========================================================
+// SUPABASE STORAGE — fotos por URL (fallback Base64 se falhar)
+// Bucket: "fotos-oficina" (público p/ leitura)
+// ========================================================
+const STORAGE_BUCKET_FOTOS = 'fotos-oficina';
+
+function dataUrlParaBlob(dataUrl) {
+    try {
+        var parts = String(dataUrl).split(',');
+        var mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+        var bin = atob(parts[1] || '');
+        var arr = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+    } catch (e) {
+        return null;
+    }
+}
+
+function extensaoMime(mime) {
+    if (!mime) return 'jpg';
+    if (mime.indexOf('png') >= 0) return 'png';
+    if (mime.indexOf('webp') >= 0) return 'webp';
+    return 'jpg';
+}
+
+/**
+ * Sobe foto comprimida para o Storage e devolve URL pública.
+ * Se falhar (bucket/política/offline), devolve o dataUrl (Base64).
+ */
+async function uploadFotoOficina(dataUrl, pasta) {
+    if (!dataUrl || typeof dataUrl !== 'string') return dataUrl || '';
+    if (/^https?:\/\//i.test(dataUrl)) return dataUrl;
+    if (!dataUrl.startsWith('data:')) return dataUrl;
+    if (!usuarioAtualId || !supabaseClient || !supabaseClient.storage) return dataUrl;
+    if (!navigator.onLine) return dataUrl;
+
+    try {
+        var blob = dataUrlParaBlob(dataUrl);
+        if (!blob) return dataUrl;
+        var ext = extensaoMime(blob.type);
+        var pastaSegura = String(pasta || 'geral').replace(/[^a-z0-9_\-]/gi, '');
+        var nome = usuarioAtualId + '/' + pastaSegura + '/' + Date.now() + '_' + Math.floor(Math.random() * 1e6) + '.' + ext;
+
+        var up = await supabaseClient.storage
+            .from(STORAGE_BUCKET_FOTOS)
+            .upload(nome, blob, {
+                contentType: blob.type || 'image/jpeg',
+                upsert: true,
+                cacheControl: '3600'
+            });
+
+        if (up.error) {
+            console.warn('[Storage] upload falhou, usando Base64:', up.error.message || up.error);
+            return dataUrl;
+        }
+
+        var pub = supabaseClient.storage.from(STORAGE_BUCKET_FOTOS).getPublicUrl(nome);
+        var url = pub && pub.data && pub.data.publicUrl;
+        return url || dataUrl;
+    } catch (e) {
+        console.warn('[Storage] erro:', e);
+        return dataUrl;
+    }
+}
+
 function redimensionarImagemArquivo(file, maxLado, qualidade) {
     maxLado = maxLado || 900;
     qualidade = (qualidade == null ? 0.72 : qualidade);
@@ -5852,7 +5922,9 @@ async function onProdImgFileChange(input) {
     try {
         if (typeof mostrarToast === 'function') mostrarToast('Processando foto...', 'aviso');
         const dataUrl = await redimensionarImagemArquivo(file, 900, 0.72);
-        mostrarPreviewProduto(dataUrl);
+        if (typeof mostrarToast === 'function') mostrarToast('Enviando foto...', 'aviso');
+        const urlFinal = await uploadFotoOficina(dataUrl, 'produtos');
+        mostrarPreviewProduto(urlFinal);
         if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
     } catch (e) {
         console.error(e);
@@ -6168,8 +6240,9 @@ function limparFotosAgendamento() {
     if (inp) inp.value = '';
     renderFotosAgendamento();
 }
-async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
+async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos, pastaStorage) {
     maxFotos = maxFotos || MAX_FOTOS_SERVICO || 4;
+    pastaStorage = pastaStorage || 'orcamentos';
     if (!files || !files.length) return;
     const restantes = maxFotos - listaRef.length;
     if (restantes <= 0) {
@@ -6184,7 +6257,8 @@ async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
             const file = arr[i];
             if (!file || !file.type || file.type.indexOf('image/') !== 0) continue;
             const dataUrl = await redimensionarImagemArquivo(file, 800, 0.65);
-            listaRef.push(dataUrl);
+            const urlFinal = await uploadFotoOficina(dataUrl, pastaStorage);
+            listaRef.push(urlFinal);
         }
         renderFn();
         if (typeof mostrarToast === 'function') mostrarToast('Foto(s) adicionada(s)!', 'sucesso');
@@ -6195,11 +6269,11 @@ async function adicionarFotosArquivos(files, listaRef, renderFn, maxFotos) {
     }
 }
 async function onFotosOrcamentoChange(input) {
-    await adicionarFotosArquivos(input && input.files, fotosOrcamentoAtual, renderFotosOrcamento, MAX_FOTOS_SERVICO);
+    await adicionarFotosArquivos(input && input.files, fotosOrcamentoAtual, renderFotosOrcamento, MAX_FOTOS_SERVICO, 'orcamentos');
     if (input) input.value = '';
 }
 async function onFotosAgendamentoChange(input) {
-    await adicionarFotosArquivos(input && input.files, fotosAgendamentoCliente, renderFotosAgendamento, MAX_FOTOS_SERVICO);
+    await adicionarFotosArquivos(input && input.files, fotosAgendamentoCliente, renderFotosAgendamento, MAX_FOTOS_SERVICO, 'agendamentos');
     if (input) input.value = '';
 }
 function abrirLightboxFoto(src) {
@@ -6266,7 +6340,6 @@ async function onServVitrineFotoChange(input) {
     if (typeof mostrarToast === 'function') mostrarToast('Processando foto...', 'aviso');
     var dataUrl;
     if (typeof redimensionarImagemArquivo === 'function') {
-      // max lado maior e qualidade um pouco maior para caber melhor na vitrine
       dataUrl = await redimensionarImagemArquivo(file, 1200, 0.78);
     } else {
       dataUrl = await new Promise(function(resolve, reject) {
@@ -6276,7 +6349,9 @@ async function onServVitrineFotoChange(input) {
         r.readAsDataURL(file);
       });
     }
-    aplicarPreviewFotoServico(dataUrl);
+    if (typeof mostrarToast === 'function') mostrarToast('Enviando foto...', 'aviso');
+    var urlFinal = await uploadFotoOficina(dataUrl, 'servicos');
+    aplicarPreviewFotoServico(urlFinal);
     if (typeof mostrarToast === 'function') mostrarToast('Foto pronta!', 'sucesso');
   } catch (e) {
     console.error(e);
