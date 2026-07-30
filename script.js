@@ -2068,18 +2068,15 @@ async function editarProduto(id) {
         const oc = b.getAttribute('onclick') || '';
         if (oc.includes("'" + nome + "'") || oc.includes('"' + nome + '"')) b.classList.add('active');
     });
-    // Bottom nav sync + rola o item ativo para o centro
+    // Bottom nav sync + scroll suave do item ativo
     document.querySelectorAll('#bottom-nav .bn-item').forEach(b => {
         const aba = b.getAttribute('data-aba');
         if (aba === nome) b.classList.add('active');
         else b.classList.remove('active');
     });
-    try {
-        const ativo = document.querySelector('#bottom-nav .bn-item.active');
-        if (ativo && typeof ativo.scrollIntoView === 'function') {
-            ativo.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-    } catch (e) {}
+    if (typeof centralizarAbaBottomNav === 'function') {
+        setTimeout(function() { centralizarAbaBottomNav(nome); }, 30);
+    }
     // Esconde search fora de materiais
     const search = document.querySelector('header .search');
     if (search) search.style.display = (nome === 'materiais') ? '' : 'none';
@@ -6906,5 +6903,53 @@ function renderGastosOficina() {
 
 function onFiltroMesGastosChange() {
     renderGastosOficina();
+}
+
+// ========================================================
+// BOTTOM NAV — scroll suave horizontal
+// ========================================================
+function centralizarAbaBottomNav(nomeAba) {
+    try {
+        var track = document.getElementById('bn-scroll');
+        if (!track) return;
+        var alvo = null;
+        if (nomeAba) {
+            alvo = track.querySelector('.bn-item[data-aba="' + nomeAba + '"]');
+        }
+        if (!alvo) alvo = track.querySelector('.bn-item.active');
+        if (!alvo) return;
+
+        var trackRect = track.getBoundingClientRect();
+        var itemRect = alvo.getBoundingClientRect();
+        var delta = (itemRect.left + itemRect.width / 2) - (trackRect.left + trackRect.width / 2);
+        var destino = track.scrollLeft + delta;
+        // limites
+        var max = track.scrollWidth - track.clientWidth;
+        if (destino < 0) destino = 0;
+        if (destino > max) destino = max;
+
+        // Preferência: API nativa suave
+        if (typeof track.scrollTo === 'function') {
+            try {
+                track.scrollTo({ left: destino, behavior: 'smooth' });
+                return;
+            } catch (e1) {}
+        }
+        // Fallback animado
+        var inicio = track.scrollLeft;
+        var dist = destino - inicio;
+        if (Math.abs(dist) < 1) return;
+        var t0 = null;
+        var dur = 280;
+        function step(ts) {
+            if (!t0) t0 = ts;
+            var p = Math.min(1, (ts - t0) / dur);
+            // ease-out cubic
+            var e = 1 - Math.pow(1 - p, 3);
+            track.scrollLeft = inicio + dist * e;
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    } catch (err) {}
 }
 
