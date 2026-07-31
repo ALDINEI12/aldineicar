@@ -1031,6 +1031,23 @@ function mostrarSecao(id) {
     </div>
 </div>
 
+
+<script>
+/* PWA — registra Service Worker (só HTTPS ou localhost) */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  var isSecure = location.protocol === 'https:';
+  if (!isSecure && !isLocal) return;
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      console.log('[PWA] SW ativo', reg.scope);
+    }).catch(function (err) {
+      console.warn('[PWA] SW falhou', err);
+    });
+  });
+})();
+</script>
 </body>
 
 </html>
