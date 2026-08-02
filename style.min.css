@@ -11,3 +11,20 @@
 .admin-oficina-acoes{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .admin-btn-danger{border:none;background:#fee2e2;color:#b91c1c;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
 .admin-btn-ok{border:none;background:#d1fae5;color:#047857;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+
+.admin-topo{margin-bottom:14px}
+.admin-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+.admin-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;text-align:center}
+.admin-kpi span{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase}
+.admin-kpi strong{font-size:20px;font-weight:800;color:#0f172a}
+.admin-kpi-warn{border-color:#fbbf24;background:#fffbeb}
+.admin-kpi-warn strong{color:#b45309}
+.admin-manutencao-box{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.admin-switch-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}
+.admin-input-msg,.admin-input-busca,.admin-input-nota{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;margin-top:8px;box-sizing:border-box}
+.admin-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;align-items:center}
+.admin-input-busca{flex:1;min-width:160px;margin-top:0}
+.admin-select{padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;font-size:13px;font-weight:600}
+.admin-btn-sec{border:1px solid #e2e8f0;background:#f8fafc;color:#334155;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.admin-nota-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.admin-input-nota{flex:1;min-width:140px;margin-top:0}
