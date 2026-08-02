@@ -28,3 +28,10 @@
 .admin-btn-sec{border:1px solid #e2e8f0;background:#f8fafc;color:#334155;padding:8px 12px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 .admin-nota-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .admin-input-nota{flex:1;min-width:140px;margin-top:0}
+
+.banner-assinatura{display:none;padding:12px 16px;font-size:13px;font-weight:600;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;z-index:150}
+.banner-assinatura{display:none}
+.banner-assinatura[style*="block"]{display:flex!important}
+.banner-assinatura-aviso{background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa}
+.banner-assinatura-critico{background:#fef2f2;color:#991b1b;border-bottom:1px solid #fecaca}
+.banner-assinatura button{border:none;background:#0f172a;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
