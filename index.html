@@ -221,7 +221,7 @@ function mostrarSecao(id) {
             <h1 style="color:#ffd700; margin-bottom:8px;">ALDINEICAR</h1>
             <p style="color:#888; margin-bottom:25px;">Sistema Profissional</p>
 
-            <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <div id="loginTabsBar" style="display:flex; gap:8px; margin-bottom:20px;">
                 <button id="tabLogin" onclick="toggleTab('login')" style="flex:1; padding:12px; background:#ffd700; color:#111; border:none; border-radius:10px; font-weight:bold;">Entrar</button>
                 <button id="tabSignup" onclick="toggleTab('signup')" style="flex:1; padding:12px; background:transparent; color:white; border:2px solid #444; border-radius:10px; font-weight:bold;">Cadastrar</button>
             </div>
@@ -230,7 +230,7 @@ function mostrarSecao(id) {
                 <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <input type="password" id="loginPassword" placeholder="Senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <button onclick="handleLogin()" style="width:100%; padding:14px; background:#d40000; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Entrar</button>
-                <button type="button" onclick="recuperarSenha()" style="width:100%; margin-top:8px; padding:10px; background:transparent; color:#93c5fd; border:none; font-size:13px; font-weight:700; cursor:pointer; text-decoration:underline;">Esqueci a senha</button>
+                <button type="button" onclick="abrirEsqueciSenha()" style="width:100%; margin-top:8px; padding:10px; background:transparent; color:#93c5fd; border:none; font-size:13px; font-weight:700; cursor:pointer; text-decoration:underline;">Esqueci a senha</button>
                 <button type="button" id="btnJaPagueiRecuperar" onclick="if(typeof processarRetornoMercadoPago==='function')processarRetornoMercadoPago(); else toggleTab('signup');" style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#94a3b8; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">Já paguei e não liberou? Toque aqui</button>
             </div>
 
@@ -276,12 +276,28 @@ function mostrarSecao(id) {
                     <p style="margin:10px 0 0; font-size:11px; color:#666; text-align:center; line-height:1.4;">No PIX, após pagar volte ao site (ou aguarde a confirmação automática). Em produção o Mercado Pago às vezes não redireciona sozinho.</p>
                 </div>
             
-            <div id="recuperarSenhaBox" style="display:none; text-align:left;">
-                <h3 style="color:#fff; margin:0 0 8px; font-size:16px;">Nova senha</h3>
-                <p style="color:#94a3b8; font-size:12px; margin:0 0 12px;">Defina uma nova senha para sua conta.</p>
-                <input type="password" id="novaSenhaRec" placeholder="Nova senha (mín. 6)" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
-                <input type="password" id="novaSenhaRec2" placeholder="Repetir senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
-                <button type="button" onclick="salvarNovaSenhaRecuperacao()" style="width:100%; padding:14px; background:#2563eb; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Salvar nova senha</button>
+
+            <!-- Tela 1: pedir e-mail -->
+            <div id="esqueciSenhaBox" style="display:none; text-align:left;">
+                <button type="button" onclick="voltarParaLogin()" style="background:transparent;border:none;color:#94a3b8;font-size:13px;font-weight:700;padding:0 0 12px;cursor:pointer;">← Voltar ao login</button>
+                <h3 style="color:#fff; margin:0 0 6px; font-size:17px;">Recuperar senha</h3>
+                <p style="color:#94a3b8; font-size:13px; margin:0 0 14px; line-height:1.4;">Digite o e-mail da sua conta. Enviaremos um link para criar uma nova senha.</p>
+                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px;">E-mail</label>
+                <input type="email" id="recuperarEmail" placeholder="seu@email.com" style="width:100%; padding:13px; margin:0 0 12px; background:#2d2d2d; border:none; border-radius:10px; color:white; box-sizing:border-box;">
+                <button type="button" id="btnEnviarRecuperacao" onclick="recuperarSenha()" style="width:100%; padding:14px; background:#2563eb; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Enviar link de recuperação</button>
+                <p id="esqueciSenhaMsg" style="display:none;margin:12px 0 0;font-size:12px;color:#86efac;line-height:1.4;"></p>
+            </div>
+
+            <!-- Tela 2: nova senha (após clicar no link do e-mail) -->
+            <div id="novaSenhaBox" style="display:none; text-align:left;">
+                <h3 style="color:#fff; margin:0 0 6px; font-size:17px;">Nova senha</h3>
+                <p id="novaSenhaStatus" style="color:#94a3b8; font-size:13px; margin:0 0 14px; line-height:1.4;">Validando link...</p>
+                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px;">Nova senha</label>
+                <input type="password" id="novaSenhaRec" placeholder="Mínimo 6 caracteres" style="width:100%; padding:13px; margin:0 0 10px; background:#2d2d2d; border:none; border-radius:10px; color:white; box-sizing:border-box;">
+                <label style="display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px;">Repetir senha</label>
+                <input type="password" id="novaSenhaRec2" placeholder="Repita a senha" style="width:100%; padding:13px; margin:0 0 12px; background:#2d2d2d; border:none; border-radius:10px; color:white; box-sizing:border-box;">
+                <button type="button" id="btnSalvarNovaSenha" onclick="salvarNovaSenhaRecuperacao()" style="width:100%; padding:14px; background:#16a34a; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Salvar nova senha</button>
+                <button type="button" onclick="voltarParaLogin()" style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#94a3b8; border:1px solid #333; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer;">Voltar ao login</button>
             </div>
 </div>
         </div>
