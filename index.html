@@ -230,6 +230,7 @@ function mostrarSecao(id) {
                 <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <input type="password" id="loginPassword" placeholder="Senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
                 <button onclick="handleLogin()" style="width:100%; padding:14px; background:#d40000; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Entrar</button>
+                <button type="button" onclick="recuperarSenha()" style="width:100%; margin-top:8px; padding:10px; background:transparent; color:#93c5fd; border:none; font-size:13px; font-weight:700; cursor:pointer; text-decoration:underline;">Esqueci a senha</button>
                 <button type="button" id="btnJaPagueiRecuperar" onclick="if(typeof processarRetornoMercadoPago==='function')processarRetornoMercadoPago(); else toggleTab('signup');" style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#94a3b8; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">Já paguei e não liberou? Toque aqui</button>
             </div>
 
@@ -274,7 +275,15 @@ function mostrarSecao(id) {
                     <button type="button" id="btnSignupConfirmarPagamento" onclick="confirmarPagamentoECriarConta()" style="width:100%; padding:14px; background:#d40000; color:white; border:none; border-radius:10px; margin-top:14px; font-weight:bold;">✓ Já paguei — criar minha conta</button>
                     <p style="margin:10px 0 0; font-size:11px; color:#666; text-align:center; line-height:1.4;">No PIX, após pagar volte ao site (ou aguarde a confirmação automática). Em produção o Mercado Pago às vezes não redireciona sozinho.</p>
                 </div>
+            
+            <div id="recuperarSenhaBox" style="display:none; text-align:left;">
+                <h3 style="color:#fff; margin:0 0 8px; font-size:16px;">Nova senha</h3>
+                <p style="color:#94a3b8; font-size:12px; margin:0 0 12px;">Defina uma nova senha para sua conta.</p>
+                <input type="password" id="novaSenhaRec" placeholder="Nova senha (mín. 6)" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <input type="password" id="novaSenhaRec2" placeholder="Repetir senha" style="width:100%; padding:13px; margin:8px 0; background:#2d2d2d; border:none; border-radius:10px; color:white;">
+                <button type="button" onclick="salvarNovaSenhaRecuperacao()" style="width:100%; padding:14px; background:#2563eb; color:white; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">Salvar nova senha</button>
             </div>
+</div>
         </div>
     </div>
 
@@ -772,7 +781,20 @@ function mostrarSecao(id) {
                         </div>
 
                         <!-- ===== GASTOS OFICINA ===== -->
-                        <div id="aba-gastos" style="display:none;">
+                        
+                        <div id="aba-admin" style="display:none;">
+                            <div class="page-head">
+                                <div class="page-head-text">
+                                    <h2>👑 Admin — Oficinas</h2>
+                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Visão geral das contas cadastradas (somente seu e-mail admin).</p>
+                                </div>
+                                <button type="button" class="btn-page-action" onclick="carregarPainelAdmin()">Atualizar</button>
+                            </div>
+                            <div class="grupo-card">
+                                <div class="grupo-card-body" id="admin-oficinas-lista"></div>
+                            </div>
+                        </div>
+<div id="aba-gastos" style="display:none;">
                             <div class="page-head">
                                 <div class="page-head-text">
                                     <h2>💸 Gastos Oficina</h2>
@@ -1006,6 +1028,9 @@ function mostrarSecao(id) {
         </button>
         <button type="button" class="bn-item" data-aba="vitrine" onclick="mostrarAba('vitrine')">
             <span class="bn-icon">🌐</span><span class="bn-label">Vitrine</span>
+        </button>
+        <button type="button" class="bn-item" id="btn-admin-nav" data-aba="admin" onclick="mostrarAba('admin')" style="display:none;">
+            <span class="bn-icon">👑</span><span class="bn-label">Admin</span>
         </button>
         <button type="button" class="bn-item" data-aba="config" onclick="abrirModalOficina()">
             <span class="bn-icon">⚙️</span><span class="bn-label">Config</span>
