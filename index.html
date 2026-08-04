@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=18">
+    <link rel="stylesheet" href="style.min.css?v=19">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=18"></script>
+    <script src="script.min.js?v=19"></script>
 
     <style>
        
@@ -802,15 +802,32 @@ function mostrarSecao(id) {
                         <div id="aba-admin" style="display:none;">
                             <div class="page-head">
                                 <div class="page-head-text">
-                                    <h2>👑 Admin — Oficinas</h2>
-                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Contas cadastradas. Você pode bloquear ou liberar o acesso a qualquer momento.</p>
+                                    <h2>👑 Painel Admin</h2>
+                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Gestão global do ALDINEICAR</p>
                                 </div>
-                                <button type="button" class="btn-page-action" onclick="carregarPainelAdmin()">Atualizar</button>
+                                <button type="button" class="btn-page-action" onclick="carregarPainelAdmin()">Atualizar tudo</button>
                             </div>
-                            <div id="admin-topo-controles" class="admin-topo"></div>
-                            <div id="admin-storage-box" class="admin-storage-box"></div>
-                            <div class="grupo-card">
-                                <div class="grupo-card-body" id="admin-oficinas-lista"></div>
+
+                            <!-- SEÇÃO 1: STORAGE -->
+                            <div class="grupo-card admin-secao">
+                                <div class="grupo-card-head">
+                                    <span>📦 Storage (fotos)</span>
+                                    <button type="button" class="btn-loja-sec" onclick="carregarStorageAdmin()">Atualizar storage</button>
+                                </div>
+                                <div class="grupo-card-body">
+                                    <div id="admin-storage-box" class="admin-storage-box" style="margin:0;border:none;box-shadow:none;padding:0;"></div>
+                                </div>
+                            </div>
+
+                            <!-- SEÇÃO 2: CONTAS / OFICINAS -->
+                            <div class="grupo-card admin-secao">
+                                <div class="grupo-card-head">
+                                    <span>🏪 Contas e oficinas</span>
+                                </div>
+                                <div class="grupo-card-body" style="padding-top:8px;">
+                                    <div id="admin-topo-controles" class="admin-topo"></div>
+                                    <div id="admin-oficinas-lista"></div>
+                                </div>
                             </div>
                         </div>
 <div id="aba-gastos" style="display:none;">

@@ -46,3 +46,10 @@
 .admin-storage-chip{font-size:11px;font-weight:600;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;padding:4px 10px;border-radius:999px}
 .admin-storage-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;flex-wrap:wrap}
 .admin-storage-row:last-child{border-bottom:none}
+
+.badge-vitrine-off{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.vt-painel-fechada{display:none;flex:1;align-items:center;justify-content:center;padding:48px 20px;min-height:60vh}
+.vt-fechada-card{max-width:420px;text-align:center;background:#18181b;border:1px solid #27272a;border-radius:20px;padding:36px 28px;color:#e4e4e7}
+.vt-fechada-card h2{margin:0 0 10px;font-size:22px;font-weight:900;color:#fff}
+.vt-fechada-card p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#a1a1aa}
+.admin-secao{margin-bottom:16px}
