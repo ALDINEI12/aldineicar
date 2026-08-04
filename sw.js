@@ -1,5 +1,5 @@
 /* ALDINEICAR Service Worker — cache estático + rede para API */
-const CACHE_NAME = 'aldineicar-v17';
+const CACHE_NAME = 'aldineicar-v18';
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +23,11 @@ self.addEventListener('install', function (event) {
         );
       });
     }).then(function () {
-      return self.skipWaiting();
+      return self.skipWaiting().then(function() {
+        return self.clients.matchAll({ type: 'window' }).then(function(clients) {
+          clients.forEach(function(c) { try { c.postMessage({ type: 'SW_UPDATED' }); } catch (e) {} });
+        });
+      });
     })
   );
 });
