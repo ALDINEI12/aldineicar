@@ -15,7 +15,7 @@
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=20"></script>
+    <script src="script.min.js?v=22"></script>
 
     <style>
        
@@ -1008,7 +1008,13 @@ function mostrarSecao(id) {
             <input type="text" id="oficinaCep" placeholder="CEP e Cidade/UF">
             <input type="text" id="oficinaFone" placeholder="Telefone(s)">
             <input type="text" id="oficinaEmail" placeholder="E-mail">
-            <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento">
+            <input type="text" id="oficinaPix" placeholder="Chave PIX para pagamento (modo manual)">
+            <label style="font-size:11px; font-weight:bold; color:#22c55e; display:block; margin-top:14px;">MERCADO PAGO — PIX AUTOMÁTICO NA LOJA</label>
+            <p style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.45;">Conecte a conta Mercado Pago da oficina com <b>um toque</b>. O cliente paga e o dinheiro cai <b>na conta dela</b>, com confirmação automática. Não precisa copiar token.</p>
+            <p id="oficinaMpStatus" style="font-size:12px;margin:0 0 10px;color:#94a3b8;"></p>
+            <button type="button" id="btnConectarMp" onclick="conectarMercadoPagoOficina()" style="width:100%;padding:14px;background:linear-gradient(135deg,#009ee3,#007eb5);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px;">🔗 Conectar Mercado Pago</button>
+            <button type="button" id="btnDesconectarMp" onclick="desconectarMercadoPagoOficina()" style="display:none;width:100%;padding:12px;background:#3f3f46;color:#e4e4e7;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">Desconectar Mercado Pago</button>
+            <input type="hidden" id="oficinaMpToken" value="">
             <label style="font-size:11px; font-weight:bold; color:#ffd700; display:block; margin-top:14px;">CONTATOS NA VITRINE</label>
             <input type="text" id="oficinaWhatsapp" placeholder="WhatsApp (DDD, ex: 75999999999)">
             <input type="text" id="oficinaInstagram" placeholder="Instagram (@usuario)">
