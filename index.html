@@ -418,8 +418,15 @@ function mostrarSecao(id) {
 
                                 <div class="dash-agenda-card">
                                     <div class="dash-section-head">
-                                        <h3>Agenda de Hoje</h3>
+                                        <h3 id="dashAgendaTitulo">Agenda de Hoje</h3>
                                         <button type="button" class="dash-link" onclick="mostrarAba('agenda')">Ver todos</button>
+                                    </div>
+                                    <div class="dash-agenda-nav">
+                                        <button type="button" class="dash-ag-nav-btn" onclick="dashAgendaMudarDia(-1)" aria-label="Dia anterior">‹</button>
+                                        <div class="dash-agenda-dias" id="dashAgendaDias">
+                                            <!-- chips preenchidos pelo JS -->
+                                        </div>
+                                        <button type="button" class="dash-ag-nav-btn" onclick="dashAgendaMudarDia(1)" aria-label="Próximo dia">›</button>
                                     </div>
                                     <div id="dashAgendaHoje" class="dash-agenda-list">
                                         <p class="dash-empty">Nenhum agendamento para hoje.</p>

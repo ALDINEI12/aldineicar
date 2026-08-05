@@ -111,3 +111,16 @@
   .dash-chart-wrap{height:260px !important;max-height:260px;position:relative}
   #graficoFinanceiro{max-height:260px !important}
 }
+.agenda-btn-exec{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
+.agenda-btn-exec:hover{background:#bfdbfe}
+.agenda-badge-exec{background:#dbeafe;color:#1d4ed8}
+
+.dash-agenda-nav{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.dash-ag-nav-btn{width:36px;height:36px;border:1px solid #e2e8f0;background:#fff;border-radius:10px;font-size:20px;font-weight:700;color:#0f172a;cursor:pointer;flex-shrink:0;line-height:1}
+.dash-ag-nav-btn:active{background:#f1f5f9}
+.dash-agenda-dias{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;flex:1;padding:2px 0}
+.dash-agenda-dias::-webkit-scrollbar{display:none}
+.dash-ag-chip{flex:0 0 auto;scroll-snap-align:start;border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px;padding:8px 12px;font-size:11px;font-weight:800;color:#64748b;cursor:pointer;text-align:center;min-width:72px}
+.dash-ag-chip strong{display:block;font-size:13px;color:#0f172a;font-weight:900}
+.dash-ag-chip.active{background:#6366f1;border-color:#6366f1;color:#e0e7ff}
+.dash-ag-chip.active strong{color:#fff}
