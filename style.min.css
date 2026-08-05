@@ -94,12 +94,20 @@
 .dash-ag-nome{font-size:13px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dash-ag-serv{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dash-empty{margin:0;text-align:center;color:#94a3b8;font-size:13px;padding:12px}
+/* Mobile: hero app-style | Desktop: resumo clássico */
 @media (max-width:768px){
   .dash-mobile-hero{display:block}
   .dash-detalhes{margin-top:8px}
   .dash-detalhes .page-head h2{font-size:16px}
   #aba-dashboard .page-head-actions{display:none}
+  .dash-chart-card{max-height:300px;overflow:hidden}
+  .dash-chart-wrap{height:220px !important;max-height:220px;position:relative}
+  #graficoFinanceiro{max-height:220px !important}
 }
 @media (min-width:769px){
-  .dash-mobile-hero{display:block;max-width:720px}
+  .dash-mobile-hero{display:none !important} /* no desktop usa o layout clássico */
+  .dash-detalhes{display:block}
+  .dash-chart-card{max-height:340px;overflow:hidden}
+  .dash-chart-wrap{height:260px !important;max-height:260px;position:relative}
+  #graficoFinanceiro{max-height:260px !important}
 }
