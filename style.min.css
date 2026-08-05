@@ -55,7 +55,7 @@
 .admin-secao{margin-bottom:16px}
 
 /* ===== Dashboard mobile estilo app ===== */
-.dash-mobile-hero{display:none;padding:0 0 12px}
+.dash-mobile-hero{display:block;padding:0 0 12px;max-width:720px}
 .dash-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
 .dash-hero-title{margin:0;font-size:26px;font-weight:900;color:#0f172a;letter-spacing:-.5px}
 .dash-hero-sub{margin:2px 0 0;font-size:13px;color:#64748b;font-weight:500}
@@ -105,7 +105,7 @@
   #graficoFinanceiro{max-height:220px !important}
 }
 @media (min-width:769px){
-  .dash-mobile-hero{display:none !important} /* no desktop usa o layout clássico */
+  .dash-mobile-hero{display:block !important;max-width:720px;margin:0 auto 16px}
   .dash-detalhes{display:block}
   .dash-chart-card{max-height:340px;overflow:hidden}
   .dash-chart-wrap{height:260px !important;max-height:260px;position:relative}
@@ -124,3 +124,7 @@
 .dash-ag-chip strong{display:block;font-size:13px;color:#0f172a;font-weight:900}
 .dash-ag-chip.active{background:#6366f1;border-color:#6366f1;color:#e0e7ff}
 .dash-ag-chip.active strong{color:#fff}
+
+.dash-ag-swipe-hint{font-size:11px;color:#94a3b8;text-align:center;margin:0 0 8px;font-weight:600}
+.dash-agenda-list{touch-action:pan-y;user-select:none}
+.dash-status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
