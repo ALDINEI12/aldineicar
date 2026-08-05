@@ -111,3 +111,6 @@
   .dash-chart-wrap{height:260px !important;max-height:260px;position:relative}
   #graficoFinanceiro{max-height:260px !important}
 }
+.agenda-btn-exec{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
+.agenda-btn-exec:hover{background:#bfdbfe}
+.agenda-badge-exec{background:#dbeafe;color:#1d4ed8}
