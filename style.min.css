@@ -53,3 +53,53 @@
 .vt-fechada-card h2{margin:0 0 10px;font-size:22px;font-weight:900;color:#fff}
 .vt-fechada-card p{margin:0 0 8px;font-size:14px;line-height:1.45;color:#a1a1aa}
 .admin-secao{margin-bottom:16px}
+
+/* ===== Dashboard mobile estilo app ===== */
+.dash-mobile-hero{display:none;padding:0 0 12px}
+.dash-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.dash-hero-title{margin:0;font-size:26px;font-weight:900;color:#0f172a;letter-spacing:-.5px}
+.dash-hero-sub{margin:2px 0 0;font-size:13px;color:#64748b;font-weight:500}
+.dash-fat-card{background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:20px;padding:18px 18px 14px;color:#1c1917;box-shadow:0 12px 28px rgba(245,158,11,.35);margin-bottom:14px}
+.dash-fat-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dash-fat-icon{width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
+.dash-fat-label{flex:1;font-size:13px;font-weight:700;opacity:.9}
+.dash-fat-eye{background:rgba(255,255,255,.3);border:none;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:14px}
+.dash-fat-valor{font-size:32px;font-weight:900;letter-spacing:-1px;line-height:1.15;margin:4px 0 2px}
+.dash-fat-hint{font-size:11px;font-weight:600;opacity:.75;margin-bottom:12px}
+.dash-periodo-tabs{display:flex;gap:6px;background:rgba(255,255,255,.28);border-radius:12px;padding:4px}
+.dash-tab{flex:1;border:none;background:transparent;color:#1c1917;font-size:12px;font-weight:700;padding:8px 4px;border-radius:10px;cursor:pointer;opacity:.75}
+.dash-tab.active{background:#fff;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.dash-quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.dash-qa{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px 8px;cursor:pointer;box-shadow:0 2px 8px rgba(15,23,42,.04);-webkit-tap-highlight-color:transparent}
+.dash-qa:active{transform:scale(.97)}
+.dash-qa-icon{font-size:22px;line-height:1}
+.dash-qa-txt{font-size:11px;font-weight:800;color:#0f172a;text-align:center}
+.dash-patio-card,.dash-agenda-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(15,23,42,.04)}
+.dash-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dash-section-head h3{margin:0;font-size:15px;font-weight:800;color:#0f172a}
+.dash-link{background:none;border:none;color:#6366f1;font-size:12px;font-weight:700;cursor:pointer;padding:0}
+.dash-status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dash-st{text-align:center;padding:10px 4px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0}
+.dash-st-icon{font-size:16px;margin-bottom:2px}
+.dash-st-num{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-.5px}
+.dash-st-lbl{font-size:10px;font-weight:700;color:#64748b;margin-top:2px}
+.dash-st-pend{background:#fff7ed;border-color:#fed7aa}.dash-st-pend .dash-st-num{color:#c2410c}
+.dash-st-serv{background:#eff6ff;border-color:#bfdbfe}.dash-st-serv .dash-st-num{color:#1d4ed8}
+.dash-st-ok{background:#f0fdf4;border-color:#bbf7d0}.dash-st-ok .dash-st-num{color:#15803d}
+.dash-st-pago{background:#f5f3ff;border-color:#ddd6fe}.dash-st-pago .dash-st-num{color:#6d28d9}
+.dash-agenda-list{display:flex;flex-direction:column;gap:8px}
+.dash-ag-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0}
+.dash-ag-hora{font-size:12px;font-weight:800;color:#6366f1;min-width:42px}
+.dash-ag-info{flex:1;min-width:0}
+.dash-ag-nome{font-size:13px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-ag-serv{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-empty{margin:0;text-align:center;color:#94a3b8;font-size:13px;padding:12px}
+@media (max-width:768px){
+  .dash-mobile-hero{display:block}
+  .dash-detalhes{margin-top:8px}
+  .dash-detalhes .page-head h2{font-size:16px}
+  #aba-dashboard .page-head-actions{display:none}
+}
+@media (min-width:769px){
+  .dash-mobile-hero{display:block;max-width:720px}
+}

@@ -350,13 +350,92 @@ function mostrarSecao(id) {
 
                                                 <!-- ===== DASHBOARD ===== -->
                         <div id="aba-dashboard" style="display:none;">
-                            <div class="page-head">
+                            <!-- ===== MOBILE HERO (estilo app) ===== -->
+                            <div class="dash-mobile-hero">
+                                <div class="dash-hero-top">
+                                    <div>
+                                        <h2 class="dash-hero-title">Dashboard</h2>
+                                        <p class="dash-hero-sub" id="dashHeroSub">Visão geral da sua oficina</p>
+                                    </div>
+                                </div>
+
+                                <div class="dash-fat-card">
+                                    <div class="dash-fat-head">
+                                        <span class="dash-fat-icon">$</span>
+                                        <span class="dash-fat-label" id="dashFatLabel">Faturamento de Hoje</span>
+                                        <button type="button" class="dash-fat-eye" onclick="toggleDashValores()" aria-label="Ocultar valores" title="Ocultar/mostrar valores">👁</button>
+                                    </div>
+                                    <div class="dash-fat-valor" id="dashFatValor">R$ 0,00</div>
+                                    <div class="dash-fat-hint" id="dashFatHint">Valor atualizado agora</div>
+                                    <div class="dash-periodo-tabs">
+                                        <button type="button" class="dash-tab active" data-periodo="hoje" onclick="definirPeriodoDashRapido('hoje', this)">Hoje</button>
+                                        <button type="button" class="dash-tab" data-periodo="ontem" onclick="definirPeriodoDashRapido('ontem', this)">Ontem</button>
+                                        <button type="button" class="dash-tab" data-periodo="7dias" onclick="definirPeriodoDashRapido('7dias', this)">Últimos 7 dias</button>
+                                    </div>
+                                </div>
+
+                                <div class="dash-quick-actions">
+                                    <button type="button" class="dash-qa" onclick="dashAtalhoNovaOS()">
+                                        <span class="dash-qa-icon">📋</span>
+                                        <span class="dash-qa-txt">+ Nova OS</span>
+                                    </button>
+                                    <button type="button" class="dash-qa" onclick="dashAtalhoAgendamento()">
+                                        <span class="dash-qa-icon">📅</span>
+                                        <span class="dash-qa-txt">+ Agendamento</span>
+                                    </button>
+                                    <button type="button" class="dash-qa" onclick="dashAtalhoOrcamento()">
+                                        <span class="dash-qa-icon">🧾</span>
+                                        <span class="dash-qa-txt">+ Orçamento</span>
+                                    </button>
+                                </div><div class="dash-patio-card">
+                                    <div class="dash-section-head">
+                                        <h3>Serviços / Status</h3>
+                                        <button type="button" class="dash-link" onclick="mostrarAba('historico')">Ver todos</button>
+                                    </div>
+                                    <div class="dash-status-grid">
+                                        <div class="dash-st dash-st-pend">
+                                            <div class="dash-st-icon">⏳</div>
+                                            <div class="dash-st-num" id="dashStPend">0</div>
+                                            <div class="dash-st-lbl">Pendentes</div>
+                                        </div>
+                                        <div class="dash-st dash-st-serv">
+                                            <div class="dash-st-icon">🔧</div>
+                                            <div class="dash-st-num" id="dashStServ">0</div>
+                                            <div class="dash-st-lbl">Em serviço</div>
+                                        </div>
+                                        <div class="dash-st dash-st-ok">
+                                            <div class="dash-st-icon">✅</div>
+                                            <div class="dash-st-num" id="dashStOk">0</div>
+                                            <div class="dash-st-lbl">Concluídos</div>
+                                        </div>
+                                        <div class="dash-st dash-st-pago">
+                                            <div class="dash-st-icon">💰</div>
+                                            <div class="dash-st-num" id="dashStPago">0</div>
+                                            <div class="dash-st-lbl">Pagos</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dash-agenda-card">
+                                    <div class="dash-section-head">
+                                        <h3>Agenda de Hoje</h3>
+                                        <button type="button" class="dash-link" onclick="mostrarAba('agenda')">Ver todos</button>
+                                    </div>
+                                    <div id="dashAgendaHoje" class="dash-agenda-list">
+                                        <p class="dash-empty">Nenhum agendamento para hoje.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ===== DETALHES / DESKTOP (mantém KPIs e tabela) ===== -->
+                            <div class="dash-detalhes">
+                            <div class="page-head dash-detalhes-head">
                                 <div class="page-head-text">
-                                    <h2>📊 Dashboard</h2>
+                                    <h2>📊 Resumo financeiro</h2>
                                 </div>
                                 <div class="page-head-actions">
-                                    <button type="button" class="btn-page-action btn-page-secondary" onclick="exportarRelatorioDashboard('csv')">⬇ Exportar CSV</button>
-                                    <button type="button" class="btn-page-action" onclick="exportarRelatorioDashboard('pdf')">📄 Relatório PDF</button>
+                                    <button type="button" class="btn-page-action btn-page-secondary" onclick="exportarRelatorioDashboard('csv')">⬇ CSV</button>
+                                    <button type="button" class="btn-page-action" onclick="exportarRelatorioDashboard('pdf')">📄 PDF</button>
                                 </div>
                             </div>
 
@@ -419,30 +498,19 @@ function mostrarSecao(id) {
                                 </div>
                             </div>
 
-                            <details class="grupo-card" open>
-                                <summary class="grupo-card-summary">📈 Comparativo mensal</summary>
-                                <div class="grupo-card-body">
-                                    <div class="dash-legend">
-                                        <span><i style="background:#10b981"></i> Orçamentos</span>
-                                        <span><i style="background:#8b5cf6"></i> Serviços</span>
-                                        <span><i style="background:#e11d48"></i> Materiais</span>
-                                        <span><i style="background:#f59e0b"></i> Vendas</span>
-                                        <span><i style="background:#64748b"></i> Gastos</span>
-                                    </div>
-                                    <div class="dash-chart-wrap">
-                                        <canvas id="graficoFinanceiro"></canvas>
-                                    </div>
-                                </div>
-                            </details>
+                            <div class="dash-chart-card">
+                                <h3 style="margin:0 0 12px;font-size:15px;font-weight:800;color:#0f172a;">Evolução no período</h3>
+                                <canvas id="graficoFinanceiro" height="220"></canvas>
+                            </div>
 
-                            <details class="grupo-card">
-                                <summary class="grupo-card-summary">📋 Tabela mensal</summary>
-                                <div class="grupo-card-body" style="padding:0; overflow-x:auto;">
+                            <details class="grupo-details" open>
+                                <summary>Resumo mensal detalhado</summary>
+                                <div class="grupo-details-body" style="overflow-x:auto;">
                                     <table class="dash-table">
                                         <thead>
                                             <tr>
                                                 <th>Mês</th>
-                                                <th>Orçamentos</th>
+                                                <th>Fat. OS</th>
                                                 <th>Serviços</th>
                                                 <th>Materiais</th>
                                                 <th>Gastos</th>
@@ -459,6 +527,7 @@ function mostrarSecao(id) {
                                     </table>
                                 </div>
                             </details>
+                            </div><!-- /dash-detalhes -->
                         </div>
 
 <!-- ===== VENDAS ===== -->
