@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=19">
+    <link rel="stylesheet" href="style.min.css?v=20">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=24"></script>
+    <script src="script.min.js?v=25"></script>
 
     <style>
        
@@ -364,6 +364,7 @@ function mostrarSecao(id) {
                                         <span class="dash-fat-icon">$</span>
                                         <span class="dash-fat-label" id="dashFatLabel">Faturamento de Hoje</span>
                                         <button type="button" class="dash-fat-eye" onclick="toggleDashValores()" aria-label="Ocultar valores" title="Ocultar/mostrar valores">👁</button>
+                                        <button type="button" class="dash-fat-expand" id="btnToggleResumoFin" onclick="toggleResumoFinanceiro()" aria-label="Ver resumo financeiro" title="Ver gráficos e detalhes">📊</button>
                                     </div>
                                     <div class="dash-fat-valor" id="dashFatValor">R$ 0,00</div>
                                     <div class="dash-fat-hint" id="dashFatHint">Valor atualizado agora</div>
@@ -375,9 +376,9 @@ function mostrarSecao(id) {
                                 </div>
 
                                 <div class="dash-quick-actions">
-                                    <button type="button" class="dash-qa" onclick="dashAtalhoNovaOS()">
-                                        <span class="dash-qa-icon">📋</span>
-                                        <span class="dash-qa-txt">+ Nova OS</span>
+                                    <button type="button" class="dash-qa" onclick="abrirResumoFinanceiroToast()">
+                                        <span class="dash-qa-icon">📊</span>
+                                        <span class="dash-qa-txt">Resumo financeiro</span>
                                     </button>
                                     <button type="button" class="dash-qa" onclick="dashAtalhoAgendamento()">
                                         <span class="dash-qa-icon">📅</span>
@@ -435,8 +436,8 @@ function mostrarSecao(id) {
                                 </div>
                             </div>
 
-                            <!-- ===== DETALHES / DESKTOP (mantém KPIs e tabela) ===== -->
-                            <div class="dash-detalhes">
+                            <!-- ===== DETALHES (KPIs, gráficos e tabela — oculto até abrir) ===== -->
+                            <div class="dash-detalhes" id="dashDetalhesBox" style="display:none;">
                             <div class="page-head dash-detalhes-head">
                                 <div class="page-head-text">
                                     <h2>📊 Resumo financeiro</h2>
@@ -444,6 +445,7 @@ function mostrarSecao(id) {
                                 <div class="page-head-actions">
                                     <button type="button" class="btn-page-action btn-page-secondary" onclick="exportarRelatorioDashboard('csv')">⬇ CSV</button>
                                     <button type="button" class="btn-page-action" onclick="exportarRelatorioDashboard('pdf')">📄 PDF</button>
+                                    <button type="button" class="btn-page-action btn-page-secondary" onclick="toggleResumoFinanceiro()" title="Fechar">✕ Fechar</button>
                                 </div>
                             </div>
 

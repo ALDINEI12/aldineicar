@@ -106,11 +106,14 @@
 }
 @media (min-width:769px){
   .dash-mobile-hero{display:block !important;max-width:720px;margin:0 auto 16px}
-  .dash-detalhes{display:block}
+  /* .dash-detalhes controlado via JS (toggleResumoFinanceiro) */
   .dash-chart-card{max-height:340px;overflow:hidden}
   .dash-chart-wrap{height:260px !important;max-height:260px;position:relative}
   #graficoFinanceiro{max-height:260px !important}
 }
+.dash-fat-expand{background:rgba(255,255,255,.3);border:none;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:14px;flex-shrink:0}
+.dash-fat-expand.ativo{background:rgba(15,23,42,.35);box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.chip-periodo.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 .agenda-btn-exec{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
 .agenda-btn-exec:hover{background:#bfdbfe}
 .agenda-badge-exec{background:#dbeafe;color:#1d4ed8}
