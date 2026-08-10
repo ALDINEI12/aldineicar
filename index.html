@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=34">
+    <link rel="stylesheet" href="style.min.css?v=35">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=34"></script>
+    <script src="script.min.js?v=35"></script>
 
     <style>
        
@@ -318,24 +318,88 @@ function mostrarSecao(id) {
         </header>
 
         <div class="container">
-           <div class="sidebar">
-            <div>
-                <h2>Menu</h2>
-                <button id="btn-menu-dashboard" class="active" onclick="mostrarAba('dashboard')">📊 Dashboard</button>
-                <button type="button" id="btn-admin-side" style="display:none;" onclick="mostrarAba('admin')">👑 Admin</button>
-                <button id="btn-menu-maoobra" onclick="mostrarAba('maoobra')">🔧 Mão de Obra</button>
-                <button onclick="mostrarAba('materiais')">📦 Materiais</button>
-                <button onclick="mostrarAba('clientes')">👤 Clientes</button>
-                <button onclick="mostrarAba('historico')">📋 Serviços</button>
-                <button onclick="mostrarAba('agenda')">📅 Agenda</button>
-                <button onclick="mostrarAba('loja')">🛒 Minha Loja</button>
-                <button onclick="mostrarAba('vitrine')">🌐 Vitrine</button>
-                <button onclick="mostrarAba('vendas')">💰 Vendas</button>
-                <button onclick="mostrarAba('gastos')">💸 Gastos Oficina</button>
-                <button onclick="abrirModalOficina()">⚙️ Configurar Oficina</button>
+           <aside class="sidebar" id="appSidebar" aria-label="Menu lateral">
+            <div class="side-brand">
+              <div class="side-brand-mark">A</div>
+              <div class="side-brand-txt">
+                <strong>ALDINEICAR</strong>
+                <span>Gestão de oficina</span>
+              </div>
             </div>
-            <button onclick="handleLogout()" class="btn-logout">🚪 Sair</button>
-           </div>
+
+            <nav class="side-nav">
+              <div class="side-group">
+                <p class="side-label">Principal</p>
+                <button type="button" id="btn-menu-dashboard" class="side-item active" data-aba="dashboard" onclick="mostrarAba('dashboard')">
+                  <span class="side-ico" aria-hidden="true">📊</span>
+                  <span class="side-txt">Dashboard</span>
+                </button>
+                <button type="button" id="btn-admin-side" class="side-item" data-aba="admin" style="display:none;" onclick="mostrarAba('admin')">
+                  <span class="side-ico" aria-hidden="true">👑</span>
+                  <span class="side-txt">Admin</span>
+                </button>
+              </div>
+
+              <div class="side-group">
+                <p class="side-label">Operação</p>
+                <button type="button" class="side-item" data-aba="materiais" onclick="mostrarAba('materiais')">
+                  <span class="side-ico" aria-hidden="true">📦</span>
+                  <span class="side-txt">Materiais</span>
+                </button>
+                <button type="button" id="btn-menu-maoobra" class="side-item" data-aba="maoobra" onclick="mostrarAba('maoobra')">
+                  <span class="side-ico" aria-hidden="true">🔧</span>
+                  <span class="side-txt">Mão de obra</span>
+                </button>
+                <button type="button" class="side-item" data-aba="agenda" onclick="mostrarAba('agenda')">
+                  <span class="side-ico" aria-hidden="true">📅</span>
+                  <span class="side-txt">Agenda</span>
+                </button>
+                <button type="button" class="side-item" data-aba="historico" onclick="mostrarAba('historico')">
+                  <span class="side-ico" aria-hidden="true">📋</span>
+                  <span class="side-txt">Serviços</span>
+                </button>
+                <button type="button" class="side-item" data-aba="clientes" onclick="mostrarAba('clientes')">
+                  <span class="side-ico" aria-hidden="true">👤</span>
+                  <span class="side-txt">Clientes</span>
+                </button>
+              </div>
+
+              <div class="side-group">
+                <p class="side-label">Negócio</p>
+                <button type="button" class="side-item" data-aba="loja" onclick="mostrarAba('loja')">
+                  <span class="side-ico" aria-hidden="true">🛒</span>
+                  <span class="side-txt">Minha loja</span>
+                </button>
+                <button type="button" class="side-item" data-aba="vitrine" onclick="mostrarAba('vitrine')">
+                  <span class="side-ico" aria-hidden="true">🌐</span>
+                  <span class="side-txt">Vitrine</span>
+                </button>
+                <button type="button" class="side-item" data-aba="vendas" onclick="mostrarAba('vendas')">
+                  <span class="side-ico" aria-hidden="true">💰</span>
+                  <span class="side-txt">Vendas</span>
+                </button>
+                <button type="button" class="side-item" data-aba="gastos" onclick="mostrarAba('gastos')">
+                  <span class="side-ico" aria-hidden="true">💸</span>
+                  <span class="side-txt">Gastos</span>
+                </button>
+              </div>
+
+              <div class="side-group">
+                <p class="side-label">Sistema</p>
+                <button type="button" class="side-item side-item-muted" onclick="abrirModalOficina()">
+                  <span class="side-ico" aria-hidden="true">⚙️</span>
+                  <span class="side-txt">Configurações</span>
+                </button>
+              </div>
+            </nav>
+
+            <div class="side-foot">
+              <button type="button" onclick="handleLogout()" class="btn-logout side-logout">
+                <span class="side-ico" aria-hidden="true">🚪</span>
+                <span class="side-txt">Sair da conta</span>
+              </button>
+            </div>
+           </aside>
 
             <div class="content">
                 <div class="top-actions" id="top-actions-materiais">
