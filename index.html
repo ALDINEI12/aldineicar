@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=37">
+    <link rel="stylesheet" href="style.min.css?v=38">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=36"></script>
+    <script src="script.min.js?v=38"></script>
 
     <style>
        
@@ -1166,6 +1166,15 @@ function mostrarSecao(id) {
             <input type="text" id="oficinaWhatsapp" placeholder="WhatsApp (DDD, ex: 75999999999)">
             <input type="text" id="oficinaInstagram" placeholder="Instagram (@usuario)">
             <input type="text" id="oficinaMaps" placeholder="Link Google Maps (opcional)">
+            <label style="font-size:11px; font-weight:bold; color:#a78bfa; display:block; margin-top:16px;">🎨 APARÊNCIA</label>
+            <p style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.45;">Escolha o tema claro ou escuro do aplicativo.</p>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+              <button type="button" id="btnToggleTema" onclick="alternarTemaApp()" style="flex:1;min-width:140px;padding:12px;border:none;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;background:#1e293b;color:#e2e8f0;">🌙 Tema escuro</button>
+              <select id="selectTemaApp" onchange="definirTemaApp(this.value)" style="flex:1;min-width:120px;padding:12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#fff;font-weight:700;">
+                <option value="light">Claro</option>
+                <option value="dark">Escuro</option>
+              </select>
+            </div>
             <label style="font-size:11px; font-weight:bold; color:#fbbf24; display:block; margin-top:16px;">⏰ ALARME DA AGENDA</label>
             <p style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.45;">Um dia antes de cada agendamento, o app avisa como um alarme do celular (notificação). O site precisa estar instalado ou aberto ao menos uma vez no dia para disparar.</p>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
@@ -1342,6 +1351,7 @@ function mostrarSecao(id) {
         <button type="button" onclick="mostrarAba('vendas');toggleMenuMais();"><span>💰</span> Vendas</button>
         <button type="button" onclick="mostrarAba('gastos');toggleMenuMais();"><span>💸</span> Gastos Oficina</button>
         <button type="button" onclick="mostrarAba('vitrine');toggleMenuMais();"><span>🌐</span> Vitrine</button>
+        <button type="button" onclick="alternarTemaApp();toggleMenuMais();"><span>🎨</span> Tema claro/escuro</button>
         <button type="button" onclick="abrirModalOficina();toggleMenuMais();"><span>⚙️</span> Configurar Oficina</button>
         <button type="button" class="menu-mais-sair" onclick="handleLogout();toggleMenuMais();"><span>🚪</span> Sair</button>
     </div>

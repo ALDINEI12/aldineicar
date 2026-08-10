@@ -710,3 +710,113 @@ button.side-hidden,
   .content { margin-left: var(--desk-side, 296px) !important; }
   .sidebar, aside.sidebar { width: var(--desk-side, 296px) !important; }
 }
+
+/* Bottom nav: permitir deslizar até o último item */
+@media (max-width:992px){
+  .bn-scroll{
+    scroll-snap-type: none !important;
+    padding-left: 10px !important;
+    padding-right: 28px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x !important;
+  }
+  .bn-item{
+    scroll-snap-align: none !important;
+    flex: 0 0 auto !important;
+    min-width: 64px !important;
+    max-width: none !important;
+  }
+  .bn-item .bn-label{
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* resumo mobile: começa fechado */
+  .resumo{
+    display: none !important;
+  }
+  .resumo.aberto{
+    display: block !important;
+  }
+}
+
+/* ===== Tema escuro ===== */
+html[data-theme="dark"]{
+  --bg:#0b1220;
+  --bg-2:#0f172a;
+  --surface:#111827;
+  --ink:#f1f5f9;
+  --ink-2:#e2e8f0;
+  --muted:#94a3b8;
+  --muted-2:#64748b;
+  --line:#1f2937;
+  --line-2:#334155;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.35);
+  --shadow-md:0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg:0 18px 50px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+html[data-theme="dark"] body{
+  background:var(--bg) !important;
+  color:var(--ink) !important;
+}
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .mat-card,
+html[data-theme="dark"] .grupo-card,
+html[data-theme="dark"] .cliente-item,
+html[data-theme="dark"] .hist-card,
+html[data-theme="dark"] .agenda-card,
+html[data-theme="dark"] .resumo,
+html[data-theme="dark"] .dash-patio-card,
+html[data-theme="dark"] .dash-agenda-card,
+html[data-theme="dark"] .cidade-pasta,
+html[data-theme="dark"] .rf-sheet,
+html[data-theme="dark"] .menu-mais-panel{
+  background:var(--surface) !important;
+  border-color:var(--line) !important;
+  color:var(--ink) !important;
+}
+html[data-theme="dark"] .cidade-pasta-head{
+  background:linear-gradient(180deg,#1e293b,#0f172a) !important;
+  color:var(--ink) !important;
+}
+html[data-theme="dark"] .cidade-pasta-head.aberta{
+  background:linear-gradient(180deg,#3b1d0f,#1c1209) !important;
+  border-bottom-color:#9a3412 !important;
+}
+html[data-theme="dark"] .cidade-pasta-body{background:#0f172a !important}
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea{
+  background:#0f172a !important;
+  color:var(--ink) !important;
+  border-color:var(--line-2) !important;
+}
+html[data-theme="dark"] .page-head h2,
+html[data-theme="dark"] .aba-container > h2,
+html[data-theme="dark"] .dash-hero-title,
+html[data-theme="dark"] .hist-nome,
+html[data-theme="dark"] strong{
+  color:var(--ink) !important;
+}
+html[data-theme="dark"] .dash-table th,
+html[data-theme="dark"] .dash-table td{
+  border-color:var(--line) !important;
+  color:var(--ink-2) !important;
+}
+html[data-theme="dark"] .dash-table th{background:#0f172a !important}
+html[data-theme="dark"] .content{background:transparent !important}
+html[data-theme="dark"] .chip-periodo,
+html[data-theme="dark"] .categorias-materiais button,
+html[data-theme="dark"] .dash-qa,
+html[data-theme="dark"] .agenda-chip{
+  background:#1e293b !important;
+  border-color:var(--line) !important;
+  color:var(--ink-2) !important;
+}
+html[data-theme="dark"] .modal .modal-content,
+html[data-theme="dark"] #modalOficina .modal-content{
+  background:#111827 !important;
+  color:var(--ink) !important;
+}
