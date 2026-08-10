@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=31">
+    <link rel="stylesheet" href="style.min.css?v=32">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=31"></script>
+    <script src="script.min.js?v=32"></script>
 
     <style>
        
@@ -1177,12 +1177,20 @@ function mostrarSecao(id) {
         </div>
       </section>
 
-      <!-- Pág 3: Gráfico -->
+      <!-- Pág 3: Gráfico doughnut -->
       <section class="rf-page" data-page="2">
-        <h3 class="rf-sec-title">Evolução no período</h3>
-        <div class="rf-chart-wrap">
-          <canvas id="graficoFinanceiroRf"></canvas>
+        <h3 class="rf-sec-title">Composição do período</h3>
+        <p class="rf-chart-sub" id="rfChartSub">Distribuição de receitas e custos</p>
+        <div class="rf-doughnut-box">
+          <div class="rf-chart-wrap rf-chart-doughnut">
+            <canvas id="graficoFinanceiroRf"></canvas>
+            <div class="rf-doughnut-center" id="rfDoughnutCenter">
+              <span id="rfDoughnutCenterLabel">Total</span>
+              <strong id="rfDoughnutCenterValor">R$ 0</strong>
+            </div>
+          </div>
         </div>
+        <div class="rf-legend" id="rfDoughnutLegend"></div>
         <div class="rf-mini-table-wrap">
           <table class="rf-mini-table">
             <thead><tr><th>Mês</th><th>Fat.</th><th>Lucro</th></tr></thead>
