@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=30">
+    <link rel="stylesheet" href="style.min.css?v=31">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=30"></script>
+    <script src="script.min.js?v=31"></script>
 
     <style>
        
@@ -1120,6 +1120,91 @@ function mostrarSecao(id) {
         </div>
     </div>
 
+
+
+<!-- ===== SUBTELA RESUMO FINANCEIRO (swipe) ===== -->
+<div id="rf-subtela" class="rf-overlay" style="display:none;" aria-hidden="true">
+  <div class="rf-sheet">
+    <header class="rf-head">
+      <button type="button" class="rf-close" onclick="fecharResumoFinanceiro()" aria-label="Fechar">✕</button>
+      <div class="rf-head-txt">
+        <h2>Resumo financeiro</h2>
+        <p id="rfPeriodoLabel">Período atual</p>
+      </div>
+      <button type="button" class="rf-eye" onclick="toggleDashValores()" title="Ocultar valores">👁</button>
+    </header>
+
+    <nav class="rf-dots" id="rfDots" aria-label="Páginas">
+      <button type="button" class="rf-dot active" data-page="0" onclick="rfIrPara(0)">Visão</button>
+      <button type="button" class="rf-dot" data-page="1" onclick="rfIrPara(1)">Detalhes</button>
+      <button type="button" class="rf-dot" data-page="2" onclick="rfIrPara(2)">Gráfico</button>
+      <button type="button" class="rf-dot" data-page="3" onclick="rfIrPara(3)">Opções</button>
+    </nav>
+
+    <div class="rf-track" id="rfTrack">
+      <!-- Pág 1: Visão geral -->
+      <section class="rf-page" data-page="0">
+        <div class="rf-hero-card">
+          <span class="rf-hero-label">Faturamento do período</span>
+          <strong class="rf-hero-valor" id="rfFatTotal">R$ 0,00</strong>
+          <span class="rf-hero-lucro" id="rfLucroTotal">Lucro: R$ 0,00</span>
+        </div>
+        <p class="rf-hint">Escolha o período</p>
+        <div class="rf-chips">
+          <button type="button" class="rf-chip" data-p="hoje" onclick="rfDefinirPeriodo('hoje')">Hoje</button>
+          <button type="button" class="rf-chip" data-p="ontem" onclick="rfDefinirPeriodo('ontem')">Ontem</button>
+          <button type="button" class="rf-chip" data-p="7dias" onclick="rfDefinirPeriodo('7dias')">7 dias</button>
+          <button type="button" class="rf-chip" data-p="mes" onclick="rfDefinirPeriodo('mes')">Este mês</button>
+          <button type="button" class="rf-chip" data-p="ano" onclick="rfDefinirPeriodo('ano')">Este ano</button>
+          <button type="button" class="rf-chip" data-p="tudo" onclick="rfDefinirPeriodo('tudo')">Tudo</button>
+        </div>
+        <div class="rf-custom">
+          <label>De <input type="date" id="rfDataInicio" onchange="rfAplicarDatas()"></label>
+          <label>Até <input type="date" id="rfDataFim" onchange="rfAplicarDatas()"></label>
+        </div>
+        <p class="rf-swipe-tip">Deslize para o lado → ver detalhes</p>
+      </section>
+
+      <!-- Pág 2: Detalhes KPIs -->
+      <section class="rf-page" data-page="1">
+        <div class="rf-kpi-grid">
+          <div class="rf-kpi rf-kpi-g"><span>Faturamento OS</span><strong id="rfKpiFatOrc">R$ 0,00</strong><small id="rfKpiFatOrcSub">—</small></div>
+          <div class="rf-kpi rf-kpi-p"><span>Serviços</span><strong id="rfKpiServ">R$ 0,00</strong><small id="rfKpiServSub">—</small></div>
+          <div class="rf-kpi rf-kpi-o"><span>Vendas loja</span><strong id="rfKpiVendas">R$ 0,00</strong><small id="rfKpiVendasSub">—</small></div>
+          <div class="rf-kpi rf-kpi-r"><span>Materiais</span><strong id="rfKpiMat">R$ 0,00</strong><small id="rfKpiMatSub">—</small></div>
+          <div class="rf-kpi rf-kpi-w"><span>Gastos oficina</span><strong id="rfKpiGastos">R$ 0,00</strong><small id="rfKpiGastosSub">—</small></div>
+          <div class="rf-kpi rf-kpi-b"><span>Lucro</span><strong id="rfKpiLucro">R$ 0,00</strong><small id="rfKpiLucroSub">—</small></div>
+        </div>
+      </section>
+
+      <!-- Pág 3: Gráfico -->
+      <section class="rf-page" data-page="2">
+        <h3 class="rf-sec-title">Evolução no período</h3>
+        <div class="rf-chart-wrap">
+          <canvas id="graficoFinanceiroRf"></canvas>
+        </div>
+        <div class="rf-mini-table-wrap">
+          <table class="rf-mini-table">
+            <thead><tr><th>Mês</th><th>Fat.</th><th>Lucro</th></tr></thead>
+            <tbody id="rfTabelaMensal"><tr><td colspan="3">Sem dados</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pág 4: Opções -->
+      <section class="rf-page" data-page="3">
+        <h3 class="rf-sec-title">Exportar e ações</h3>
+        <div class="rf-acoes">
+          <button type="button" class="rf-btn rf-btn-prim" onclick="exportarRelatorioDashboard('pdf')">📄 Exportar PDF</button>
+          <button type="button" class="rf-btn rf-btn-sec" onclick="exportarRelatorioDashboard('csv')">⬇ Exportar CSV</button>
+          <button type="button" class="rf-btn rf-btn-sec" onclick="rfIrPara(0)">📅 Trocar período</button>
+          <button type="button" class="rf-btn rf-btn-ghost" onclick="fecharResumoFinanceiro()">Fechar resumo</button>
+        </div>
+        <p class="rf-footnote" id="rfFootnote">Dados sincronizados com o dashboard.</p>
+      </section>
+    </div>
+  </div>
+</div>
 
 <!-- Bottom Navigation (mobile app style) -->
 <nav id="bottom-nav" class="bottom-nav" aria-label="Menu principal">

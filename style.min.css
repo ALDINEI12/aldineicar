@@ -134,3 +134,56 @@
 .chip-periodo.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 .badge-status.status-confirmado{background:#dbeafe;color:#1d4ed8}
 .badge-status.status-agendamento-tag{background:#f5f3ff;color:#6d28d9;font-size:10px}
+
+/* ===== Resumo Financeiro — subtela swipe ===== */
+.rf-overlay{position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.rf-sheet{width:100%;max-width:560px;height:min(92dvh,820px);background:#f8fafc;border-radius:20px 20px 0 0;display:flex;flex-direction:column;box-shadow:0 -12px 40px rgba(0,0,0,.25);overflow:hidden;animation:rfSlideUp .28s ease}
+@keyframes rfSlideUp{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.rf-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;flex-shrink:0}
+.rf-close,.rf-eye{width:40px;height:40px;border:none;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0}
+.rf-head-txt{flex:1;min-width:0}
+.rf-head-txt h2{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.rf-head-txt p{margin:2px 0 0;font-size:12px;color:#94a3b8;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-dots{display:flex;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid #e2e8f0;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.rf-dots::-webkit-scrollbar{display:none}
+.rf-dot{flex:0 0 auto;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer}
+.rf-dot.active{background:#0f172a;color:#fff;border-color:#0f172a}
+.rf-track{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.rf-track::-webkit-scrollbar{display:none}
+.rf-page{flex:0 0 100%;width:100%;scroll-snap-align:start;padding:16px 16px 28px;overflow-y:auto;box-sizing:border-box}
+.rf-hero-card{background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:18px;padding:20px;color:#1c1917;box-shadow:0 10px 28px rgba(245,158,11,.3);margin-bottom:16px}
+.rf-hero-label{display:block;font-size:12px;font-weight:700;opacity:.85;margin-bottom:4px}
+.rf-hero-valor{display:block;font-size:30px;font-weight:900;letter-spacing:-1px;line-height:1.15}
+.rf-hero-lucro{display:block;margin-top:8px;font-size:13px;font-weight:700;opacity:.9}
+.rf-hint{font-size:12px;font-weight:700;color:#64748b;margin:0 0 8px}
+.rf-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.rf-chip{border:1px solid #e2e8f0;background:#fff;color:#475569;padding:9px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer}
+.rf-chip.active{background:#0f172a;color:#fff;border-color:#0f172a}
+.rf-custom{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.rf-custom label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;color:#64748b}
+.rf-custom input{padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font-size:13px;font-weight:600;color:#0f172a}
+.rf-swipe-tip{text-align:center;font-size:12px;color:#94a3b8;font-weight:600;margin:18px 0 0}
+.rf-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rf-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.rf-kpi span{display:block;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.rf-kpi strong{display:block;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-.4px}
+.rf-kpi small{display:block;font-size:11px;color:#94a3b8;font-weight:600;margin-top:4px}
+.rf-kpi-g{border-left:4px solid #10b981}.rf-kpi-p{border-left:4px solid #8b5cf6}.rf-kpi-o{border-left:4px solid #f59e0b}
+.rf-kpi-r{border-left:4px solid #ef4444}.rf-kpi-w{border-left:4px solid #64748b}.rf-kpi-b{border-left:4px solid #2563eb}
+.rf-sec-title{margin:0 0 12px;font-size:15px;font-weight:800;color:#0f172a}
+.rf-chart-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:10px;height:240px;margin-bottom:14px;position:relative}
+.rf-chart-wrap canvas{max-height:220px !important}
+.rf-mini-table-wrap{overflow-x:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px}
+.rf-mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.rf-mini-table th,.rf-mini-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1f5f9}
+.rf-mini-table th{font-size:10px;text-transform:uppercase;color:#64748b;font-weight:800;background:#f8fafc}
+.rf-acoes{display:flex;flex-direction:column;gap:10px}
+.rf-btn{width:100%;padding:14px 16px;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;text-align:center}
+.rf-btn-prim{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;box-shadow:0 8px 18px rgba(220,38,38,.28)}
+.rf-btn-sec{background:#fff;color:#0f172a;border:1px solid #e2e8f0}
+.rf-btn-ghost{background:transparent;color:#64748b;border:1px dashed #cbd5e1}
+.rf-footnote{margin:16px 0 0;font-size:12px;color:#94a3b8;text-align:center;font-weight:600}
+@media (min-width:640px){
+  .rf-overlay{align-items:center;padding:20px}
+  .rf-sheet{border-radius:20px;height:min(88vh,760px)}
+}
