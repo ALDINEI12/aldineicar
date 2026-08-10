@@ -1,5 +1,5 @@
 /* ALDINEICAR Service Worker — cache estático + rede para API */
-const CACHE_NAME = 'aldineicar-v42';
+const CACHE_NAME = 'aldineicar-v43';
 const ASSETS = [
   './',
   './index.html',
@@ -119,6 +119,29 @@ self.addEventListener('fetch', function (event) {
           return cached;
         });
       return cached || network;
+    })
+  );
+});
+
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var url = './index.html';
+  try {
+    if (event.notification && event.notification.data && event.notification.data.url) {
+      url = event.notification.data.url;
+    }
+  } catch (e) {}
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        var c = clientList[i];
+        if (c.url && 'focus' in c) {
+          c.postMessage({ type: 'ALARME_AGENDA_CLICK', data: (event.notification && event.notification.data) || {} });
+          return c.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
     })
   );
 });

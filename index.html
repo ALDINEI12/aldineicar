@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=32">
+    <link rel="stylesheet" href="style.min.css?v=33">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=32"></script>
+    <script src="script.min.js?v=33"></script>
 
     <style>
        
@@ -1102,6 +1102,15 @@ function mostrarSecao(id) {
             <input type="text" id="oficinaWhatsapp" placeholder="WhatsApp (DDD, ex: 75999999999)">
             <input type="text" id="oficinaInstagram" placeholder="Instagram (@usuario)">
             <input type="text" id="oficinaMaps" placeholder="Link Google Maps (opcional)">
+            <label style="font-size:11px; font-weight:bold; color:#fbbf24; display:block; margin-top:16px;">⏰ ALARME DA AGENDA</label>
+            <p style="font-size:11px;color:#94a3b8;margin:4px 0 10px;line-height:1.45;">Um dia antes de cada agendamento, o app avisa como um alarme do celular (notificação). O site precisa estar instalado ou aberto ao menos uma vez no dia para disparar.</p>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+              <button type="button" id="btn-toggle-notif" onclick="alternarNotificacoes()" style="flex:1;min-width:140px;padding:12px;border:none;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;background:#10b981;color:#fff;">🔔 Ativadas</button>
+              <label style="font-size:12px;color:#e2e8f0;font-weight:700;">Horário do aviso
+                <input type="time" id="alarmeAgendaHora" value="18:00" onchange="salvarHoraAlarmeAgenda(this.value)" style="display:block;margin-top:4px;padding:10px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#fff;font-weight:700;">
+              </label>
+            </div>
+            <button type="button" onclick="testarAlarmeAgenda()" style="width:100%;padding:11px;margin-bottom:10px;background:#334155;color:#e2e8f0;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">🔔 Testar alarme agora</button>
             <button class="btn-green" onclick="salvarDadosOficina()">Salvar Dados</button>
             <button class="btn-primary" onclick="fecharModalOficina()">Fechar</button>
         </div>
