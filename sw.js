@@ -1,5 +1,5 @@
 /* ALDINEICAR Service Worker — cache estático + rede para API */
-const CACHE_NAME = 'aldineicar-v45';
+const CACHE_NAME = 'aldineicar-v46';
 const ASSETS = [
   './',
   './index.html',

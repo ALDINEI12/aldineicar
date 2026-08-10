@@ -586,3 +586,80 @@
   .resumo{width:410px}
   .cards{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 }
+
+/* Admin oculto (vence display:!important do menu) */
+.side-hidden,
+button.side-hidden,
+.sidebar .side-hidden,
+.sidebar button.side-hidden,
+.bn-item.side-hidden{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+
+/* Pastas por cidade (Clientes / Serviços) */
+.cidade-pasta{
+  margin-bottom:12px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:#fff;
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+.cidade-pasta-head{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  border:none;
+  background:linear-gradient(180deg,#f8fafc,#f1f5f9);
+  cursor:pointer;
+  text-align:left;
+  font-weight:800;
+  color:#0f172a;
+  transition:background .15s ease;
+}
+.cidade-pasta-head:hover{background:#eef2f7}
+.cidade-pasta-head.aberta{background:linear-gradient(180deg,#fff7ed,#ffedd5);border-bottom:1px solid #fed7aa}
+.cidade-pasta-ico{font-size:18px}
+.cidade-pasta-nome{flex:1;font-size:14px;letter-spacing:-.2px}
+.cidade-pasta-qtd{
+  font-size:11px;font-weight:800;
+  background:#0f172a;color:#fff;
+  padding:3px 9px;border-radius:999px;
+  min-width:24px;text-align:center;
+}
+.cidade-pasta-head.aberta .cidade-pasta-qtd{background:#c2410c}
+.cidade-chev{color:#64748b;font-size:14px;font-weight:900;width:18px;text-align:center}
+.cidade-pasta-body{padding:10px 12px 12px;background:#fafbfc}
+.cidade-pasta-body .cliente-item,
+.cidade-pasta-body .hist-card{
+  margin-bottom:10px;
+}
+.cidade-pasta-body .cliente-item:last-child,
+.cidade-pasta-body .hist-card:last-child{margin-bottom:0}
+
+@media (min-width:993px){
+  /* Menu fixo — não desce com o scroll do conteúdo */
+  .container{
+    align-items:flex-start;
+  }
+  .sidebar,
+  aside.sidebar{
+    position:sticky !important;
+    top:var(--header-h,70px) !important;
+    height:calc(100dvh - var(--header-h,70px)) !important;
+    max-height:calc(100dvh - var(--header-h,70px)) !important;
+    overflow:hidden !important;
+    align-self:flex-start !important;
+  }
+  .side-nav{
+    overflow-y:auto !important;
+    overscroll-behavior:contain;
+  }
+  .side-foot{
+    flex-shrink:0;
+  }
+}
