@@ -1736,3 +1736,66 @@ html[data-theme="dark"] .cal-cell-sel{
 html[data-theme="dark"] .cal-badge{
   color:#fff !important;
 }
+
+/* ===== Agenda calendário — dark mode (prioridade máxima) ===== */
+html[data-theme="dark"] #aba-agenda .cal-wrap{
+  background:#0f172a !important;
+  border-color:#334155 !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid button.cal-cell,
+html[data-theme="dark"] #aba-agenda #cal-grid .cal-cell,
+html[data-theme="dark"] #aba-agenda button.cal-cell,
+html[data-theme="dark"] #aba-agenda .cal-cell{
+  background-color:#1e293b !important;
+  background-image:none !important;
+  border:1px solid #475569 !important;
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid button.cal-cell-has,
+html[data-theme="dark"] #aba-agenda .cal-cell-has{
+  background-color:#1e293b !important;
+  background-image:none !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid button.cal-cell-hoje,
+html[data-theme="dark"] #aba-agenda .cal-cell-hoje{
+  background-color:#172554 !important;
+  border-color:#3b82f6 !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid button.cal-cell-sel,
+html[data-theme="dark"] #aba-agenda .cal-cell-sel{
+  background-color:#1e293b !important;
+  background:#1e293b !important;
+  border-color:#f87171 !important;
+  box-shadow:0 0 0 2px rgba(248,113,113,.35) !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid .cal-num,
+html[data-theme="dark"] #aba-agenda .cal-cell .cal-num{
+  color:#f8fafc !important;
+  background:transparent !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-cell-hoje .cal-num{
+  background:#2563eb !important;
+  color:#ffffff !important;
+}
+html[data-theme="dark"] #aba-agenda #cal-grid .cal-nome-evt,
+html[data-theme="dark"] #aba-agenda .cal-nome-evt,
+html[data-theme="dark"] #aba-agenda .cal-cell-body,
+html[data-theme="dark"] #aba-agenda .cal-cell-body *{
+  color:#e2e8f0 !important;
+}
+/* badges: sem amarelo/branco ilegível */
+html[data-theme="dark"] #aba-agenda .cal-badge-pend{
+  background:#854d0e !important;
+  color:#fef3c7 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-badge-conc{
+  background:#065f46 !important;
+  color:#a7f3d0 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-badge-canc{
+  background:#9f1239 !important;
+  color:#fecdd3 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-badge{
+  border:none !important;
+}
