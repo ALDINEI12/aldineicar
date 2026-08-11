@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=70">
+    <link rel="stylesheet" href="style.min.css?v=80">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=70"></script>
+    <script src="script.min.js?v=80"></script>
 
     <style>
        
@@ -573,7 +573,7 @@ function mostrarSecao(id) {
                             </div>
 
                             <div class="dash-chart-card">
-                                <h3 style="margin:0 0 12px;font-size:15px;font-weight:800;color:#0f172a;">Evolução no período</h3>
+                                <h3 style="margin:0 0 12px;font-size:15px;font-weight:800;color:var(--ink);">Evolução no período</h3>
                                 <div class="dash-chart-wrap">
                                     <canvas id="graficoFinanceiro"></canvas>
                                 </div>
@@ -610,10 +610,10 @@ function mostrarSecao(id) {
                         <div id="aba-vendas" style="display:none;">
                             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
                                 <div>
-                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:#0f172a;">💰 Vendas de Produtos</h2>
-                                    <p style="font-size:13px; color:#64748b; margin:4px 0 0 0;">Vendas da vitrine virtual e balcão — separadas dos orçamentos.</p>
+                                    <h2 style="font-size:22px; font-weight:800; margin:0; color:var(--ink);">💰 Vendas de Produtos</h2>
+                                    <p style="font-size:13px; color:var(--muted); margin:4px 0 0 0;">Vendas da vitrine virtual e balcão — separadas dos orçamentos.</p>
                                 </div>
-                                <button onclick="renderizarListaVendasExclusiva()" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🔄 Atualizar</button>
+                                <button onclick="renderizarListaVendasExclusiva()" style="background:var(--bg-2); color:var(--ink); border:1px solid #cbd5e1; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🔄 Atualizar</button>
                             </div>
                             <div class="dash-chart-card">
                                 <div style="overflow-x:auto;">
@@ -718,34 +718,34 @@ function mostrarSecao(id) {
                         </div>
 
                         <div id="modal-novo-agendamento" class="modal" style="display:none;">
-                            <div class="modal-content" style="background:#fff; color:#0f172a; max-width:460px; border:1px solid #e2e8f0;">
-                                <h3 style="font-size:18px; font-weight:800; margin:0 0 6px; color:#0f172a;">＋ Novo Agendamento</h3>
-                                <p style="font-size:13px; color:#64748b; margin:0 0 18px;">Crie um horário direto pelo painel.</p>
+                            <div class="modal-content" style="background:var(--surface); color:var(--ink); max-width:460px; border:1px solid #e2e8f0;">
+                                <h3 style="font-size:18px; font-weight:800; margin:0 0 6px; color:var(--ink);">＋ Novo Agendamento</h3>
+                                <p style="font-size:13px; color:var(--muted); margin:0 0 18px;">Crie um horário direto pelo painel.</p>
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Nome do cliente *</label>
-                                <input type="text" id="agdNome" placeholder="Ex: João Silva" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="text" id="agdNome" placeholder="Ex: João Silva" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Telefone / WhatsApp</label>
-                                <input type="text" id="agdTel" placeholder="(75) 99999-9999" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="text" id="agdTel" placeholder="(75) 99999-9999" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Veículo / Equipamento</label>
-                                <input type="text" id="agdVeiculo" placeholder="Ex: Gol 2018" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="text" id="agdVeiculo" placeholder="Ex: Gol 2018" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Serviço</label>
-                                <input type="text" id="agdServico" placeholder="Ex: Pintura" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="text" id="agdServico" placeholder="Ex: Pintura" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Valor do serviço <span style="font-weight:500;color:#94a3b8;">(opcional)</span></label>
-                                <input type="number" id="agdValor" inputmode="decimal" min="0" step="0.01" placeholder="Ex: 150,00 — deixe em branco se ainda não souber" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                <input type="number" id="agdValor" inputmode="decimal" min="0" step="0.01" placeholder="Ex: 150,00 — deixe em branco se ainda não souber" style="width:100%; padding:11px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
                                     <div style="flex:1; min-width:140px;">
                                         <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Data *</label>
-                                        <input type="date" id="agdData" style="width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;">
+                                        <input type="date" id="agdData" style="width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);">
                                     </div>
                                     <div style="flex:1; min-width:120px;">
                                         <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Horário *</label>
-                                        <select id="agdHora" style="width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a;"><option value="">Selecione</option></select>
+                                        <select id="agdHora" style="width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink);"><option value="">Selecione</option></select>
                                     </div>
                                 </div>
                                 <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Observações</label>
-                                <textarea id="agdObs" placeholder="Opcional..." style="width:100%; height:70px; padding:11px; margin-bottom:16px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#f8fafc; color:#0f172a; resize:none;"></textarea>
+                                <textarea id="agdObs" placeholder="Opcional..." style="width:100%; height:70px; padding:11px; margin-bottom:16px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:var(--bg-2); color:var(--ink); resize:none;"></textarea>
                                 <div style="display:flex; gap:10px;">
                                     <button type="button" onclick="salvarNovoAgendamento()" style="flex:2; padding:13px; background:#e11d48; color:white; border:none; border-radius:8px; font-weight:700; font-size:14px; cursor:pointer;">Salvar</button>
-                                    <button type="button" onclick="fecharModalNovoAgendamento()" style="flex:1; padding:13px; background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer;">Cancelar</button>
+                                    <button type="button" onclick="fecharModalNovoAgendamento()" style="flex:1; padding:13px; background:var(--bg-2); color:var(--muted); border:1px solid #e2e8f0; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer;">Cancelar</button>
                                 </div>
                             </div>
                         </div>
@@ -837,9 +837,9 @@ function mostrarSecao(id) {
                                 <summary class="grupo-card-summary">✏️ Textos da vitrine</summary>
                                 <div class="grupo-card-body">
                                     <label class="loja-label">Título principal</label>
-                                    <input type="text" id="vitrineHeroTitulo" placeholder="Peças e serviços para o seu veículo" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <input type="text" id="vitrineHeroTitulo" placeholder="Peças e serviços para o seu veículo" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     <label class="loja-label">Subtítulo</label>
-                                    <textarea id="vitrineHeroSub" placeholder="Escolha um produto ou agende um atendimento..." style="width:100%;height:64px;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;resize:none;"></textarea>
+                                    <textarea id="vitrineHeroSub" placeholder="Escolha um produto ou agende um atendimento..." style="width:100%;height:64px;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);resize:none;"></textarea>
                                     <button type="button" class="btn-loja-prim" onclick="salvarTextosVitrine()">💾 Salvar textos da vitrine</button>
                                     <p class="grupo-hint" style="margin-top:8px;margin-bottom:0;">Aparece na página pública do cliente. Toque para expandir/recolher.</p>
                                 </div>
@@ -861,10 +861,10 @@ function mostrarSecao(id) {
                                             <button type="button" class="btn-foto-remover" onclick="limparFotoServicoVitrine()">Remover</button>
                                         </div>
                                     </div>
-                                    <input type="text" id="servVitrineNome" placeholder="Nome do serviço (ex: Polimento técnico)" style="width:100%;margin:10px 0 8px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <input type="text" id="servVitrineNome" placeholder="Nome do serviço (ex: Polimento técnico)" style="width:100%;margin:10px 0 8px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-                                        <input type="number" id="servVitrinePreco" step="0.01" placeholder="Preço R$" style="flex:1;min-width:110px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
-                                        <input type="text" id="servVitrineDesc" placeholder="Descrição curta (opcional)" style="flex:2;min-width:140px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                        <input type="number" id="servVitrinePreco" step="0.01" placeholder="Preço R$" style="flex:1;min-width:110px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
+                                        <input type="text" id="servVitrineDesc" placeholder="Descrição curta (opcional)" style="flex:2;min-width:140px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     </div>
                                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                                         <button type="button" class="btn-loja-prim" id="btnSalvarServicoVitrine" onclick="adicionarServicoVitrine()">＋ Adicionar serviço</button>
@@ -893,13 +893,13 @@ function mostrarSecao(id) {
 
                         <!-- Modal produto -->
                         <div id="modal-cadastro-produto" class="modal" style="display:none;">
-                            <div class="modal-content" style="background:#fff;color:#0f172a;max-width:460px;border:1px solid #e2e8f0;">
-                                <h3 id="titulo-modal-produto" style="margin:0 0 14px;font-size:17px;font-weight:800;color:#0f172a;">Novo Produto</h3>
+                            <div class="modal-content" style="background:#fff;color:var(--ink);max-width:460px;border:1px solid #e2e8f0;">
+                                <h3 id="titulo-modal-produto" style="margin:0 0 14px;font-size:17px;font-weight:800;color:var(--ink);">Novo Produto</h3>
                                 <input type="hidden" id="editandoId">
 
                                 <label class="loja-label">Categoria *</label>
                                 <div style="display:flex;gap:8px;margin-bottom:12px;">
-                                    <select id="prodCategoria" style="flex:1;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;"></select>
+                                    <select id="prodCategoria" style="flex:1;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);"></select>
                                     <button type="button" onclick="promptNovaCategoriaLoja(true)" style="padding:10px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">＋ Nova</button>
                                 </div>
 
@@ -915,32 +915,32 @@ function mostrarSecao(id) {
                                 </div>
 
                                 <label class="loja-label">Nome do produto *</label>
-                                <input type="text" id="prodNome" placeholder="Ex: Pastilha de freio" style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                <input type="text" id="prodNome" placeholder="Ex: Pastilha de freio" style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
 
                                 <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
                                     <div style="flex:1;min-width:120px;">
                                         <label class="loja-label">Preço (R$) *</label>
-                                        <input type="number" id="prodPreco" step="0.01" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                        <input type="number" id="prodPreco" step="0.01" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     </div>
                                     <div style="flex:1;min-width:100px;">
                                         <label class="loja-label">Estoque</label>
-                                        <input type="number" id="prodEstoque" placeholder="0" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                        <input type="number" id="prodEstoque" placeholder="0" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     </div>
                                 </div>
 
                                 <label class="loja-label">Descrição</label>
-                                <textarea id="prodDesc" placeholder="Detalhes..." style="width:100%;height:70px;margin-bottom:16px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;resize:none;"></textarea>
+                                <textarea id="prodDesc" placeholder="Detalhes..." style="width:100%;height:70px;margin-bottom:16px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);resize:none;"></textarea>
 
                                 <div style="display:flex;gap:10px;">
                                     <button type="button" onclick="salvarProdutoLoja()" style="flex:2;padding:12px;background:#10b981;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">Salvar</button>
-                                    <button type="button" onclick="fecharModalProduto()" style="flex:1;padding:12px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-weight:600;cursor:pointer;">Cancelar</button>
+                                    <button type="button" onclick="fecharModalProduto()" style="flex:1;padding:12px;background:var(--bg-2);color:var(--muted);border:1px solid #e2e8f0;border-radius:8px;font-weight:600;cursor:pointer;">Cancelar</button>
                                 </div>
                             </div>
                         </div>
 
 <div id="aba-historico" style="display:none">
                             <h2>Serviços</h2>
-                            <p id="historicoMeta" style="font-size:13px;color:#64748b;margin:6px 0 0;"></p>
+                            <p id="historicoMeta" style="font-size:13px;color:var(--muted);margin:6px 0 0;"></p>
                             <div id="historicoLista" style="margin-top: 15px;"></div>
                         </div>
 
@@ -950,7 +950,7 @@ function mostrarSecao(id) {
                             <div class="page-head">
                                 <div class="page-head-text">
                                     <h2>👑 Painel Admin</h2>
-                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Gestão global do ALDINEICAR</p>
+                                    <p style="font-size:13px;color:var(--muted);margin:4px 0 0;">Gestão global do ALDINEICAR</p>
                                 </div>
                                 <button type="button" class="btn-page-action" onclick="carregarPainelAdmin()">Atualizar tudo</button>
                             </div>
@@ -981,7 +981,7 @@ function mostrarSecao(id) {
                             <div class="page-head">
                                 <div class="page-head-text">
                                     <h2>💸 Gastos Oficina</h2>
-                                    <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Despesas do mês (aluguel, energia, salários…). Entram automaticamente no Dashboard e no lucro.</p>
+                                    <p style="font-size:13px;color:var(--muted);margin:4px 0 0;">Despesas do mês (aluguel, energia, salários…). Entram automaticamente no Dashboard e no lucro.</p>
                                 </div>
                             </div>
 
@@ -994,21 +994,21 @@ function mostrarSecao(id) {
                                     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
                                         <div style="flex:1;min-width:140px;">
                                             <label class="loja-label">Data *</label>
-                                            <input type="date" id="gastoData" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                            <input type="date" id="gastoData" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                         </div>
                                         <div style="flex:1;min-width:140px;">
                                             <label class="loja-label">Categoria</label>
-                                            <select id="gastoCategoria" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;"></select>
+                                            <select id="gastoCategoria" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);"></select>
                                         </div>
                                         <div style="flex:1;min-width:120px;">
                                             <label class="loja-label">Valor (R$) *</label>
-                                            <input type="number" id="gastoValor" step="0.01" min="0" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                            <input type="number" id="gastoValor" step="0.01" min="0" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                         </div>
                                     </div>
                                     <label class="loja-label">Descrição *</label>
-                                    <input type="text" id="gastoDescricao" placeholder="Ex: Conta de luz julho" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <input type="text" id="gastoDescricao" placeholder="Ex: Conta de luz julho" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     <label class="loja-label">Observação (opcional)</label>
-                                    <input type="text" id="gastoObs" placeholder="Detalhe extra..." style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:#f8fafc;color:#0f172a;">
+                                    <input type="text" id="gastoObs" placeholder="Detalhe extra..." style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
                                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                                         <button type="button" class="btn-loja-prim" id="btnSalvarGasto" onclick="salvarGastoOficina()">＋ Adicionar despesa</button>
                                         <button type="button" class="btn-loja-sec" id="btnCancelarEditGasto" style="display:none;" onclick="cancelarEdicaoGasto()">Cancelar edição</button>
@@ -1020,7 +1020,7 @@ function mostrarSecao(id) {
                                 <div class="grupo-card-head" style="flex-wrap:wrap;gap:10px;">
                                     <span>Despesas do mês</span>
                                     <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;">
-                                        <input type="month" id="gastosFiltroMes" onchange="onFiltroMesGastosChange()" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;background:#fff;color:#0f172a;">
+                                        <input type="month" id="gastosFiltroMes" onchange="onFiltroMesGastosChange()" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;background:#fff;color:var(--ink);">
                                         <strong id="gastosTotalMes" style="color:#dc2626;font-size:15px;">R$ 0,00</strong>
                                         <span id="gastosContagemMes" class="grupo-card-sub">—</span>
                                     </div>
