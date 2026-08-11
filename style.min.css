@@ -1080,3 +1080,296 @@ html[data-theme="dark"] [style*="background:#f1f5f9"]{
   background:#151c2c !important;
   color:#e2e8f0 !important;
 }
+
+/* =========================================================
+   TEMA ESCURO — Materiais / Agenda / Vitrine / Loja
+   ========================================================= */
+html[data-theme="dark"] #aba-materiais,
+html[data-theme="dark"] #aba-agenda,
+html[data-theme="dark"] #aba-vitrine,
+html[data-theme="dark"] #aba-loja{
+  color:#f1f5f9 !important;
+}
+
+/* ---- MATERIAIS ---- */
+html[data-theme="dark"] #aba-materiais .mat-card,
+html[data-theme="dark"] #aba-materiais .card.mat-card{
+  background:#151c2c !important;
+  border:1px solid #334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] #aba-materiais .mat-nome,
+html[data-theme="dark"] #aba-materiais .mat-line1,
+html[data-theme="dark"] #aba-materiais .mat-line1 h3,
+html[data-theme="dark"] #aba-materiais .card h3{
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] #aba-materiais .mat-preco,
+html[data-theme="dark"] #aba-materiais .mat-line2,
+html[data-theme="dark"] #aba-materiais .preco{
+  color:#4ade80 !important;
+}
+html[data-theme="dark"] #aba-materiais .qtd{
+  color:#f8fafc !important;
+  font-weight:900 !important;
+}
+html[data-theme="dark"] #aba-materiais .controls{
+  background:#0f172a !important;
+  border-color:#334155 !important;
+}
+html[data-theme="dark"] #aba-materiais .btn-minus{
+  background:#1e293b !important;
+  color:#e2e8f0 !important;
+  border:1px solid #475569 !important;
+}
+html[data-theme="dark"] #aba-materiais .btn-plus{
+  background:#dc2626 !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] #aba-materiais .mat-icon-btn{
+  background:#1e293b !important;
+  color:#e2e8f0 !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] #aba-materiais .mat-card-ativo{
+  border-color:#f87171 !important;
+  box-shadow:0 0 0 1px rgba(248,113,113,.35),0 8px 24px rgba(0,0,0,.35) !important;
+}
+html[data-theme="dark"] #aba-materiais .categorias-materiais button,
+html[data-theme="dark"] #botoesCategorias button{
+  background:#1e293b !important;
+  color:#e2e8f0 !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] #aba-materiais .categorias-materiais button.active,
+html[data-theme="dark"] #botoesCategorias button.active{
+  background:#dc2626 !important;
+  color:#fff !important;
+  border-color:#dc2626 !important;
+}
+html[data-theme="dark"] #aba-materiais .page-head h2,
+html[data-theme="dark"] #aba-materiais h2{
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] #aba-materiais .top-actions button,
+html[data-theme="dark"] .top-actions .btn-primary,
+html[data-theme="dark"] .top-actions .btn-green{
+  color:#fff !important;
+}
+
+/* ---- AGENDA ---- */
+html[data-theme="dark"] #aba-agenda h2,
+html[data-theme="dark"] #aba-agenda h3,
+html[data-theme="dark"] #aba-agenda .cal-mes-label,
+html[data-theme="dark"] #aba-agenda #cal-dia-titulo{
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-nav-btn,
+html[data-theme="dark"] #aba-agenda .cal-chip{
+  background:#1e293b !important;
+  border:1px solid #334155 !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-chip:hover,
+html[data-theme="dark"] #aba-agenda .cal-nav-btn:hover{
+  background:#334155 !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-resumo{
+  background:linear-gradient(135deg,#0f172a,#1e293b) !important;
+  color:#fff !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-resumo-sub,
+html[data-theme="dark"] #aba-agenda .cal-kpi-label{
+  color:#94a3b8 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-kpi{
+  background:rgba(255,255,255,.06) !important;
+  border-color:rgba(255,255,255,.1) !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-kpi-val{
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-weekdays span,
+html[data-theme="dark"] #aba-agenda .cal-weekdays div{
+  color:#94a3b8 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-cell{
+  background:#151c2c !important;
+  border:1px solid #334155 !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-cell strong,
+html[data-theme="dark"] #aba-agenda .cal-cell span,
+html[data-theme="dark"] #aba-agenda .cal-cell .cal-day-num{
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-cell:hover{
+  border-color:#64748b !important;
+  background:#1e293b !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-cell.selected,
+html[data-theme="dark"] #aba-agenda .cal-cell.cal-selected,
+html[data-theme="dark"] #aba-agenda .cal-cell.hoje,
+html[data-theme="dark"] #aba-agenda .cal-cell.cal-hoje{
+  border-color:#dc2626 !important;
+  background:#1c1212 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-dia-painel,
+html[data-theme="dark"] #aba-agenda .cal-wrap{
+  background:transparent !important;
+}
+html[data-theme="dark"] #aba-agenda .ag-item,
+html[data-theme="dark"] #aba-agenda .agenda-card,
+html[data-theme="dark"] #aba-agenda .cal-empty-card{
+  background:#151c2c !important;
+  border:1px solid #334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] #aba-agenda .ag-item strong,
+html[data-theme="dark"] #aba-agenda .ag-item p,
+html[data-theme="dark"] #aba-agenda .ag-item span,
+html[data-theme="dark"] #aba-agenda .cal-empty-card p{
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-agenda .ag-day{
+  background:#0f172a !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] #aba-agenda .agenda-filtros-bar button,
+html[data-theme="dark"] #aba-agenda .agenda-chip{
+  background:#1e293b !important;
+  color:#e2e8f0 !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] #aba-agenda .agenda-filtros-bar button.active,
+html[data-theme="dark"] #aba-agenda .agenda-chip.active{
+  background:#dc2626 !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] #aba-agenda select,
+html[data-theme="dark"] #aba-agenda .select-status-inline{
+  background:#1e293b !important;
+  color:#f1f5f9 !important;
+  border-color:#475569 !important;
+}
+html[data-theme="dark"] #aba-agenda .cal-empty{
+  color:#94a3b8 !important;
+}
+
+/* ---- LOJA ---- */
+html[data-theme="dark"] #aba-loja,
+html[data-theme="dark"] #aba-loja h2,
+html[data-theme="dark"] #aba-loja h3,
+html[data-theme="dark"] #aba-loja p,
+html[data-theme="dark"] #aba-loja label,
+html[data-theme="dark"] #aba-loja span,
+html[data-theme="dark"] #aba-loja strong{
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-loja .card,
+html[data-theme="dark"] #aba-loja .produto-card,
+html[data-theme="dark"] #aba-loja .grid-produtos > div,
+html[data-theme="dark"] #aba-loja [class*="produto"]{
+  background:#151c2c !important;
+  border-color:#334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] #aba-loja .categorias-materiais button,
+html[data-theme="dark"] #botoesCategoriasLoja button{
+  background:#1e293b !important;
+  color:#e2e8f0 !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] #aba-loja .categorias-materiais button.active,
+html[data-theme="dark"] #botoesCategoriasLoja button.active{
+  background:#dc2626 !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] #aba-loja input,
+html[data-theme="dark"] #aba-loja select,
+html[data-theme="dark"] #aba-loja textarea{
+  background:#0f172a !important;
+  color:#f1f5f9 !important;
+  border-color:#475569 !important;
+}
+html[data-theme="dark"] #aba-loja button.btn-primary,
+html[data-theme="dark"] #aba-loja button.btn-green{
+  color:#fff !important;
+}
+
+/* ---- VITRINE (painel interno) ---- */
+html[data-theme="dark"] #aba-vitrine,
+html[data-theme="dark"] #aba-vitrine h2,
+html[data-theme="dark"] #aba-vitrine h3,
+html[data-theme="dark"] #aba-vitrine p,
+html[data-theme="dark"] #aba-vitrine label,
+html[data-theme="dark"] #aba-vitrine span,
+html[data-theme="dark"] #aba-vitrine strong,
+html[data-theme="dark"] #aba-vitrine small{
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-vitrine .card,
+html[data-theme="dark"] #aba-vitrine .grupo-card,
+html[data-theme="dark"] #aba-vitrine .servico-admin-item,
+html[data-theme="dark"] #aba-vitrine .vt-card,
+html[data-theme="dark"] #lista-servicos-vitrine-admin > div{
+  background:#151c2c !important;
+  border-color:#334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] #aba-vitrine input,
+html[data-theme="dark"] #aba-vitrine select,
+html[data-theme="dark"] #aba-vitrine textarea{
+  background:#0f172a !important;
+  color:#f1f5f9 !important;
+  border-color:#475569 !important;
+}
+html[data-theme="dark"] #aba-vitrine .grupo-card-head{
+  background:#1e293b !important;
+  color:#f1f5f9 !important;
+  border-color:#334155 !important;
+}
+html[data-theme="dark"] #aba-vitrine .grupo-card-body{
+  background:#151c2c !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] #aba-vitrine button{
+  /* mantém contraste; textos claros em botões escuros */
+}
+html[data-theme="dark"] #aba-vitrine .btn-primary,
+html[data-theme="dark"] #aba-vitrine .btn-green{
+  color:#fff !important;
+}
+
+/* Inline common in these tabs */
+html[data-theme="dark"] #aba-materiais [style*="color:#0f172a"],
+html[data-theme="dark"] #aba-agenda [style*="color:#0f172a"],
+html[data-theme="dark"] #aba-loja [style*="color:#0f172a"],
+html[data-theme="dark"] #aba-vitrine [style*="color:#0f172a"],
+html[data-theme="dark"] #aba-materiais [style*="color:#333"],
+html[data-theme="dark"] #aba-agenda [style*="color:#333"],
+html[data-theme="dark"] #aba-loja [style*="color:#333"],
+html[data-theme="dark"] #aba-vitrine [style*="color:#333"],
+html[data-theme="dark"] #aba-materiais [style*="color:#555"],
+html[data-theme="dark"] #aba-agenda [style*="color:#555"],
+html[data-theme="dark"] #aba-loja [style*="color:#555"],
+html[data-theme="dark"] #aba-vitrine [style*="color:#555"],
+html[data-theme="dark"] #aba-materiais [style*="color:#64748b"],
+html[data-theme="dark"] #aba-agenda [style*="color:#64748b"],
+html[data-theme="dark"] #aba-loja [style*="color:#64748b"],
+html[data-theme="dark"] #aba-vitrine [style*="color:#64748b"]{
+  color:#cbd5e1 !important;
+}
+html[data-theme="dark"] #aba-materiais [style*="background:#fff"],
+html[data-theme="dark"] #aba-agenda [style*="background:#fff"],
+html[data-theme="dark"] #aba-loja [style*="background:#fff"],
+html[data-theme="dark"] #aba-vitrine [style*="background:#fff"],
+html[data-theme="dark"] #aba-materiais [style*="background:#f8fafc"],
+html[data-theme="dark"] #aba-agenda [style*="background:#f8fafc"],
+html[data-theme="dark"] #aba-loja [style*="background:#f8fafc"],
+html[data-theme="dark"] #aba-vitrine [style*="background:#f8fafc"]{
+  background:#151c2c !important;
+  color:#e2e8f0 !important;
+}
