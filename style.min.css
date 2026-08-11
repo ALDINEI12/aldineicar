@@ -1541,3 +1541,198 @@ html[data-theme="dark"] #btn-fechar-resumo{
   background:#334155 !important;
   color:#f1f5f9 !important;
 }
+
+/* =========================================================
+   TEMA ESCURO — Resumo / Agenda nomes / Loja categorias
+   ========================================================= */
+
+/* RESUMO (orçamento) — elimina fundos brancos */
+html[data-theme="dark"] .resumo,
+html[data-theme="dark"] .resumo *{
+  border-color:#334155 !important;
+}
+html[data-theme="dark"] .resumo{
+  background:#111827 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] .resumo-header-bar,
+html[data-theme="dark"] .resumo-header-bar h2,
+html[data-theme="dark"] .resumo h2{
+  color:#f8fafc !important;
+  background:transparent !important;
+}
+html[data-theme="dark"] .resumo-totais,
+html[data-theme="dark"] .resumo-total-item,
+html[data-theme="dark"] .resumo-total-item.resumo-lucro{
+  background:#1e293b !important;
+  border:1px solid #334155 !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] .resumo-total-item span,
+html[data-theme="dark"] .resumo-total-item strong,
+html[data-theme="dark"] .resumo-total-item b,
+html[data-theme="dark"] .resumo-total-item div{
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] .resumo-grupo{
+  background:#1e293b !important;
+  border:1px solid #334155 !important;
+}
+html[data-theme="dark"] .resumo-grupo > summary{
+  background:#0f172a !important;
+  color:#f8fafc !important;
+}
+html[data-theme="dark"] .resumo-grupo-body{
+  background:#151c2c !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] .resumo-label,
+html[data-theme="dark"] .resumo label,
+html[data-theme="dark"] .resumo p,
+html[data-theme="dark"] .resumo span,
+html[data-theme="dark"] .resumo small{
+  color:#cbd5e1 !important;
+}
+html[data-theme="dark"] .resumo input,
+html[data-theme="dark"] .resumo select,
+html[data-theme="dark"] .resumo textarea{
+  background:#0f172a !important;
+  color:#f8fafc !important;
+  border:1px solid #475569 !important;
+}
+html[data-theme="dark"] .resumo-row-2 > *,
+html[data-theme="dark"] .resumo-grupo-body > div{
+  background:transparent !important;
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] .resumo-acoes button,
+html[data-theme="dark"] .resumo button{
+  background:#334155 !important;
+  color:#f8fafc !important;
+  border:1px solid #64748b !important;
+}
+html[data-theme="dark"] .resumo .btn-primary,
+html[data-theme="dark"] .resumo .btn-green,
+html[data-theme="dark"] .resumo-acoes .btn-primary,
+html[data-theme="dark"] .resumo-acoes .btn-green{
+  color:#fff !important;
+}
+html[data-theme="dark"] .resumo .btn-primary,
+html[data-theme="dark"] .resumo-acoes .btn-primary{
+  background:linear-gradient(135deg,#dc2626,#b91c1c) !important;
+  border-color:#dc2626 !important;
+}
+html[data-theme="dark"] .resumo .btn-green,
+html[data-theme="dark"] .resumo-acoes .btn-green{
+  background:#059669 !important;
+  border-color:#059669 !important;
+}
+html[data-theme="dark"] .resumo-fechar-mobile{
+  background:#334155 !important;
+  color:#f8fafc !important;
+}
+
+/* AGENDA — nomes legíveis nos cards */
+html[data-theme="dark"] .ag-item,
+html[data-theme="dark"] .ag-item-main,
+html[data-theme="dark"] #lista-agenda .ag-item,
+html[data-theme="dark"] #lista-agenda .ag-item-main{
+  background:#151c2c !important;
+  border:1px solid #334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] .ag-nome,
+html[data-theme="dark"] #lista-agenda .ag-nome,
+html[data-theme="dark"] .ag-info .ag-nome{
+  color:#f8fafc !important;
+  font-weight:800 !important;
+}
+html[data-theme="dark"] .ag-sub,
+html[data-theme="dark"] .ag-hora,
+html[data-theme="dark"] #lista-agenda .ag-sub,
+html[data-theme="dark"] #lista-agenda .ag-hora{
+  color:#94a3b8 !important;
+}
+html[data-theme="dark"] .ag-mais,
+html[data-theme="dark"] .ag-mais > summary{
+  color:#cbd5e1 !important;
+  border-color:#334155 !important;
+}
+html[data-theme="dark"] .ag-acoes button,
+html[data-theme="dark"] .agenda-btn{
+  background:#334155 !important;
+  color:#f8fafc !important;
+  border:1px solid #64748b !important;
+}
+html[data-theme="dark"] .agenda-btn-ok{
+  background:#059669 !important;
+  color:#fff !important;
+}
+html[data-theme="dark"] .agenda-btn-cancel{
+  background:#dc2626 !important;
+  color:#fff !important;
+}
+/* bolinhas / dots no calendário com nome */
+html[data-theme="dark"] .cal-cell .cal-dot-label,
+html[data-theme="dark"] .cal-cell .cal-event,
+html[data-theme="dark"] .cal-cell .cal-ag-nome,
+html[data-theme="dark"] .cal-cell small,
+html[data-theme="dark"] .cal-cell .ag-mini-nome{
+  color:#e2e8f0 !important;
+}
+
+/* LOJA — categorias legíveis */
+html[data-theme="dark"] #botoesCategoriasLoja button,
+html[data-theme="dark"] #aba-loja .categorias-materiais button,
+html[data-theme="dark"] .cat-loja-chip,
+html[data-theme="dark"] .cat-loja-chip button,
+html[data-theme="dark"] #aba-loja .cat-loja-chip{
+  background:#1e293b !important;
+  color:#f1f5f9 !important;
+  border:1px solid #475569 !important;
+}
+html[data-theme="dark"] #botoesCategoriasLoja button.active,
+html[data-theme="dark"] #aba-loja .categorias-materiais button.active,
+html[data-theme="dark"] .cat-loja-chip.is-active,
+html[data-theme="dark"] .cat-loja-chip.active{
+  background:#dc2626 !important;
+  color:#ffffff !important;
+  border-color:#dc2626 !important;
+}
+html[data-theme="dark"] #aba-loja .cat-loja-chip span,
+html[data-theme="dark"] #botoesCategoriasLoja button span{
+  color:inherit !important;
+}
+
+/* Nomes no grid do calendário */
+html[data-theme="dark"] .cal-nome-evt,
+html[data-theme="dark"] #cal-grid .cal-nome-evt,
+html[data-theme="dark"] .cal-cell .cal-nome-evt,
+html[data-theme="dark"] .cal-cell-body,
+html[data-theme="dark"] .cal-cell-body span{
+  color:#e2e8f0 !important;
+}
+html[data-theme="dark"] .cal-num,
+html[data-theme="dark"] #cal-grid .cal-num{
+  color:#f8fafc !important;
+  font-weight:800 !important;
+}
+html[data-theme="dark"] button.cal-cell,
+html[data-theme="dark"] #cal-grid .cal-cell{
+  background:#151c2c !important;
+  border:1px solid #334155 !important;
+  color:#f1f5f9 !important;
+}
+html[data-theme="dark"] button.cal-cell-hoje,
+html[data-theme="dark"] .cal-cell-hoje{
+  border-color:#dc2626 !important;
+  background:#1c1212 !important;
+}
+html[data-theme="dark"] button.cal-cell-sel,
+html[data-theme="dark"] .cal-cell-sel{
+  border-color:#f59e0b !important;
+  background:#1c1708 !important;
+}
+html[data-theme="dark"] .cal-badge{
+  color:#fff !important;
+}
