@@ -1373,3 +1373,171 @@ html[data-theme="dark"] #aba-vitrine [style*="background:#f8fafc"]{
   background:#151c2c !important;
   color:#e2e8f0 !important;
 }
+
+/* =========================================================
+   TEMA ESCURO — botões legíveis (força global)
+   ========================================================= */
+html[data-theme="dark"] button,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] [type="button"],
+html[data-theme="dark"] [type="submit"],
+html[data-theme="dark"] .btn-page-action,
+html[data-theme="dark"] .btn-page-secondary,
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .btn-green,
+html[data-theme="dark"] .btn-minus,
+html[data-theme="dark"] .btn-plus,
+html[data-theme="dark"] .mat-icon-btn,
+html[data-theme="dark"] .cal-chip,
+html[data-theme="dark"] .cal-nav-btn,
+html[data-theme="dark"] .dash-qa,
+html[data-theme="dark"] .dash-tab,
+html[data-theme="dark"] .dash-link,
+html[data-theme="dark"] .dash-ag-nav-btn,
+html[data-theme="dark"] .chip-periodo,
+html[data-theme="dark"] .rf-chip,
+html[data-theme="dark"] .rf-btn,
+html[data-theme="dark"] .rf-dot,
+html[data-theme="dark"] .agenda-chip,
+html[data-theme="dark"] .hist-btn,
+html[data-theme="dark"] .top-actions button,
+html[data-theme="dark"] .categorias-materiais button,
+html[data-theme="dark"] #botoesCategorias button,
+html[data-theme="dark"] #botoesCategoriasLoja button,
+html[data-theme="dark"] .menu-mais-panel button,
+html[data-theme="dark"] .cidade-pasta-head,
+html[data-theme="dark"] .bn-item,
+html[data-theme="dark"] .side-item{
+  background-color:#1e293b !important;
+  color:#f1f5f9 !important;
+  border-color:#475569 !important;
+}
+
+/* Botões de ação coloridos — texto sempre branco */
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .btn-green,
+html[data-theme="dark"] .btn-plus,
+html[data-theme="dark"] button.btn-primary,
+html[data-theme="dark"] button.btn-green,
+html[data-theme="dark"] .hist-btn-edit,
+html[data-theme="dark"] .hist-btn-carregar-mais,
+html[data-theme="dark"] .rf-btn-prim,
+html[data-theme="dark"] .sidebar .side-item.active,
+html[data-theme="dark"] .categorias-materiais button.active,
+html[data-theme="dark"] #botoesCategorias button.active,
+html[data-theme="dark"] #botoesCategoriasLoja button.active,
+html[data-theme="dark"] .chip-periodo.active,
+html[data-theme="dark"] .dash-tab.active,
+html[data-theme="dark"] .rf-chip.active,
+html[data-theme="dark"] .rf-dot.active,
+html[data-theme="dark"] .agenda-chip.active{
+  color:#ffffff !important;
+}
+
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] button.btn-primary,
+html[data-theme="dark"] .hist-btn-carregar-mais,
+html[data-theme="dark"] .rf-btn-prim{
+  background:linear-gradient(135deg,#dc2626,#b91c1c) !important;
+  border-color:#dc2626 !important;
+}
+html[data-theme="dark"] .btn-green,
+html[data-theme="dark"] button.btn-green{
+  background:#059669 !important;
+  border-color:#059669 !important;
+}
+html[data-theme="dark"] .btn-plus{
+  background:#dc2626 !important;
+  border-color:#dc2626 !important;
+}
+html[data-theme="dark"] .sidebar .side-item.active{
+  background:linear-gradient(135deg,#dc2626,#b91c1c) !important;
+}
+html[data-theme="dark"] .categorias-materiais button.active,
+html[data-theme="dark"] #botoesCategorias button.active,
+html[data-theme="dark"] #botoesCategoriasLoja button.active,
+html[data-theme="dark"] .chip-periodo.active,
+html[data-theme="dark"] .dash-tab.active,
+html[data-theme="dark"] .rf-chip.active,
+html[data-theme="dark"] .rf-dot.active,
+html[data-theme="dark"] .agenda-chip.active{
+  background:#dc2626 !important;
+  border-color:#dc2626 !important;
+}
+
+/* Botões com estilo inline branco / amarelo / claro */
+html[data-theme="dark"] button[style*="background:#fff"],
+html[data-theme="dark"] button[style*="background: #fff"],
+html[data-theme="dark"] button[style*="background:#ffffff"],
+html[data-theme="dark"] button[style*="background:white"],
+html[data-theme="dark"] button[style*="background: #f"],
+html[data-theme="dark"] button[style*="background:#f8fafc"],
+html[data-theme="dark"] button[style*="background:#f1f5f9"],
+html[data-theme="dark"] button[style*="background:#e2e8f0"],
+html[data-theme="dark"] button[style*="background:#ffd700"],
+html[data-theme="dark"] button[style*="background: #ffd700"],
+html[data-theme="dark"] button[style*="background:#fbbf24"],
+html[data-theme="dark"] button[style*="background:#fef3c7"]{
+  background:#334155 !important;
+  color:#f8fafc !important;
+  border:1px solid #64748b !important;
+}
+
+/* Amarelo (Novo Orç.) — mantém legível */
+html[data-theme="dark"] button[style*="background:#ffd700"],
+html[data-theme="dark"] button[style*="background: #ffd700"]{
+  background:#ca8a04 !important;
+  color:#fff !important;
+}
+
+/* Verde inline */
+html[data-theme="dark"] button[style*="background:#00a651"],
+html[data-theme="dark"] button[style*="background:#22c55e"],
+html[data-theme="dark"] button[style*="background:#10b981"],
+html[data-theme="dark"] button[style*="background:#059669"]{
+  color:#ffffff !important;
+}
+
+/* Vermelho inline */
+html[data-theme="dark"] button[style*="background:#d40000"],
+html[data-theme="dark"] button[style*="background:#dc2626"],
+html[data-theme="dark"] button[style*="background:#ef4444"],
+html[data-theme="dark"] button[style*="background:#b91c1c"]{
+  color:#ffffff !important;
+}
+
+/* Texto preto em botão — força claro */
+html[data-theme="dark"] button[style*="color:#111"],
+html[data-theme="dark"] button[style*="color: #111"],
+html[data-theme="dark"] button[style*="color:#000"],
+html[data-theme="dark"] button[style*="color:#0f172a"],
+html[data-theme="dark"] button[style*="color:#1e293b"],
+html[data-theme="dark"] button[style*="color:#333"]{
+  color:#f8fafc !important;
+}
+
+/* Logout / sair */
+html[data-theme="dark"] .btn-logout,
+html[data-theme="dark"] .side-logout,
+html[data-theme="dark"] .bn-sair{
+  background:rgba(220,38,38,.2) !important;
+  color:#fecaca !important;
+  border-color:rgba(220,38,38,.4) !important;
+}
+
+/* Bottom nav items */
+html[data-theme="dark"] .bn-item{
+  background:transparent !important;
+  color:#94a3b8 !important;
+  border-color:transparent !important;
+}
+html[data-theme="dark"] .bn-item.active{
+  background:rgba(220,38,38,.2) !important;
+  color:#fff !important;
+}
+
+/* Fechar resumo mobile */
+html[data-theme="dark"] #btn-fechar-resumo{
+  background:#334155 !important;
+  color:#f1f5f9 !important;
+}
