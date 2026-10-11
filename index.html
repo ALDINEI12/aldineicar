@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=80">
+    <link rel="stylesheet" href="style.min.css?v=88">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=80"></script>
+    <script src="script.min.js?v=88"></script>
 
     <style>
        
@@ -346,7 +346,11 @@ function mostrarSecao(id) {
                   <span class="side-ico" aria-hidden="true">📦</span>
                   <span class="side-txt">Materiais</span>
                 </button>
-                <button type="button" id="btn-menu-maoobra" class="side-item" data-aba="maoobra" onclick="mostrarAba('maoobra')">
+                <button type="button" id="btn-menu-pdfeditor" class="side-item" data-aba="pdfeditor" onclick="mostrarAba('pdfeditor')">
+                  <span class="side-ico" aria-hidden="true">📝</span>
+                  <span class="side-txt">Editor de PDF</span>
+                </button>
+                <button type="button" id="btn-menu-maoobra" class="side-item" data-aba="maoobra" style="display:none" onclick="mostrarAba('maoobra')">
                   <span class="side-ico" aria-hidden="true">🔧</span>
                   <span class="side-txt">Mão de obra</span>
                 </button>
@@ -760,6 +764,8 @@ function mostrarSecao(id) {
                             </div>
                             <div class="cards" id="lista"></div>
                         </div>
+
+<div id="aba-pdfeditor" style="display:none"></div>
 
 <div id="aba-maoobra" style="display:none">
                             <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
@@ -1311,7 +1317,10 @@ function mostrarSecao(id) {
         <button type="button" class="bn-item" data-aba="loja" onclick="mostrarAba('loja')">
             <span class="bn-icon">🛒</span><span class="bn-label">Loja</span>
         </button>
-        <button type="button" class="bn-item" data-aba="maoobra" onclick="mostrarAba('maoobra')">
+        <button type="button" class="bn-item" data-aba="pdfeditor" onclick="mostrarAba('pdfeditor')">
+            <span class="bn-icon">📝</span><span class="bn-label">PDF</span>
+        </button>
+        <button type="button" id="bn-maoobra" class="bn-item" data-aba="maoobra" style="display:none" onclick="mostrarAba('maoobra')">
             <span class="bn-icon">🔧</span><span class="bn-label">Mão obra</span>
         </button>
         <button type="button" class="bn-item" data-aba="clientes" onclick="mostrarAba('clientes')">
@@ -1345,7 +1354,8 @@ function mostrarSecao(id) {
     <div class="menu-mais-panel">
         <div class="menu-mais-handle"></div>
         <p class="menu-mais-title">Mais opções</p>
-        <button type="button" onclick="mostrarAba('maoobra');toggleMenuMais();"><span>🔧</span> Mão de Obra</button>
+        <button type="button" onclick="mostrarAba('pdfeditor');toggleMenuMais();"><span>📝</span> Editor de PDF</button>
+        <button type="button" id="mais-maoobra" style="display:none" onclick="mostrarAba('maoobra');toggleMenuMais();"><span>🔧</span> Mão de Obra</button>
         <button type="button" onclick="mostrarAba('clientes');toggleMenuMais();"><span>👤</span> Clientes</button>
         <button type="button" onclick="mostrarAba('historico');toggleMenuMais();"><span>📋</span> Serviços</button>
         <button type="button" onclick="mostrarAba('vendas');toggleMenuMais();"><span>💰</span> Vendas</button>
