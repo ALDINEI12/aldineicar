@@ -9,13 +9,13 @@
 
     <title>ALDINEICAR - Sistema Profissional</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.min.css?v=88">
+    <link rel="stylesheet" href="style.min.css?v=89">
 
 
   
     <!-- Supabase: necessário no login. Chart.js / jsPDF / QRCode entram sob demanda (lazy). -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.min.js?v=88"></script>
+    <script src="script.min.js?v=89"></script>
 
     <style>
        
@@ -349,10 +349,6 @@ function mostrarSecao(id) {
                 <button type="button" id="btn-menu-pdfeditor" class="side-item" data-aba="pdfeditor" onclick="mostrarAba('pdfeditor')">
                   <span class="side-ico" aria-hidden="true">📝</span>
                   <span class="side-txt">Editor de PDF</span>
-                </button>
-                <button type="button" id="btn-menu-maoobra" class="side-item" data-aba="maoobra" style="display:none" onclick="mostrarAba('maoobra')">
-                  <span class="side-ico" aria-hidden="true">🔧</span>
-                  <span class="side-txt">Mão de obra</span>
                 </button>
                 <button type="button" class="side-item" data-aba="agenda" onclick="mostrarAba('agenda')">
                   <span class="side-ico" aria-hidden="true">📅</span>
@@ -767,21 +763,6 @@ function mostrarSecao(id) {
 
 <div id="aba-pdfeditor" style="display:none"></div>
 
-<div id="aba-maoobra" style="display:none">
-                            <h2 id="titulo-aba-maoobra">Mão de Obra</h2>
-                            
-                            <div id="conteudo-mao-obra-real">
-                                <div class="card" style="margin-bottom:20px; margin-top: 15px;">
-                                    <input type="text" id="nomeServico" placeholder="Nome da peça ou serviço" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                                    <input type="number" id="valorServico" placeholder="Valor da mão de obra" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ccc;border-radius:10px;">
-                                    <button class="btn-green add-servico-btn" onclick="adicionarMaoObra()">
-                                        <span>＋</span> Adicionar Serviço
-                                    </button>
-                                </div>
-                                <div id="listaMaoObra"></div>
-                            </div>
-                            
-
                             <div id="conteudo-logistica-eletricista" style="display:none; margin-top:15px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <h4 style="margin-top: 0; color: #1e293b; font-size: 15px;">📋 CÁLCULO DE DESLOCAMENTO</h4>
                             <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Preencha os dados abaixo para adicionar automaticamente o custo de gasolina ao resumo.</p>
@@ -810,7 +791,6 @@ function mostrarSecao(id) {
                             <span id="custo-gasolina-txt" style="color: #e11d48; font-size: 16px; font-weight: bold;">R$ 0,00</span>
                             </div>
                             </div>
-                        </div>
 
                         <div id="aba-clientes" style="display:none">
                             <h2>Clientes Cadastrados</h2>
@@ -984,58 +964,38 @@ function mostrarSecao(id) {
                             </div>
                         </div>
 <div id="aba-gastos" style="display:none;">
-                            <div class="page-head">
-                                <div class="page-head-text">
-                                    <h2>💸 Gastos Oficina</h2>
-                                    <p style="font-size:13px;color:var(--muted);margin:4px 0 0;">Despesas do mês (aluguel, energia, salários…). Entram automaticamente no Dashboard e no lucro.</p>
-                                </div>
-                            </div>
+                        <div class="gst-topo">
+                            <h2>💸 Gastos</h2>
+                            <button type="button" class="btn-page-action" onclick="gstAbrirForm(true)">＋ Nova despesa</button>
+                        </div>
+                        <div class="gst-mes">
+                            <button type="button" class="gst-mes-btn" onclick="gstMudarMes(-1)" aria-label="Mês anterior">‹</button>
+                            <input type="month" id="gastosFiltroMes" onchange="onFiltroMesGastosChange()">
+                            <button type="button" class="gst-mes-btn" onclick="gstMudarMes(1)" aria-label="Próximo mês">›</button>
+                            <span id="gastosContagemMes" class="gst-mes-cont">—</span>
+                            <strong id="gastosTotalMes" style="display:none">R$ 0,00</strong>
+                        </div>
+                        <div id="gstResumo"></div>
+                        <div id="gstFixasBox"></div>
+                        <div id="lista-gastos-oficina"></div>
 
-                            <div class="grupo-card">
-                                <div class="grupo-card-head">
-                                    <span>Nova despesa</span>
-                                </div>
-                                <div class="grupo-card-body">
-                                    <input type="hidden" id="gastoEditId" value="">
-                                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-                                        <div style="flex:1;min-width:140px;">
-                                            <label class="loja-label">Data *</label>
-                                            <input type="date" id="gastoData" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
-                                        </div>
-                                        <div style="flex:1;min-width:140px;">
-                                            <label class="loja-label">Categoria</label>
-                                            <select id="gastoCategoria" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);"></select>
-                                        </div>
-                                        <div style="flex:1;min-width:120px;">
-                                            <label class="loja-label">Valor (R$) *</label>
-                                            <input type="number" id="gastoValor" step="0.01" min="0" placeholder="0,00" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
-                                        </div>
-                                    </div>
-                                    <label class="loja-label">Descrição *</label>
-                                    <input type="text" id="gastoDescricao" placeholder="Ex: Conta de luz julho" style="width:100%;margin-bottom:10px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
-                                    <label class="loja-label">Observação (opcional)</label>
-                                    <input type="text" id="gastoObs" placeholder="Detalhe extra..." style="width:100%;margin-bottom:12px;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;background:var(--bg-2);color:var(--ink);">
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                        <button type="button" class="btn-loja-prim" id="btnSalvarGasto" onclick="salvarGastoOficina()">＋ Adicionar despesa</button>
-                                        <button type="button" class="btn-loja-sec" id="btnCancelarEditGasto" style="display:none;" onclick="cancelarEdicaoGasto()">Cancelar edição</button>
-                                    </div>
-                                </div>
+                        <div id="gst-form-fundo" style="display:none" onclick="gstFecharForm()"></div>
+                        <div id="gst-form-card" style="display:none">
+                            <div class="gst-form-top"><b id="gst-form-titulo">＋ Nova despesa</b><button type="button" class="gst-x" onclick="gstFecharForm()" aria-label="Fechar">✕</button></div>
+                            <input type="hidden" id="gastoEditId" value="">
+                            <div class="gst-form-grid">
+                                <div><label class="gst-lab" for="gastoData">Data *</label><input type="date" id="gastoData" class="gst-in"></div>
+                                <div><label class="gst-lab" for="gastoValor">Valor (R$) *</label><input type="number" id="gastoValor" class="gst-in" step="0.01" min="0" placeholder="0,00" inputmode="decimal"></div>
+                                <div class="full"><label class="gst-lab" for="gastoCategoria">Categoria</label><select id="gastoCategoria" class="gst-in"></select></div>
+                                <div class="full"><label class="gst-lab" for="gastoDescricao">Descrição *</label><input type="text" id="gastoDescricao" class="gst-in" placeholder="Ex: Conta de luz julho"></div>
+                                <div class="full"><label class="gst-lab" for="gastoObs">Observação (opcional)</label><input type="text" id="gastoObs" class="gst-in" placeholder="Detalhe extra..."></div>
                             </div>
-
-                            <div class="grupo-card">
-                                <div class="grupo-card-head" style="flex-wrap:wrap;gap:10px;">
-                                    <span>Despesas do mês</span>
-                                    <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;">
-                                        <input type="month" id="gastosFiltroMes" onchange="onFiltroMesGastosChange()" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;background:#fff;color:var(--ink);">
-                                        <strong id="gastosTotalMes" style="color:#dc2626;font-size:15px;">R$ 0,00</strong>
-                                        <span id="gastosContagemMes" class="grupo-card-sub">—</span>
-                                    </div>
-                                </div>
-                                <div class="grupo-card-body" style="padding-top:8px;">
-                                    <div id="lista-gastos-oficina"></div>
-                                </div>
+                            <div class="gst-form-btns">
+                                <button type="button" class="btn-loja-prim" id="btnSalvarGasto" onclick="salvarGastoOficina()">＋ Adicionar despesa</button>
+                                <button type="button" class="btn-loja-sec" id="btnCancelarEditGasto" style="display:none;" onclick="cancelarEdicaoGasto()">Cancelar edição</button>
                             </div>
                         </div>
+                    </div>
 
                     </div>
 
@@ -1049,10 +1009,6 @@ function mostrarSecao(id) {
                             <div class="resumo-total-item">
                                 <span>Materiais</span>
                                 <strong>R$ <span id="totalMateriais">0.00</span></strong>
-                            </div>
-                            <div class="resumo-total-item">
-                                <span>Mão de obra</span>
-                                <strong>R$ <span id="totalMaoObra">0.00</span></strong>
                             </div>
                             <div class="resumo-total-item resumo-lucro">
                                 <span>Lucro</span>
@@ -1320,9 +1276,6 @@ function mostrarSecao(id) {
         <button type="button" class="bn-item" data-aba="pdfeditor" onclick="mostrarAba('pdfeditor')">
             <span class="bn-icon">📝</span><span class="bn-label">PDF</span>
         </button>
-        <button type="button" id="bn-maoobra" class="bn-item" data-aba="maoobra" style="display:none" onclick="mostrarAba('maoobra')">
-            <span class="bn-icon">🔧</span><span class="bn-label">Mão obra</span>
-        </button>
         <button type="button" class="bn-item" data-aba="clientes" onclick="mostrarAba('clientes')">
             <span class="bn-icon">👤</span><span class="bn-label">Clientes</span>
         </button>
@@ -1355,7 +1308,6 @@ function mostrarSecao(id) {
         <div class="menu-mais-handle"></div>
         <p class="menu-mais-title">Mais opções</p>
         <button type="button" onclick="mostrarAba('pdfeditor');toggleMenuMais();"><span>📝</span> Editor de PDF</button>
-        <button type="button" id="mais-maoobra" style="display:none" onclick="mostrarAba('maoobra');toggleMenuMais();"><span>🔧</span> Mão de Obra</button>
         <button type="button" onclick="mostrarAba('clientes');toggleMenuMais();"><span>👤</span> Clientes</button>
         <button type="button" onclick="mostrarAba('historico');toggleMenuMais();"><span>📋</span> Serviços</button>
         <button type="button" onclick="mostrarAba('vendas');toggleMenuMais();"><span>💰</span> Vendas</button>
