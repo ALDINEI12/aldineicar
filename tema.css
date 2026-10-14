@@ -1,0 +1,589 @@
+/* ==========================================================================
+   ALDINEICAR — tema v93 ("chão de oficina")
+   Camada de estilo carregada DEPOIS de style.min.css. Para voltar ao visual
+   antigo, basta remover o <link> deste arquivo no index.html.
+
+   Ideia: cromo escuro de asfalto (cabeçalho, menu), conteúdo em cinza
+   concreto com cartões planos, tipografia condensada de placa/ordem de
+   serviço nos títulos e números, e o vermelho da marca usado só onde
+   importa: item ativo, botão principal e foco.
+   ========================================================================== */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --font: "Barlow", "Bahnschrift", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Barlow Condensed", "Bahnschrift", "Roboto Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif;
+
+  --bg: #e5e7ea;
+  --bg-2: #eef0f2;
+  --surface: #ffffff;
+  --ink: #13161b;
+  --ink-2: #262b33;
+  --muted: #59616c;
+  --muted-2: #8a919b;
+  --line: #d5d9de;
+  --line-2: #bcc3cc;
+  --brand: #dc2626;
+  --brand-2: #b91c1c;
+  --brand-soft: rgba(220, 38, 38, .10);
+  --ok: #0f8a5f;
+  --ok-soft: #e4f4ec;
+  --warn: #c77d00;
+  --info: #1f5fbf;
+
+  /* cromo (cabeçalho, menu lateral, barra inferior) */
+  --chrome: #12151a;
+  --chrome-2: #1a1e25;
+  --chrome-line: rgba(255, 255, 255, .08);
+  --chrome-ink: #eceef2;
+  --chrome-muted: #939ba7;
+
+  --radius: 10px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --shadow: 0 1px 0 rgba(19, 22, 27, .04), 0 1px 3px rgba(19, 22, 27, .07);
+  --shadow-md: 0 2px 10px rgba(19, 22, 27, .10);
+  --shadow-lg: 0 14px 36px rgba(19, 22, 27, .20);
+  --nav-h: 66px;
+  --header-h: 60px;
+  --ring: 0 0 0 3px rgba(220, 38, 38, .28);
+}
+
+html[data-theme="dark"] {
+  --bg: #0e1013;
+  --bg-2: #14171c;
+  --surface: #1a1e25;
+  --ink: #f4f5f7;
+  --ink-2: #e6e8ec;
+  --muted: #b3bac4;
+  --muted-2: #8a919b;
+  --line: #2a303a;
+  --line-2: #3a424e;
+  --chrome: #0a0c0f;
+  --chrome-2: #14171c;
+  --shadow: 0 1px 0 rgba(0, 0, 0, .4), 0 1px 3px rgba(0, 0, 0, .5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .5);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, .6);
+}
+
+/* ---------- 2. Base e tipografia ---------- */
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+@media (min-width: 993px) {
+  body { background: var(--bg) !important; }
+  html[data-theme="dark"] body { background: var(--bg) !important; }
+}
+button, input, select, textarea { font-family: inherit; }
+body :where(h1, h2, h3) { letter-spacing: 0; }
+
+body .page-head h2,
+body .page-head-text h2,
+body .aba-container > h2 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0;
+  margin-bottom: 6px;
+}
+@media (max-width: 992px) {
+  body .page-head h2,
+  body .page-head-text h2,
+  body .aba-container > h2 { font-size: 28px; }
+}
+
+/* números alinhados em tabelas, totais e KPIs */
+body .dash-table td, body .dash-kpi-value, body .resumo-total-item strong,
+body .hf-valor, body .vt-card-price { font-variant-numeric: tabular-nums; }
+
+/* ---------- 3. Cabeçalho do app ---------- */
+body #appContainer > header {
+  background: var(--chrome);
+  border-bottom: 1px solid var(--chrome-line);
+  box-shadow: none;
+}
+@media (min-width: 993px) {
+  body #appContainer > header {
+    background: var(--chrome);
+    border-bottom: 1px solid var(--chrome-line);
+    box-shadow: none;
+  }
+}
+body .logo-img { height: 34px; }
+body #headerTextoFallback { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: .2px; }
+
+body #appContainer > header .search {
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid var(--chrome-line);
+  font-size: 15px;
+  padding: 10px 14px;
+}
+body #appContainer > header .search:focus {
+  border-color: var(--brand);
+  background: rgba(255, 255, 255, .10);
+  box-shadow: var(--ring);
+}
+body #statusRedeBadge {
+  border-radius: var(--radius-xs) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 5px 10px !important;
+  box-shadow: none !important;
+}
+
+/* celular: cabeçalho enxuto, sai da tela ao rolar (sobra mais espaço para o conteúdo) */
+@media (max-width: 992px) {
+  body #appContainer > header {
+    position: static;
+    padding: 10px 14px 12px;
+    gap: 10px;
+    align-items: stretch;
+  }
+  body #appContainer > header > div:first-child {
+    width: 100%;
+    justify-content: space-between;
+  }
+  body #appContainer > header .logo-container { justify-content: flex-start; }
+  body #appContainer > header .search {
+    width: 100%;
+    height: 42px;
+    font-size: 16px;
+  }
+}
+
+/* ---------- 4. Menu lateral (PC) ---------- */
+@media (min-width: 993px) {
+  body .sidebar,
+  body aside.sidebar {
+    background: var(--chrome) !important;
+    background-image: none !important;
+    border-right: 1px solid var(--chrome-line);
+  }
+  body .side-brand { padding: 20px 18px 16px; border-bottom: 1px solid var(--chrome-line); }
+  body .side-brand-mark {
+    border-radius: var(--radius-sm);
+    background: var(--brand);
+    box-shadow: none;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  body .side-brand-txt strong { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: .3px; color: var(--chrome-ink); }
+  body .side-brand-txt span { color: var(--chrome-muted); font-size: 12px; font-weight: 500; }
+
+  body .side-label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    color: var(--chrome-muted) !important;
+    padding: 0 12px !important;
+    margin: 0 0 4px !important;
+  }
+  body .side-group { margin-bottom: 14px; }
+
+  body .sidebar button.side-item,
+  body .sidebar .side-item {
+    position: relative;
+    border-radius: var(--radius-sm) !important;
+    padding: 10px 12px 10px 14px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--chrome-muted) !important;
+  }
+  body .sidebar .side-item .side-ico {
+    background: transparent;
+    width: 26px;
+    height: 26px;
+    font-size: 17px;
+    border-radius: 0;
+  }
+  body .sidebar .side-item:hover {
+    background: rgba(255, 255, 255, .06) !important;
+    color: #fff !important;
+  }
+  /* item ativo: faixa vermelha na lateral, como marcação de vaga no chão */
+  body .sidebar .side-item.active {
+    background: rgba(255, 255, 255, .08) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+  }
+  body .sidebar .side-item.active::before {
+    left: 0; top: 7px; bottom: 7px;
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+    background: var(--brand);
+  }
+  body .sidebar .side-item.active .side-ico { background: transparent; }
+  body .sidebar .side-item-muted { color: var(--chrome-muted) !important; }
+
+  body .side-foot { border-top: 1px solid var(--chrome-line); }
+  body .sidebar .btn-logout,
+  body .sidebar .side-logout {
+    background: transparent !important;
+    border: 1px solid var(--chrome-line) !important;
+    color: #fda4a4 !important;
+    font-weight: 600 !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  body .sidebar .btn-logout:hover,
+  body .sidebar .side-logout:hover {
+    background: rgba(220, 38, 38, .14) !important;
+    color: #fff !important;
+  }
+}
+
+/* ---------- 5. Barra inferior e folha "mais" (celular) ---------- */
+@media (max-width: 992px) {
+  body .bottom-nav,
+  body #bottom-nav.bottom-nav {
+    background: var(--chrome) !important;
+    border-top: 1px solid var(--chrome-line);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  body .bn-scroll { padding: 0 6px; gap: 2px; }
+  body .bn-item {
+    min-width: 66px;
+    border-radius: var(--radius-sm);
+    color: var(--chrome-muted);
+  }
+  body .bn-item .bn-icon { font-size: 21px; }
+  body .bn-item .bn-label {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .2px;
+  }
+  body .bn-item.active {
+    color: #fff;
+    background: rgba(255, 255, 255, .07);
+  }
+  body .bn-item.active .bn-icon { transform: none; }
+  /* faixa vermelha no topo do item ativo */
+  body .bn-item.active::after {
+    top: 0;
+    width: 30px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--brand);
+  }
+  body .bn-item.bn-sair { color: #fda4a4; }
+
+  body #btn-resumo-flutuante {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--brand);
+    box-shadow: var(--shadow-lg);
+  }
+}
+body .menu-mais-panel { border-radius: 16px 16px 0 0; box-shadow: var(--shadow-lg); }
+body .menu-mais-handle { background: var(--line-2); }
+body .menu-mais-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+body .menu-mais-panel button { border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; }
+body .menu-mais-sair { border-top-color: var(--line) !important; }
+
+/* ---------- 6. Botões ---------- */
+body .top-actions button { border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; }
+body .top-actions button:active { transform: none; filter: brightness(.94); }
+
+body .btn-primary {
+  background: var(--brand);
+  box-shadow: none;
+}
+body .btn-primary:hover { background: var(--brand-2); filter: none; }
+body .btn-green {
+  background: var(--ok);
+  box-shadow: none;
+}
+body .btn-green:hover { background: #0b7350; filter: none; }
+
+body .chip-periodo,
+body .chip-refresh,
+body .chip-alerta {
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+body .chip-periodo:hover,
+body .chip-periodo.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+html[data-theme="dark"] body .chip-periodo.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+/* ---------- 7. Cartões, KPIs, tabelas ---------- */
+body .card,
+body .card-produto,
+body .mat-card,
+body .hist-card,
+body .agenda-card,
+body .ag-item-main,
+body .dash-kpi,
+body .grupo-card,
+body .cliente-item {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+/* o resumo abre em tela cheia no celular: só arredonda no PC */
+@media (min-width: 993px) {
+  body .resumo {
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+}
+/* sem "levitar" ao passar o mouse: só a borda reage */
+body .card:hover,
+body .mat-card:hover,
+body .dash-kpi:hover,
+body .hist-card:hover,
+body .agenda-card:hover {
+  transform: none;
+  box-shadow: var(--shadow);
+  border-color: var(--line-2);
+}
+@media (max-width: 992px) {
+  body .card, body .mat-card { border-radius: var(--radius); }
+}
+
+body .card h3,
+body .mat-nome { font-size: 15px; font-weight: 600; }
+
+body .dash-kpi { padding: 16px 18px; }
+body .dash-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+body .dash-kpi-value {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+body .dash-kpi-sub { font-size: 13px; font-weight: 500; }
+@media (max-width: 992px) {
+  body .dash-kpi-value { font-size: 30px; }
+}
+
+body .dash-table th {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  background: transparent;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line-2);
+}
+body .dash-table td { font-size: 14px; }
+body .dash-table tr:hover td { background: var(--bg-2); }
+
+body .dash-chart-card,
+body .dash-chart-wrap { border-radius: var(--radius-sm); background: var(--bg-2); }
+
+/* resumo do orçamento */
+body .resumo-header-bar h2,
+body .resumo > h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+body .resumo-total-item { border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; }
+body .resumo-total-item strong { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+body .resumo-lucro { background: var(--ok-soft) !important; border-color: #9fd6bb !important; }
+body .resumo-lucro strong { color: var(--ok) !important; }
+body .resumo-grupo { border-radius: var(--radius-sm); }
+body .resumo-acoes button,
+body .resumo button { border-radius: var(--radius-sm); font-weight: 600; }
+
+/* ---------- 8. Formulários ---------- */
+body .resumo-grupo-body input,
+body .resumo input,
+body .resumo select,
+body .resumo textarea,
+body .dash-periodo-custom input,
+body .aba-container input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+body .aba-container select,
+body .aba-container textarea {
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+body .aba-container input:focus,
+body .aba-container select:focus,
+body .aba-container textarea:focus,
+body .resumo input:focus,
+body .resumo select:focus,
+body .resumo textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--ring);
+}
+@media (max-width: 992px) {
+  /* 16px evita o zoom automático de campos no iPhone */
+  body input, body select, body textarea { font-size: 16px; }
+}
+
+/* ---------- 9. Modais ---------- */
+body .modal-content {
+  background: #14171c;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+}
+body .modal-content h2,
+body .modal-content h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+body .modal-content input,
+body .modal-content select,
+body .modal-content textarea {
+  background: #1d2128;
+  border: 1px solid #323945;
+  border-radius: var(--radius-sm);
+}
+body .modal-content input:focus,
+body .modal-content select:focus,
+body .modal-content textarea:focus {
+  border-color: var(--brand);
+  box-shadow: var(--ring);
+}
+body .modal-content button { border-radius: var(--radius-sm); font-weight: 600; }
+body .modal { background: rgba(6, 8, 11, .70); }
+
+/* modal de agendamento (cliente) */
+body .modal-agendamento-sheet { border-radius: 14px; }
+body .mag-input { border-radius: var(--radius-sm); }
+body .mag-label { font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+
+/* ---------- 10. Tela de login ---------- */
+body #loginOverlay { background: #0c0e11 !important; }
+body #loginBoxInner {
+  background: #14171c !important;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-top: 4px solid var(--brand);
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font);
+}
+body #loginBoxInner h1 {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: #fff !important;
+}
+body #loginBoxInner p { color: var(--chrome-muted) !important; }
+body #loginBoxInner input {
+  background: #1d2128 !important;
+  border: 1px solid #323945 !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 16px;
+}
+body #loginBoxInner input:focus {
+  outline: none;
+  border-color: var(--brand) !important;
+  box-shadow: var(--ring);
+}
+body #loginBoxInner button { border-radius: var(--radius-sm) !important; font-family: var(--font); }
+
+/* ---------- 11. Vitrine pública (visão do cliente) ---------- */
+body .vt-header { background: rgba(10, 12, 15, .92); border-bottom: 1px solid var(--chrome-line); }
+body .vt-logo {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: .4px;
+}
+body .vt-badge { border-radius: var(--radius-xs); font-size: 11px; font-weight: 600; background: var(--chrome-2); }
+
+body .vt-btn-agenda {
+  background: var(--brand);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+body .vt-btn-outline { border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; }
+
+body .vt-hero-inner {
+  background: var(--chrome-2);
+  border: 1px solid var(--chrome-line);
+  border-left: 5px solid var(--brand);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+body .vt-hero h1 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+body .vt-hero p { font-size: 15px; }
+@media (min-width: 720px) {
+  body .vt-hero h1 { font-size: 46px; }
+}
+body .vt-section-head h2 { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+
+body .vt-chip { border-radius: var(--radius-xs); font-size: 13px; font-weight: 600; }
+body .vt-chip.active { background: var(--brand); border-color: var(--brand); box-shadow: none; }
+
+body .vt-card {
+  border-radius: var(--radius);
+  background: var(--chrome-2);
+  border: 1px solid var(--chrome-line);
+  box-shadow: none;
+}
+body .vt-card-cat {
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+body .vt-card-title { font-size: 16px; font-weight: 700; letter-spacing: 0; }
+body .vt-card-price { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: 0; }
+body .vt-tab { font-weight: 600; }
+
+/* ---------- 12. Acabamento ---------- */
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+body .sidebar :where(button):focus-visible,
+body .bottom-nav :where(button):focus-visible { outline-color: #fff; }
+
+@media (min-width: 993px) {
+  body .side-nav { scrollbar-color: rgba(255, 255, 255, .18) transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .vt-card { animation: none; opacity: 1; transform: none; }
+}
